@@ -17,10 +17,19 @@ export const propertyWhatsappConfigsTable = pgTable(
     propertyId: integer("property_id").notNull().unique(),
     phoneNumber: text("phone_number"),
     status: text("status").notNull().default("disconnected"), // disconnected | pairing | connected
-    provider: text("provider").notNull().default("baileys"), // baileys | meta_cloud
+    provider: text("provider").notNull().default("baileys"), // baileys | meta_cloud | ultramsg
     metaAccessToken: text("meta_access_token"),
     metaPhoneNumberId: text("meta_phone_number_id"),
     metaWabaId: text("meta_waba_id"),
+    ultramsgInstanceId: text("ultramsg_instance_id"),
+    ultramsgToken: text("ultramsg_token"),
+    customGatewayUrl: text("custom_gateway_url"),
+    customGatewayToken: text("custom_gateway_token"),
+    customGatewayMethod: text("custom_gateway_method").default("POST"), // POST | GET
+    customGatewayPayloadType: text("custom_gateway_payload_type").default("json"), // json | urlencoded | query
+    customGatewayPhoneField: text("custom_gateway_phone_field").default("to"),
+    customGatewayMessageField: text("custom_gateway_message_field").default("body"),
+    customGatewayHeaders: text("custom_gateway_headers"), // optional JSON string for extra headers
     qrCode: text("qr_code"),
     isAutoSendEnabled: boolean("is_auto_send_enabled").notNull().default(true),
     welcomeTemplateAr: text("welcome_template_ar")

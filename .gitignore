@@ -56,3 +56,5 @@ postgres.zip
 local_backup.dump
 postgres_bin/
 artifacts/api-server/storage/
+.gradle/
+*.apk

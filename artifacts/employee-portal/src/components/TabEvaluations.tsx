@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Star, Send, Loader2, Info, BadgeCheck, Search, X } from "lucide-react";
 import { toast } from "sonner";
 import { useTheme } from "../lib/theme";
@@ -132,6 +132,21 @@ export default function TabEvaluations({ evaluations, onCommentAdded }: Props) {
   );
   const [submitted, setSubmitted] = useState<Set<number>>(new Set());
   const [loadingIds, setLoadingIds] = useState<number[]>([]);
+  // Custom evaluation categories from /api/portal-data/catalog so admin-added
+  // categories display their real labels instead of falling back to General.
+  const [catalogCats, setCatalogCats] = useState<Record<string, { label: string; labelAr: string }>>({});
+  useEffect(() => {
+    apiFetch("/api/portal-data/catalog", { credentials: "include" })
+      .then((r) => r.json())
+      .then((d) => {
+        const map: Record<string, { label: string; labelAr: string }> = {};
+        for (const c of d?.evaluationCategories || []) {
+          if (c?.key) map[c.key] = { label: c.name || c.key, labelAr: c.nameAr || c.name || c.key };
+        }
+        setCatalogCats(map);
+      })
+      .catch(() => {});
+  }, []);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<
     "all" | "pending" | "completed"
@@ -316,6 +331,9 @@ export default function TabEvaluations({ evaluations, onCommentAdded }: Props) {
         ) : null}
         {filteredEvaluations.map((evaluation) => {
           const category = getCategoryColor(evaluation.category);
+          const customCat = catalogCats[evaluation.category];
+          const catLabel = customCat ? customCat.label : category.label;
+          const catLabelAr = customCat ? customCat.labelAr : category.labelAr;
           const isLoading = loadingIds.includes(evaluation.id);
           const hasResponded = evaluation._hasResponded ?? false;
           const title = isRtl
@@ -340,7 +358,7 @@ export default function TabEvaluations({ evaluations, onCommentAdded }: Props) {
                   <span
                     className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${category.bg} ${category.text}`}
                   >
-                    {isRtl ? category.labelAr : category.label}
+                    {isRtl ? catLabelAr : catLabel}
                   </span>
                   {evaluation.department && (
                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-400/10 text-blue-400">

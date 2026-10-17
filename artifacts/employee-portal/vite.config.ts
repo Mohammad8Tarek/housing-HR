@@ -14,10 +14,9 @@ export default defineConfig({
       filename: "sw.ts",
       strategies: "injectManifest",
       manifest: {
-        name: "SUNRISE Resident Portal",
+        name: "Sunrise Housing - Employee Portal",
         short_name: "Sunrise Portal",
         description: "Manage your housing, requests, and documents",
-        id: "/",
         theme_color: "#f0a500",
         background_color: "#0d0f14",
         display: "standalone",
@@ -30,12 +29,6 @@ export default defineConfig({
             sizes: "192x192",
             type: "image/png",
             purpose: "any",
-          },
-          {
-            src: "/pwa-192x192.png",
-            sizes: "192x192",
-            type: "image/png",
-            purpose: "maskable",
           },
           {
             src: "/pwa-512x512.png",
@@ -113,8 +106,7 @@ export default defineConfig({
         ],
       },
       devOptions: {
-        enabled: true,
-        type: "module",
+        enabled: false,
         navigateFallback: "/index.html",
         suppressWarnings: true,
       },
@@ -124,14 +116,13 @@ export default defineConfig({
     alias: {
       "@": path.resolve(import.meta.dirname, "src"),
     },
-    dedupe: ["react", "react-dom", "@tanstack/react-query"],
   },
   server: {
     port: 10000,
     host: "0.0.0.0",
     allowedHosts: true,
     headers: {
-      "X-Content-Type-Options": "nosniff",
+      "X-Content-Type-Options": "nosniff"
     },
     proxy: {
       "/api": {
@@ -151,7 +142,7 @@ export default defineConfig({
     host: "0.0.0.0",
     allowedHosts: true,
     headers: {
-      "X-Content-Type-Options": "nosniff",
+      "X-Content-Type-Options": "nosniff"
     },
     proxy: {
       "/api": {
@@ -169,6 +160,5 @@ export default defineConfig({
   build: {
     target: "esnext",
     minify: "esbuild",
-    chunkSizeWarningLimit: 1000,
   },
 });

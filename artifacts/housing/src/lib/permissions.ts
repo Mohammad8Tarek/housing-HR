@@ -24,6 +24,8 @@ export const MODULES = [
   "hr_sync",
   "portal_notifications",
   "gate",
+  "payroll",
+  "attendance",
 ] as const;
 
 export type Module = (typeof MODULES)[number];
@@ -169,6 +171,8 @@ export const MODULE_ACTIONS: Record<Module, Action[]> = {
   hr_sync: ["view", "edit", "export"],
   portal_notifications: ["view", "create", "delete"],
   gate: ["view", "create", "export"],
+  payroll: ["view", "create", "edit", "delete", "export", "approve"],
+  attendance: ["view", "create", "edit", "delete", "export", "approve"],
 };
 
 export const moduleActions = (module: Module): Action[] =>
@@ -429,6 +433,8 @@ export const MODULE_LABELS: Record<Module, { en: string; ar: string }> = {
   hr_sync: { en: "HR Auto-Synchronization", ar: "الربط الآلي مع الموارد البشرية" },
   portal_notifications: { en: "Portal Push Notifications", ar: "إشعارات وتنبيهات البوابة" },
   gate: { en: "Gate & Security Scanner", ar: "بوابة السكن والتحقق الأمني" },
+  payroll: { en: "Payroll System", ar: "المرتبات وشؤون العاملين" },
+  attendance: { en: "Attendance & Biometrics", ar: "الحضور والانصراف وأجهزة البصمة" },
 };
 
 export const MODULE_DESCRIPTIONS: Record<Module, { en: string; ar: string }> = {
@@ -531,6 +537,14 @@ export const MODULE_DESCRIPTIONS: Record<Module, { en: string; ar: string }> = {
   gate: {
     en: "Resident digital QR pass scanner, gate entry/exit logging, and security statistics.",
     ar: "مسح تصاريح الدخول الرقمية QR، تسجيل حركة الدخول والخروج، وإحصائيات البوابة.",
+  },
+  payroll: {
+    en: "Salary calculation, allowances, deductions, WPS bank files, loans, and penalties.",
+    ar: "احتساب المرتبات والبدلات والاستقطاعات، ملفات البنوك، السلف والجزاءات.",
+  },
+  attendance: {
+    en: "Biometric clock-in integrations, shifts, rosters, delays, overtime, and punch processing.",
+    ar: "الربط بأجهزة وسيرفرات البصمة، الورديات، التأخيرات، الإضافي، ومعالجة الحضور اليومي.",
   },
 };
 
@@ -664,5 +678,16 @@ export const PERMISSION_GROUPS: Array<{
       ar: "المستخدمون ومصفوفة الصلاحيات وسجل النشاط الرقابي والأقفال الذكية.",
     },
     modules: ["users", "activity_log", "smart_locks"],
+  },
+  {
+    id: "payroll_attendance",
+    label: { en: "Payroll & Attendance", ar: "المرتبات والحضور والانصراف" },
+    labelEn: "Payroll & Attendance",
+    labelAr: "المرتبات والحضور والانصراف",
+    description: {
+      en: "Payroll calculation, salary slips, bank WPS files, biometric attendance, shifts, and leaves.",
+      ar: "حساب المرتبات وكشوفات البنوك، وسيرفرات البصمة، والورديات، والإجازات.",
+    },
+    modules: ["payroll", "attendance"],
   },
 ];

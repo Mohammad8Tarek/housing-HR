@@ -28,6 +28,8 @@ export const PERMISSION_MODULES = [
   "hr_sync",
   "portal_notifications",
   "gate",
+  "payroll",
+  "attendance",
 ] as const;
 
 export const PERMISSION_ACTIONS = [

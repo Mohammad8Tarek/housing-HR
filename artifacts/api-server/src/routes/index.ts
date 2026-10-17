@@ -35,6 +35,9 @@ import roomInventoryRouter from "./room-inventory.js";
 import whatsappRouter from "./whatsapp.js";
 import workersRouter from "./workers.js";
 import gateRouter from "./gate.js";
+import payrollRouter from "./payroll.js";
+import attendanceRouter from "./attendance.js";
+import payrollOperationsRouter from "./payroll-operations.js";
 
 // ✅ Portal Imports
 import portalAuthRouter from "./portal-auth.js";
@@ -91,6 +94,10 @@ router.use((req, res, next) => {
   if (req.path.startsWith("/gate")) {
     return next();
   }
+  // Allow biometric device punch ingestion
+  if (req.path === "/attendance/checkin") {
+    return next();
+  }
   // @ts-ignore
   if (req.session?.userId) next();
   else res.status(401).json({ success: false, message: "Unauthorized" });
@@ -128,5 +135,8 @@ router.use(roomImportRouter);
 router.use("/room-inventory", roomInventoryRouter);
 router.use("/whatsapp", whatsappRouter);
 router.use(workersRouter);
+router.use(payrollRouter);
+router.use(attendanceRouter);
+router.use(payrollOperationsRouter);
 
 export default router;

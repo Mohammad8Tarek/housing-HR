@@ -100,8 +100,9 @@ const statusInfo: Record<
   { label: string; labelAr: string; icon: string; cls: string }
 > = {
   open: {
-    label: "Scheduled",
-    labelAr: "مجدول",
+    // Unified with admin maintenance labels: open = Open/مفتوح (not "Scheduled").
+    label: "Open",
+    labelAr: "مفتوح",
     icon: "schedule",
     cls: "bg-yellow-400/10 text-yellow-400 border-yellow-400/20",
   },
@@ -158,6 +159,40 @@ export default function TabRequests() {
   const [requests, setRequests] = useState<Request[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  // Optional per-tenant problem types from /api/portal-data/catalog.
+  // Falls back to built-in categoryConfig when the lookup is empty.
+  const [apiProblemTypes, setApiProblemTypes] = useState<
+    Array<{ value: string; label: string; labelAr: string }>
+  >([]);
+  useEffect(() => {
+    apiFetch("/api/portal-data/catalog", { credentials: "include" })
+      .then((r) => r.json())
+      .then((d) => {
+        if (d?.success && Array.isArray(d.maintenanceProblemTypes)) {
+          setApiProblemTypes(d.maintenanceProblemTypes);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const activeCategoryConfig: Record<
+    string,
+    { icon: string; types: [string, string][] }
+  > =
+    apiProblemTypes.length > 0
+      ? {
+          ...categoryConfig,
+          maintenance: {
+            ...categoryConfig.maintenance,
+            types: [
+              ["", "Select Issue Type"],
+              ...apiProblemTypes.map(
+                (t) => [t.value, t.label] as [string, string],
+              ),
+            ],
+          },
+        }
+      : categoryConfig;
   const [showAll, setShowAll] = useState(false);
 
   const fetchHistory = useCallback(() => {
@@ -377,7 +412,7 @@ export default function TabRequests() {
                   required
                   className="w-full bg-surface border border-border2 text-foreground rounded-xl py-3 px-4 text-[12px] outline-none focus:border-accent2/50 transition-colors appearance-none"
                 >
-                  {categoryConfig[form.category]?.types.map(([v, l]) => (
+                  {activeCategoryConfig[form.category]?.types.map(([v, l]) => (
                     <option key={v} value={v}>
                       {l}
                     </option>

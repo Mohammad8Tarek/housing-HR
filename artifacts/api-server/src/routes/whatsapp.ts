@@ -30,7 +30,12 @@ router.get("/status", requireAnyPermission(["whatsapp", "view"], ["settings", "v
 
     // Also check DB for persisted config
     const dbRes = await pool.query(
-      `SELECT status, phone_number, qr_code, is_auto_send_enabled, provider, meta_phone_number_id, meta_waba_id, meta_access_token, updated_at
+      `SELECT status, phone_number, qr_code, is_auto_send_enabled, provider,
+              meta_phone_number_id, meta_waba_id, meta_access_token,
+              ultramsg_instance_id, ultramsg_token,
+              custom_gateway_url, custom_gateway_token, custom_gateway_method,
+              custom_gateway_payload_type, custom_gateway_phone_field,
+              custom_gateway_message_field, custom_gateway_headers, updated_at
        FROM public.property_whatsapp_configs
        WHERE property_id = $1`,
       [propertyId]
@@ -38,6 +43,8 @@ router.get("/status", requireAnyPermission(["whatsapp", "view"], ["settings", "v
     const dbRow = dbRes.rows[0];
     const provider = dbRow?.provider || "baileys";
     const hasMetaConfig = Boolean(dbRow?.meta_phone_number_id && dbRow?.meta_access_token);
+    const hasUltramsgConfig = Boolean(dbRow?.ultramsg_instance_id && dbRow?.ultramsg_token);
+    const hasCustomGatewayConfig = Boolean(dbRow?.custom_gateway_url);
 
     // Only consider DB QR code if it was updated in the last 75 seconds (WhatsApp QR expiry)
     let effectiveQr: string | null = session.qrCode || null;
@@ -51,6 +58,10 @@ router.get("/status", requireAnyPermission(["whatsapp", "view"], ["settings", "v
     let effectiveStatus = session.status;
     if (provider === "meta_cloud") {
       effectiveStatus = hasMetaConfig ? "connected" : "disconnected";
+    } else if (provider === "ultramsg") {
+      effectiveStatus = hasUltramsgConfig ? "connected" : "disconnected";
+    } else if (provider === "custom_gateway") {
+      effectiveStatus = hasCustomGatewayConfig ? "connected" : "disconnected";
     } else {
       if (session.status === "disconnected") {
         if (dbRow?.status === "connected") {
@@ -63,8 +74,13 @@ router.get("/status", requireAnyPermission(["whatsapp", "view"], ["settings", "v
       }
     }
 
+    const isCloudProvider = provider === "meta_cloud" || provider === "ultramsg" || provider === "custom_gateway";
     const effectivePhone = provider === "meta_cloud"
       ? (dbRow?.phone_number || (hasMetaConfig ? "Meta Cloud Active" : null))
+      : provider === "ultramsg"
+      ? (dbRow?.phone_number || (hasUltramsgConfig ? "UltraMsg Active" : null))
+      : provider === "custom_gateway"
+      ? (dbRow?.phone_number || (hasCustomGatewayConfig ? "Custom Gateway Active" : null))
       : (session.phoneNumber || dbRow?.phone_number || null);
     const pendingQueueCount = await getPendingQueueCount(propertyId);
 
@@ -73,12 +89,21 @@ router.get("/status", requireAnyPermission(["whatsapp", "view"], ["settings", "v
       provider,
       status: effectiveStatus,
       phoneNumber: effectivePhone,
-      qrCode: provider === "meta_cloud" ? null : effectiveQr,
-      pairingCode: provider === "meta_cloud" ? null : (session.pairingCode || null),
+      qrCode: isCloudProvider ? null : effectiveQr,
+      pairingCode: isCloudProvider ? null : (session.pairingCode || null),
       isAutoSendEnabled: dbRow ? dbRow.is_auto_send_enabled : true,
       metaPhoneNumberId: dbRow?.meta_phone_number_id || "",
       metaWabaId: dbRow?.meta_waba_id || "",
       hasMetaToken: Boolean(dbRow?.meta_access_token),
+      ultramsgInstanceId: dbRow?.ultramsg_instance_id || "",
+      hasUltramsgToken: Boolean(dbRow?.ultramsg_token),
+      customGatewayUrl: dbRow?.custom_gateway_url || "",
+      hasCustomGatewayToken: Boolean(dbRow?.custom_gateway_token),
+      customGatewayMethod: dbRow?.custom_gateway_method || "POST",
+      customGatewayPayloadType: dbRow?.custom_gateway_payload_type || "json",
+      customGatewayPhoneField: dbRow?.custom_gateway_phone_field || "to",
+      customGatewayMessageField: dbRow?.custom_gateway_message_field || "body",
+      customGatewayHeaders: dbRow?.custom_gateway_headers || "",
       pendingQueueCount,
       updatedAt: dbRow?.updated_at || null,
     });
@@ -181,6 +206,15 @@ router.get("/config", requireAnyPermission(["whatsapp", "view"], ["settings", "v
           metaPhoneNumberId: "",
           metaWabaId: "",
           hasMetaToken: false,
+          ultramsgInstanceId: "",
+          hasUltramsgToken: false,
+          customGatewayUrl: "",
+          hasCustomGatewayToken: false,
+          customGatewayMethod: "POST",
+          customGatewayPayloadType: "json",
+          customGatewayPhoneField: "to",
+          customGatewayMessageField: "body",
+          customGatewayHeaders: "",
         },
       });
     }
@@ -208,6 +242,15 @@ router.get("/config", requireAnyPermission(["whatsapp", "view"], ["settings", "v
         metaPhoneNumberId: row.meta_phone_number_id || "",
         metaWabaId: row.meta_waba_id || "",
         hasMetaToken: Boolean(row.meta_access_token),
+        ultramsgInstanceId: row.ultramsg_instance_id || "",
+        hasUltramsgToken: Boolean(row.ultramsg_token),
+        customGatewayUrl: row.custom_gateway_url || "",
+        hasCustomGatewayToken: Boolean(row.custom_gateway_token),
+        customGatewayMethod: row.custom_gateway_method || "POST",
+        customGatewayPayloadType: row.custom_gateway_payload_type || "json",
+        customGatewayPhoneField: row.custom_gateway_phone_field || "to",
+        customGatewayMessageField: row.custom_gateway_message_field || "body",
+        customGatewayHeaders: row.custom_gateway_headers || "",
       },
     });
   } catch (err: any) {
@@ -225,6 +268,15 @@ router.put("/config", requireAnyPermission(["whatsapp", "edit"], ["settings", "e
       metaAccessToken,
       metaPhoneNumberId,
       metaWabaId,
+      ultramsgInstanceId,
+      ultramsgToken,
+      customGatewayUrl,
+      customGatewayToken,
+      customGatewayMethod,
+      customGatewayPayloadType,
+      customGatewayPhoneField,
+      customGatewayMessageField,
+      customGatewayHeaders,
       isAutoSendEnabled,
       welcomeTemplateAr,
       welcomeTemplateEn,
@@ -235,7 +287,7 @@ router.put("/config", requireAnyPermission(["whatsapp", "edit"], ["settings", "e
     } = req.body;
 
     const existingRes = await pool.query(
-      `SELECT meta_access_token FROM public.property_whatsapp_configs WHERE property_id = $1`,
+      `SELECT meta_access_token, ultramsg_token, custom_gateway_token FROM public.property_whatsapp_configs WHERE property_id = $1`,
       [propertyId]
     );
     const existingToken = existingRes.rows[0]?.meta_access_token || null;
@@ -244,18 +296,53 @@ router.put("/config", requireAnyPermission(["whatsapp", "edit"], ["settings", "e
       finalToken = metaAccessToken.trim();
     }
 
+    const existingUltramsgToken = existingRes.rows[0]?.ultramsg_token || null;
+    let finalUltramsgToken = existingUltramsgToken;
+    if (typeof ultramsgToken === "string" && ultramsgToken.trim() && !ultramsgToken.includes("•")) {
+      finalUltramsgToken = ultramsgToken.trim();
+    }
+
+    const existingCustomToken = existingRes.rows[0]?.custom_gateway_token || null;
+    let finalCustomToken = existingCustomToken;
+    if (typeof customGatewayToken === "string" && customGatewayToken.trim() && !customGatewayToken.includes("•")) {
+      finalCustomToken = customGatewayToken.trim();
+    }
+
+    // Resolve provider value: baileys | meta_cloud | ultramsg | custom_gateway
+    const resolvedProvider =
+      provider === "meta_cloud"
+        ? "meta_cloud"
+        : provider === "ultramsg"
+        ? "ultramsg"
+        : provider === "custom_gateway"
+        ? "custom_gateway"
+        : "baileys";
+
     const query = `
       INSERT INTO public.property_whatsapp_configs
         (property_id, provider, meta_access_token, meta_phone_number_id, meta_waba_id,
+         ultramsg_instance_id, ultramsg_token,
+         custom_gateway_url, custom_gateway_token, custom_gateway_method,
+         custom_gateway_payload_type, custom_gateway_phone_field,
+         custom_gateway_message_field, custom_gateway_headers,
          is_auto_send_enabled, welcome_template_ar, welcome_template_en,
          is_reservation_send_enabled, reservation_template_ar, reservation_template_en,
          supervisor_contact, updated_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW())
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, NOW())
       ON CONFLICT (property_id) DO UPDATE
       SET provider = EXCLUDED.provider,
           meta_access_token = COALESCE(EXCLUDED.meta_access_token, property_whatsapp_configs.meta_access_token),
           meta_phone_number_id = EXCLUDED.meta_phone_number_id,
           meta_waba_id = EXCLUDED.meta_waba_id,
+          ultramsg_instance_id = EXCLUDED.ultramsg_instance_id,
+          ultramsg_token = COALESCE(EXCLUDED.ultramsg_token, property_whatsapp_configs.ultramsg_token),
+          custom_gateway_url = EXCLUDED.custom_gateway_url,
+          custom_gateway_token = COALESCE(EXCLUDED.custom_gateway_token, property_whatsapp_configs.custom_gateway_token),
+          custom_gateway_method = EXCLUDED.custom_gateway_method,
+          custom_gateway_payload_type = EXCLUDED.custom_gateway_payload_type,
+          custom_gateway_phone_field = EXCLUDED.custom_gateway_phone_field,
+          custom_gateway_message_field = EXCLUDED.custom_gateway_message_field,
+          custom_gateway_headers = EXCLUDED.custom_gateway_headers,
           is_auto_send_enabled = EXCLUDED.is_auto_send_enabled,
           welcome_template_ar = EXCLUDED.welcome_template_ar,
           welcome_template_en = EXCLUDED.welcome_template_en,
@@ -269,10 +356,19 @@ router.put("/config", requireAnyPermission(["whatsapp", "edit"], ["settings", "e
 
     const result = await pool.query(query, [
       propertyId,
-      provider === "meta_cloud" ? "meta_cloud" : "baileys",
+      resolvedProvider,
       finalToken,
       metaPhoneNumberId ? String(metaPhoneNumberId).trim() : null,
       metaWabaId ? String(metaWabaId).trim() : null,
+      ultramsgInstanceId ? String(ultramsgInstanceId).trim() : null,
+      finalUltramsgToken,
+      customGatewayUrl ? String(customGatewayUrl).trim() : null,
+      finalCustomToken,
+      customGatewayMethod || "POST",
+      customGatewayPayloadType || "json",
+      customGatewayPhoneField || "to",
+      customGatewayMessageField || "body",
+      customGatewayHeaders || null,
       isAutoSendEnabled !== undefined ? Boolean(isAutoSendEnabled) : true,
       welcomeTemplateAr || DEFAULT_WELCOME_AR,
       welcomeTemplateEn || DEFAULT_WELCOME_EN,
@@ -307,7 +403,7 @@ router.post("/test", requireAnyPermission(["whatsapp", "create"], ["whatsapp", "
       [propertyId]
     );
     const row = configRes.rows[0];
-    const isMetaCloud = row?.provider === "meta_cloud";
+    const isCloudProvider = row?.provider === "meta_cloud" || row?.provider === "ultramsg" || row?.provider === "custom_gateway";
 
     let textToSend = message;
     if (!textToSend || !textToSend.trim()) {
@@ -334,7 +430,7 @@ router.post("/test", requireAnyPermission(["whatsapp", "create"], ["whatsapp", "
       textToSend = compileWhatsAppTemplate(template, mockVars);
     }
 
-    if (!isMetaCloud) {
+    if (!isCloudProvider) {
       const session = await getWhatsAppSession(propertyId);
       if (session.status !== "connected" || !session.sock) {
         return res.status(400).json({

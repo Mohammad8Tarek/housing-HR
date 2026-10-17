@@ -1,0 +1,11 @@
+{
+  "name": "sunrise-ai-engineering",
+  "displayName": "Sunrise AI Engineering Toolkit",
+  "description": "Comprehensive AI-assisted software engineering toolkit for the Sunrise Staff Housing & HRMS ecosystem. Enforces dual-layer RBAC, zero data loss, bilingual standards, multi-tenant isolation, automated testing, and security gates.",
+  "version": "1.0.0",
+  "suggestedPrompts": [
+    "Run comprehensive system diagnostics across Housing and HRMS",
+    "Review dual-layer RBAC permissions and database schema constraints",
+    "Execute full regression test suite with browser and API checks"
+  ]
+}

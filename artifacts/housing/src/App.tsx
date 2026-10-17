@@ -48,6 +48,8 @@ const Users = lazy(() => import("@/pages/users"));
 const UserDetail = lazy(() => import("@/pages/users/detail"));
 const ActivityLog = lazy(() => import("@/pages/activity-log"));
 const Settings = lazy(() => import("@/pages/settings"));
+const PayrollPage = lazy(() => import("@/pages/payroll"));
+const AttendancePage = lazy(() => import("@/pages/attendance"));
 const EditHostingRequest = lazy(
   () => import("@/pages/hosting-requests/EditHostingRequest"),
 );
@@ -213,6 +215,8 @@ const APP_ROUTES: AppRouteDef[] = [
   { path: "/users", module: "users", component: Users },
   { path: "/properties", module: "properties", component: Properties },
   { path: "/portal", module: "portal_content", component: Portal },
+  { path: "/payroll", module: "payroll", component: PayrollPage },
+  { path: "/attendance", module: "attendance", component: AttendancePage },
   { path: "/settings", module: "settings", component: Settings },
   { path: "/activity-log", module: "activity_log", component: ActivityLog },
   { path: "/hosting-requests/create", module: "hosting_requests", action: "create", component: CreateHostingRequest },
@@ -248,6 +252,8 @@ function RootRedirect() {
     { module: "hosting_requests", href: "/hosting-requests" },
     { module: "housekeeping", href: "/housekeeping" },
     { module: "maintenance", href: "/maintenance" },
+    { module: "payroll", href: "/payroll" },
+    { module: "attendance", href: "/attendance" },
     { module: "reports", href: "/reports" },
     { module: "users", href: "/users" },
     { module: "portal_content", href: "/portal" },

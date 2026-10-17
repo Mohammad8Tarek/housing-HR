@@ -1,0 +1,569 @@
+[
+  {
+    "file": "components/ui/permission-gate.tsx",
+    "line": 19,
+    "module": "users",
+    "action": "create",
+    "controlType": "Button",
+    "label": "Add User",
+    "snippet": "* <Button>Add User</Button> *"
+  },
+  {
+    "file": "pages/accommodation/guest-hosting/GuestHostingPage.tsx",
+    "line": 1134,
+    "module": "guest_hosting",
+    "action": "export",
+    "controlType": "Button",
+    "label": "AR: \"تصدير Excel\" / EN: \"Export Excel\"",
+    "snippet": "<Button variant=\"outline\" size=\"sm\" onClick={exportHostExcel} className=\"gap-1.5 text-xs font-"
+  },
+  {
+    "file": "pages/accommodation/history.tsx",
+    "line": 849,
+    "module": "accommodation",
+    "action": "delete",
+    "controlType": "Button",
+    "label": "AR: \"حذف السجل\" / EN: \"Delete Record\"",
+    "snippet": "<Button variant=\"ghost\" size=\"icon\" className=\"h-8 w-8 text-destructive"
+  },
+  {
+    "file": "pages/accommodation/in-house.tsx",
+    "line": 877,
+    "module": "accommodation",
+    "action": "edit",
+    "controlType": "Button",
+    "label": "AR: \"تمديد إقامة جماعي\" / EN: \"Bulk Extend\"",
+    "snippet": "<Button variant=\"outline\" size=\"sm\" onClick={() => { const defaultDate = new Date();"
+  },
+  {
+    "file": "pages/accommodation/in-house.tsx",
+    "line": 894,
+    "module": "accommodation",
+    "action": "checkout",
+    "controlType": "Button",
+    "label": "AR: \"تسجيل خروج جماعي\" / EN: \"Bulk Check-out\"",
+    "snippet": "<Button variant=\"destructive\" size=\"sm\" onClick={() => setBulkCheckoutOpen(true)} clas"
+  },
+  {
+    "file": "pages/accommodation/in-house.tsx",
+    "line": 1217,
+    "module": "accommodation",
+    "action": "edit",
+    "controlType": "DropdownMenuItem",
+    "label": "AR: \"تمديد الإقامة\" / EN: \"Extend Stay\"",
+    "snippet": "<DropdownMenuItem onClick={() => openExtendDialog(a, emp || { id: a.profileId, firstName: a.profileFirstName, lastName"
+  },
+  {
+    "file": "pages/accommodation/in-house.tsx",
+    "line": 1226,
+    "module": "accommodation",
+    "action": "edit",
+    "controlType": "DropdownMenuItem",
+    "label": "AR: \"إعادة إصدار مفتاح\" / EN: \"Re-issue Key\"",
+    "snippet": "<DropdownMenuItem onClick={() => { setReissueNotes(\"\");"
+  },
+  {
+    "file": "pages/accommodation/in-house.tsx",
+    "line": 1242,
+    "module": "accommodation",
+    "action": "export",
+    "controlType": "DropdownMenuItem",
+    "label": "AR: \"طباعة خطاب السكن\" / EN: \"Print Housing Letter\"",
+    "snippet": "<DropdownMenuItem onClick={() => printHousingLetter(a, emp || { id: a.profileId, firstName: a.profileFirstName, lastNa"
+  },
+  {
+    "file": "pages/accommodation/in-house.tsx",
+    "line": 1250,
+    "module": "accommodation",
+    "action": "edit",
+    "controlType": "DropdownMenuItem",
+    "label": "AR: \"تسجيل عودة من الإجازة\" / EN: \"Return from Vacation\"",
+    "snippet": "<DropdownMenuItem onClick={() => { if (emp?.status === \"VACATION\" || (a as any).prof"
+  },
+  {
+    "file": "pages/accommodation/in-house.tsx",
+    "line": 1280,
+    "module": "accommodation",
+    "action": "checkout",
+    "controlType": "DropdownMenuItem",
+    "label": "AR: \"خروج\" / EN: \"Checkout\"",
+    "snippet": "<DropdownMenuItem onClick={() => { setCheckoutDate("
+  },
+  {
+    "file": "pages/accommodation/in-house.tsx",
+    "line": 1298,
+    "module": "accommodation",
+    "action": "transfer",
+    "controlType": "DropdownMenuItem",
+    "label": "AR: \"نقل لغرفة أخرى\" / EN: \"Room Move\"",
+    "snippet": "<DropdownMenuItem onClick={() => { setTransferRoomId(\"\");"
+  },
+  {
+    "file": "pages/accommodation/reservations/ReservationsPage.tsx",
+    "line": 1210,
+    "module": "accommodation",
+    "action": "create",
+    "controlType": "Button",
+    "label": "AR: \"حجز / تسكين جديد\" / EN: \"New Reservation / Assignment\"",
+    "snippet": "<Button onClick={openNewDialog} className=\"gap-2 self-start sm:self-auto shadow-sm\"> <Plus className=\"w-4 h-4\" /> {ar ? \"حجز /"
+  },
+  {
+    "file": "pages/accommodation/reservations/ReservationsPage.tsx",
+    "line": 1489,
+    "module": "accommodation",
+    "action": "edit",
+    "controlType": "DropdownMenuItem",
+    "label": "AR: \"تعديل\" / EN: \"Edit\"",
+    "snippet": "<DropdownMenuItem onClick={() => openEdit(res)} className=\"cursor-pointer\"> <Pencil className=\"w-4 h-4 mr-2 rtl:ml-2 r"
+  },
+  {
+    "file": "pages/accommodation/reservations/ReservationsPage.tsx",
+    "line": 1495,
+    "module": "accommodation",
+    "action": "edit",
+    "controlType": "DropdownMenuItem",
+    "label": "AR: \"إلغاء الحجز\" / EN: \"Cancel Reservation\"",
+    "snippet": "<DropdownMenuItem onClick={() => setCancelDialog({ open: true, reservation: res, reason: \"\" })}"
+  },
+  {
+    "file": "pages/accommodation/reservations/ReservationsPage.tsx",
+    "line": 1504,
+    "module": "accommodation",
+    "action": "delete",
+    "controlType": "DropdownMenuItem",
+    "label": "AR: \"حذف\" / EN: \"Delete\"",
+    "snippet": "<DropdownMenuItem onClick={() => setDeleteId(res.id)} className=\"text-destructive cursor-pointer focus:text-destructive focus:bg-destructive/10\">"
+  },
+  {
+    "file": "pages/dashboard.tsx",
+    "line": 560,
+    "module": "housing",
+    "action": "view",
+    "controlType": "Unknown",
+    "label": "AR: \"عرض الكل\" / EN: \"View all\"",
+    "snippet": "<Link href=\"/housing\"> <Badge variant=\"outline\" className=\"text-xs cursor-pointer hover:b"
+  },
+  {
+    "file": "pages/dashboard.tsx",
+    "line": 641,
+    "module": "accommodation",
+    "action": "view",
+    "controlType": "Unknown",
+    "label": "AR: \"عرض\" / EN: \"View\"",
+    "snippet": "<Link href=\"/accommodation/in-house\"> <Badge variant=\"outline\" className=\"text-xs cursor-"
+  },
+  {
+    "file": "pages/documents.tsx",
+    "line": 187,
+    "module": "documents",
+    "action": "create",
+    "controlType": "Button",
+    "label": "AR: \"رفع مستند\" / EN: \"Upload Document\"",
+    "snippet": "<Button onClick={() => setIsOpen(true)}> <Upload className=\"w-4 h-4 mr-2\" /> {ar ? \"رفع مستند\" : \"Upload Document\"}"
+  },
+  {
+    "file": "pages/documents.tsx",
+    "line": 305,
+    "module": "documents",
+    "action": "delete",
+    "controlType": "Button",
+    "label": "AR: \"حذف المستند\" / EN: \"Delete document\"",
+    "snippet": "<Button variant=\"ghost\" size=\"icon\" className=\"h-8 w-8 text-muted-"
+  },
+  {
+    "file": "pages/housing/components/buildings/BuildingsTab.tsx",
+    "line": 380,
+    "module": "housing",
+    "action": "create",
+    "controlType": "Button",
+    "label": "AR: \"إضافة مبنى\" / EN: \"Add Building\"",
+    "snippet": "<Button onClick={openCreateBuilding} size=\"sm\"> <Plus className=\"w-4 h-4 mr-1\" />{\" \"} {ar ? \"إضافة مبنى\" : \"Add Building\"}"
+  },
+  {
+    "file": "pages/housing/components/buildings/BuildingsTab.tsx",
+    "line": 479,
+    "module": "housing",
+    "action": "edit",
+    "controlType": "Button",
+    "label": "<Button",
+    "snippet": "<Button variant=\"ghost\" size=\"icon\" className=\"h-8 w-8\""
+  },
+  {
+    "file": "pages/housing/components/buildings/BuildingsTab.tsx",
+    "line": 489,
+    "module": "housing",
+    "action": "delete",
+    "controlType": "Button",
+    "label": "<Button",
+    "snippet": "<Button variant=\"ghost\" size=\"icon\" className=\"h-8 w-8 text-des"
+  },
+  {
+    "file": "pages/housing/components/buildings/BuildingsTable.tsx",
+    "line": 106,
+    "module": "housing",
+    "action": "edit",
+    "controlType": "Button",
+    "label": "<Button",
+    "snippet": "<Button variant=\"ghost\" size=\"icon\" className=\"h-8 w-8\""
+  },
+  {
+    "file": "pages/housing/components/buildings/BuildingsTable.tsx",
+    "line": 116,
+    "module": "housing",
+    "action": "delete",
+    "controlType": "Button",
+    "label": "<Button",
+    "snippet": "<Button variant=\"ghost\" size=\"icon\" className=\"h-8 w-8 text-destructive hover:"
+  },
+  {
+    "file": "pages/housing/components/floors/FloorsTab.tsx",
+    "line": 159,
+    "module": "housing",
+    "action": "create",
+    "controlType": "Button",
+    "label": "AR: \"إضافة طابق\" / EN: \"Add Floor\"",
+    "snippet": "<Button onClick={openCreateFloor} size=\"sm\"> <Plus className=\"w-4 h-4 mr-1\" /> {ar ? \"إضافة طابق\" : \"Add Floor\"} </Button>"
+  },
+  {
+    "file": "pages/housing/components/floors/FloorsTable.tsx",
+    "line": 88,
+    "module": "housing",
+    "action": "edit",
+    "controlType": "Button",
+    "label": "<Button",
+    "snippet": "<Button variant=\"ghost\" size=\"icon\" className=\"h-8 w-8\""
+  },
+  {
+    "file": "pages/housing/components/floors/FloorsTable.tsx",
+    "line": 98,
+    "module": "housing",
+    "action": "delete",
+    "controlType": "Button",
+    "label": "<Button",
+    "snippet": "<Button variant=\"ghost\" size=\"icon\" className=\"h-8 w-8 text-destructive hover:"
+  },
+  {
+    "file": "pages/housing/components/rooms/RoomsTab.tsx",
+    "line": 480,
+    "module": "housing",
+    "action": "export",
+    "controlType": "Button",
+    "label": "AR: \"تصدير Excel\" / EN: \"Export Excel\"",
+    "snippet": "<Button variant=\"outline\" onClick={exportRooms} className=\"gap-1.5 text-xs font-semibold h-9\" >"
+  },
+  {
+    "file": "pages/housing/components/rooms/RoomsTab.tsx",
+    "line": 491,
+    "module": "housing",
+    "action": "create",
+    "controlType": "Button",
+    "label": "AR: \"إضافة غرفة\" / EN: \"Add Room\"",
+    "snippet": "<Button onClick={openAddRoom} className=\"gap-2\"> <Plus className=\"w-4 h-4\" /> {ar ? \"إضافة غرفة\" : \"Add Room\"}"
+  },
+  {
+    "file": "pages/housing/components/rooms/RoomsTab.tsx",
+    "line": 505,
+    "module": "housing",
+    "action": "delete",
+    "controlType": "Button",
+    "label": "AR: \"حذف الغرف المحددة\" / EN: \"Delete Selected\"",
+    "snippet": "<Button variant=\"destructive\" size=\"sm\" className=\"gap-1.5 text-xs font-semibold h-8\" onClick="
+  },
+  {
+    "file": "pages/housing/components/rooms/RoomsTable.tsx",
+    "line": 158,
+    "module": "housing",
+    "action": "edit",
+    "controlType": "Button",
+    "label": "<Button",
+    "snippet": "<Button variant=\"ghost\" size=\"icon\" className=\"h-8 w-8\""
+  },
+  {
+    "file": "pages/housing/components/rooms/RoomsTable.tsx",
+    "line": 168,
+    "module": "housing",
+    "action": "delete",
+    "controlType": "Button",
+    "label": "<Button",
+    "snippet": "<Button variant=\"ghost\" size=\"icon\" className=\"h-8 w-8 text-destructive hover:"
+  },
+  {
+    "file": "pages/housing/HousingPage.tsx",
+    "line": 136,
+    "module": "housing",
+    "action": "export",
+    "controlType": "Button",
+    "label": "AR: \"ar\" / EN: \"en\"",
+    "snippet": "<Button variant=\"outline\" onClick={() => downloadRoomImportTemplate(\"xlsx\", ar ? \"ar\" : \"en\")} className=\"ga"
+  },
+  {
+    "file": "pages/housing/HousingPage.tsx",
+    "line": 147,
+    "module": "housing",
+    "action": "create",
+    "controlType": "Button",
+    "label": "AR: \"استيراد غرف (Excel / CSV)\" / EN: \"Import Rooms (Excel / CSV)\"",
+    "snippet": "<Button onClick={() => setImportWizardOpen(true)} className=\"gap-2 bg-gradient-to-r from-primary to-indigo-600 font-bold t"
+  },
+  {
+    "file": "pages/maintenance.tsx",
+    "line": 957,
+    "module": "maintenance",
+    "action": "delete",
+    "controlType": "Button",
+    "label": "AR: \"حذف المحدد\" / EN: \"Delete\"",
+    "snippet": "<Button variant=\"destructive\" size=\"sm\" onClick={handleBulkDelete} cla"
+  },
+  {
+    "file": "pages/maintenance.tsx",
+    "line": 1227,
+    "module": "maintenance",
+    "action": "delete",
+    "controlType": "Button",
+    "label": "<Button",
+    "snippet": "<Button variant=\"ghost\" size=\"icon\" className=\"h-7 w-7\""
+  },
+  {
+    "file": "pages/profiles/components/ProfileGrid.tsx",
+    "line": 234,
+    "module": "profiles",
+    "action": "edit",
+    "controlType": "Button",
+    "label": "AR: \"تعديل\" / EN: \"Edit\"",
+    "snippet": "<Button variant=\"outline\" size=\"sm\" className=\"h-8 px-2.5 text-xs text-muted-foreground hover"
+  },
+  {
+    "file": "pages/profiles/components/ProfileGrid.tsx",
+    "line": 264,
+    "module": "profiles",
+    "action": "edit",
+    "controlType": "DropdownMenuItem",
+    "label": "AR: \"تعديل الملف الشخصي\" / EN: \"Edit Profile\"",
+    "snippet": "<DropdownMenuItem onClick={() => onEdit(emp)} className=\"cursor-pointer\"> <Pencil className=\"w-4 h-4 mr-2 rtl:ml-2 rtl:mr-0 tex"
+  },
+  {
+    "file": "pages/profiles/components/ProfileGrid.tsx",
+    "line": 270,
+    "module": "profiles",
+    "action": "edit",
+    "controlType": "DropdownMenuItem",
+    "label": "AR: \"إعادة تعيين كلمة المرور\" / EN: \"Reset Password\"",
+    "snippet": "<DropdownMenuItem onClick={() => onResetPassword(emp)} className=\"cursor-pointer\"> <Key className=\"w-4 h-4 mr-2 rtl:ml-2 rtl:mr"
+  },
+  {
+    "file": "pages/profiles/components/ProfileGrid.tsx",
+    "line": 276,
+    "module": "profiles",
+    "action": "delete",
+    "controlType": "DropdownMenuItem",
+    "label": "AR: \"حذف الملف الشخصي\" / EN: \"Delete Profile\"",
+    "snippet": "<DropdownMenuItem onClick={() => onDelete(emp.id)} className=\"text-destructive font-medium cursor-pointe"
+  },
+  {
+    "file": "pages/profiles/ProfilesPage.tsx",
+    "line": 469,
+    "module": "profiles",
+    "action": "create",
+    "controlType": "Button",
+    "label": "AR: \"إضافة ملف شخصي\" / EN: \"New Profile\"",
+    "snippet": "<Button onClick={() => setIsOpen(true)}> <Plus className=\"w-4 h-4 mr-2\" /> {ar ? \"إضافة ملف شخصي\" : \"New Profile\"}"
+  },
+  {
+    "file": "pages/profiles/ProfilesPage.tsx",
+    "line": 557,
+    "module": "profiles",
+    "action": "delete",
+    "controlType": "Button",
+    "label": "AR: \"حذف المحدد\" / EN: \"Delete Selected\"",
+    "snippet": "<Button variant=\"destructive\" size=\"sm\" onClick={() => { const selectedList = profiles.f"
+  },
+  {
+    "file": "pages/profiles/ProfilesPage.tsx",
+    "line": 991,
+    "module": "profiles",
+    "action": "edit",
+    "controlType": "DropdownMenuItem",
+    "label": "AR: \"تعديل\" / EN: \"Edit\"",
+    "snippet": "<DropdownMenuItem onClick={() => setEditingProfile(emp)} className=\"cursor-pointer\"> <Pencil className=\"w-4 h-4 mr-"
+  },
+  {
+    "file": "pages/profiles/ProfilesPage.tsx",
+    "line": 997,
+    "module": "profiles",
+    "action": "edit",
+    "controlType": "DropdownMenuItem",
+    "label": "AR: \"إعادة تعيين كلمة المرور\" / EN: \"Reset Password\"",
+    "snippet": "<DropdownMenuItem onClick={() => handleResetPassword(emp)} className=\"cursor-pointer\"> <Key className=\"w-4 h-4 mr-2"
+  },
+  {
+    "file": "pages/profiles/ProfilesPage.tsx",
+    "line": 1003,
+    "module": "profiles",
+    "action": "delete",
+    "controlType": "DropdownMenuItem",
+    "label": "AR: \"حذف\" / EN: \"Delete\"",
+    "snippet": "<DropdownMenuItem onClick={() => setDeleteTarget(emp.id)} className=\"text-destru"
+  },
+  {
+    "file": "pages/properties.tsx",
+    "line": 455,
+    "module": "properties",
+    "action": "create",
+    "controlType": "Button",
+    "label": "AR: \"إضافة عقار\" / EN: \"Add Property\"",
+    "snippet": "<Button onClick={openCreate}> <Plus className=\"w-4 h-4 mr-2\" /> {ar ? \"إضافة عقار\" : \"Add Property\"} </Button>"
+  },
+  {
+    "file": "pages/properties.tsx",
+    "line": 616,
+    "module": "properties",
+    "action": "edit",
+    "controlType": "Button",
+    "label": "AR: \"استيراد تكوين الغرف والمباني\" / EN: \"Import Housing Config\"",
+    "snippet": "<Button variant=\"ghost\" size=\"icon\" title={ar ? \"استيراد تكو"
+  },
+  {
+    "file": "pages/properties.tsx",
+    "line": 638,
+    "module": "properties",
+    "action": "delete",
+    "controlType": "Button",
+    "label": "AR: \"هل أنت متأكد؟\" / EN: \"Are you sure?\"",
+    "snippet": "<Button variant=\"ghost\" size=\"icon\" className=\"h-8 w-8\""
+  },
+  {
+    "file": "pages/settings/components/LookupSection.tsx",
+    "line": 308,
+    "module": "settings",
+    "action": "create",
+    "controlType": "Button",
+    "label": "AR: \"عدد الأسرة\" / EN: \"Number of beds\"",
+    "snippet": "<div className=\"flex flex-wrap gap-2 items-center p-3 rounded-xl bg-card border shadow-sm\"> {parentCategory && ( <Select value={"
+  },
+  {
+    "file": "pages/settings/components/LookupSection.tsx",
+    "line": 612,
+    "module": "settings",
+    "action": "edit",
+    "controlType": "Button",
+    "label": "AR: \"تعديل\" / EN: \"Edit\"",
+    "snippet": "<Button type=\"button\" variant=\"ghost\" size=\"icon\""
+  },
+  {
+    "file": "pages/settings/components/LookupSection.tsx",
+    "line": 642,
+    "module": "settings",
+    "action": "delete",
+    "controlType": "Button",
+    "label": "AR: \"حذف\" / EN: \"Delete\"",
+    "snippet": "<Button type=\"button\" variant=\"ghost\" size=\"icon\""
+  },
+  {
+    "file": "pages/settings/index.tsx",
+    "line": 158,
+    "module": "settings",
+    "action": "edit",
+    "controlType": "Button",
+    "label": "AR: \"جاري الحفظ...\" / EN: \"Saving...\"",
+    "snippet": "<Button type=\"submit\" disabled={updateMutation.isPending}> {updateMutation.isPending ? (ar ? \"جاري الحفظ...\""
+  },
+  {
+    "file": "pages/settings/index.tsx",
+    "line": 263,
+    "module": "settings",
+    "action": "edit",
+    "controlType": "Button",
+    "label": "AR: \"جاري الحفظ...\" / EN: \"Saving...\"",
+    "snippet": "<Button type=\"submit\" disabled={updateMutation.isPending}> {updateMutation.isPending ? (ar ? \"جاري الحفظ...\""
+  },
+  {
+    "file": "pages/users/components/CreateUserDialog.tsx",
+    "line": 309,
+    "module": "users",
+    "action": "create",
+    "controlType": "Button",
+    "label": "AR: \"إضافة مستخدم جديد\" / EN: \"Add New User\"",
+    "snippet": "<DialogTrigger asChild> <Button className=\"bg-[#0F2A44] hover:bg-[#0F2A44]/90 text-white gap-2 shadow-xs transition-all hover:shadow-md\">"
+  },
+  {
+    "file": "pages/users/index.tsx",
+    "line": 418,
+    "module": "users",
+    "action": "create",
+    "controlType": "Unknown",
+    "label": "<CreateUserDialog properties={properties ?? []} />",
+    "snippet": "<CreateUserDialog properties={properties ?? []} />"
+  },
+  {
+    "file": "pages/users/index.tsx",
+    "line": 443,
+    "module": "users",
+    "action": "manage_permissions",
+    "controlType": "Unknown",
+    "label": "AR: \"مركز ومصفوفة الصلاحيات الشاملة\" / EN: \"Permissions Center\"",
+    "snippet": "<button type=\"button\" onClick={() => setActiveMainTab(\"matrix\")} className={`flex items-center gap-2 px-5 py-3 tex"
+  },
+  {
+    "file": "pages/users/index.tsx",
+    "line": 709,
+    "module": "settings",
+    "action": "delete",
+    "controlType": "Button",
+    "label": "AR: \"حذف المحدد\" / EN: \"Delete Selected\"",
+    "snippet": "<Button variant=\"destructive\" size=\"sm\" onClick={() => { if ( window.confi"
+  },
+  {
+    "file": "pages/users/index.tsx",
+    "line": 1148,
+    "module": "users",
+    "action": "manage_permissions",
+    "controlType": "Button",
+    "label": "AR: \"إدارة الصلاحيات\" / EN: \"Manage Permissions\"",
+    "snippet": "<Button variant=\"ghost\" size=\"icon\" className=\"h-8 w-8"
+  },
+  {
+    "file": "pages/users/index.tsx",
+    "line": 1170,
+    "module": "users",
+    "action": "edit",
+    "controlType": "DropdownMenuItem",
+    "label": "AR: \"تعديل البيانات\" / EN: \"Edit User Data\"",
+    "snippet": "<DropdownMenuItem onClick={() => setEditUser(u)} className=\"cursor-pointer\""
+  },
+  {
+    "file": "pages/users/index.tsx",
+    "line": 1181,
+    "module": "users",
+    "action": "manage_permissions",
+    "controlType": "DropdownMenuItem",
+    "label": "AR: \"تعديل سريع للصلاحيات\" / EN: \"Quick Permissions Edit\"",
+    "snippet": "<DropdownMenuItem onClick={() => setMatrixUser(u)} className=\"cursor-pointer\""
+  },
+  {
+    "file": "pages/users/index.tsx",
+    "line": 1227,
+    "module": "users",
+    "action": "reset_password",
+    "controlType": "DropdownMenuItem",
+    "label": "AR: \"إعادة تعيين كلمة المرور\" / EN: \"Reset Password\"",
+    "snippet": "<DropdownMenuItem onClick={() => setResetUser(u)} className=\"cursor-pointer\""
+  },
+  {
+    "file": "pages/users/index.tsx",
+    "line": 1241,
+    "module": "users",
+    "action": "unlock",
+    "controlType": "DropdownMenuItem",
+    "label": "AR: \"فتح قفل الحساب\" / EN: \"Unlock Account\"",
+    "snippet": "<DropdownMenuItem onClick={() => setUnlockUser(u)} className=\"cursor-pointer\""
+  },
+  {
+    "file": "pages/users/index.tsx",
+    "line": 1254,
+    "module": "users",
+    "action": "delete",
+    "controlType": "DropdownMenuItem",
+    "label": "AR: \"حذف المستخدم\" / EN: \"Delete User\"",
+    "snippet": "<DropdownMenuItem onClick={() => setDeleteUser(u)} disabled={"
+  }
+]

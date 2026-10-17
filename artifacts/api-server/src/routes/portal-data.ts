@@ -21,6 +21,7 @@ import {
   activitiesTable,
   propertyHousingRatingsTable,
   propertyHousingPulseConfigTable,
+  lookupValuesTable,
 } from "@workspace/db";
 import {
   eq,
@@ -913,12 +914,41 @@ router.get("/documents", async (req, res): Promise<void> => {
 
 // ─── Portal catalog (categories + activity statuses) ─────────
 router.get("/catalog", async (req, res): Promise<void> => {
-  const sess = portalSession(req)!;
+  const sess = portalSession(req);
+  if (!sess) {
+    res.status(401).json({ success: false, message: "Not authenticated" });
+    return;
+  }
+  // Optional per-tenant maintenance problem types (lookup_values category
+  // `maintenance_problem_type`); empty → portal falls back to built-ins.
+  let maintenanceProblemTypes: Array<{
+    value: string;
+    label: string;
+    labelAr: string;
+  }> = [];
+  try {
+    const rows = await withTenant(sess.propertyId, async (tenantDb) =>
+      tenantDb
+        .select()
+        .from(lookupValuesTable)
+        .where(eq(lookupValuesTable.category, "maintenance_problem_type")),
+    );
+    maintenanceProblemTypes = (rows || [])
+      .filter((r: any) => !r.disabled && r.value)
+      .map((r: any) => ({
+        value: r.value,
+        label: r.value,
+        labelAr: r.valueAr || r.value,
+      }));
+  } catch {
+    maintenanceProblemTypes = [];
+  }
   res.json({
     success: true,
-    activityCategories: getPortalCategories(sess.propertyId, "activities"),
-    evaluationCategories: getPortalCategories(sess.propertyId, "evaluations"),
+    activityCategories: await getPortalCategories(sess.propertyId, "activities"),
+    evaluationCategories: await getPortalCategories(sess.propertyId, "evaluations"),
     activityStatuses: getActivityStatuses(),
+    maintenanceProblemTypes,
   });
 });
 

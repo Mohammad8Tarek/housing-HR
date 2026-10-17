@@ -5,8 +5,10 @@ import { logActivity } from "../lib/activity-logger.js";
 import { broadcastToProperty } from "../lib/websocket.js";
 import {
   addPortalCategory,
+  addPortalTag,
   getActivityStatuses,
   getPortalCategories,
+  getPortalTags,
 } from "../lib/portal-catalog.js";
 import { getTenantId } from "../lib/request-utils.js";
 
@@ -57,7 +59,7 @@ router.get("/", requireAuth, async (req, res, next) => {
         .json({ success: false, message: "propertyId required" });
 
     const type = req.query.type as string | undefined;
-    const categories = getPortalCategories(propertyId, type);
+    const categories = await getPortalCategories(propertyId, type);
     res.json(categories);
   } catch (err) {
     next(err);
@@ -79,7 +81,7 @@ router.get("/statuses", requireAuth, async (req, res, next) => {
   }
 });
 
-// POST / — create custom category (in-memory until DB table exists)
+// POST / — create custom category (persisted per tenant)
 // @ts-ignore
 router.post("/", requirePermission("portal_content", "create"), async (req, res, next) => {
   try {
@@ -90,7 +92,7 @@ router.post("/", requirePermission("portal_content", "create"), async (req, res,
         .json({ success: false, message: "propertyId required" });
 
     const validated = CategorySchema.parse(req.body);
-    const category = addPortalCategory(propertyId, validated);
+    const category = await addPortalCategory(propertyId, validated);
 
     await logActivity({
       req,
@@ -123,7 +125,9 @@ router.get("/tags", requireAuth, async (req, res, next) => {
       return res
         .status(400)
         .json({ success: false, message: "propertyId required" });
-    res.json(DEFAULT_TAGS);
+    const custom = await getPortalTags(propertyId);
+    const seen = new Set(custom.map((t) => t.name.toLowerCase()));
+    res.json([...DEFAULT_TAGS.filter((t) => !seen.has(t.name.toLowerCase())), ...custom]);
   } catch (err) {
     next(err);
   }
@@ -140,12 +144,7 @@ router.post("/tags", requirePermission("portal_content", "create"), async (req, 
         .json({ success: false, message: "propertyId required" });
 
     const validated = TagSchema.parse(req.body);
-    const tag = {
-      id: Date.now(),
-      ...validated,
-      propertyId,
-      createdAt: new Date(),
-    };
+    const tag = await addPortalTag(propertyId, validated);
 
     await logActivity({
       req,

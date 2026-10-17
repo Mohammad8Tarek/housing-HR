@@ -44,6 +44,8 @@ import {
   CheckCheck,
   Laptop,
   QrCode,
+  DollarSign,
+  Fingerprint,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLogout, useGetSettings } from "@workspace/api-client-react";
@@ -414,7 +416,18 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       icon: QrCode,
       permissionModule: "gate",
     },
-
+    {
+      href: "/payroll",
+      label: ar ? "المرتبات والأجور" : "Payroll System",
+      icon: DollarSign,
+      permissionModule: "payroll",
+    },
+    {
+      href: "/attendance",
+      label: ar ? "الحضور وأجهزة البصمة" : "Attendance",
+      icon: Fingerprint,
+      permissionModule: "attendance",
+    },
     {
       href: "/users",
       label: ar ? "المستخدمين" : "Users",

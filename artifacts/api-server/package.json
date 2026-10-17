@@ -29,6 +29,7 @@
     "@whiskeysockets/baileys": "7.0.0-rc14",
     "@workspace/api-zod": "workspace:*",
     "@workspace/db": "workspace:*",
+    "@workspace/db-payroll": "workspace:*",
     "@workspace/queue": "workspace:*",
     "bcryptjs": "^3.0.3",
     "bullmq": "^5.52.0",

@@ -1,0 +1,4698 @@
+[
+  {
+    "file": "activities.ts",
+    "method": "GET",
+    "routePath": "/activities",
+    "middlewares": ", requirePermission(\"activities\", \"view\")",
+    "permissions": [
+      "activities.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "activities.ts",
+    "method": "POST",
+    "routePath": "/activities",
+    "middlewares": ", requirePermission(\"activities\", \"create\")",
+    "permissions": [
+      "activities.create"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "activities.ts",
+    "method": "PUT",
+    "routePath": "/activities/:id",
+    "middlewares": ", requirePermission(\"activities\", \"edit\")",
+    "permissions": [
+      "activities.edit"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "activities.ts",
+    "method": "GET",
+    "routePath": "/activities/:id/registrations",
+    "middlewares": ", requirePermission(\"activities\", \"view\")",
+    "permissions": [
+      "activities.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "activities.ts",
+    "method": "DELETE",
+    "routePath": "/activities/:id",
+    "middlewares": ", requirePermission(\"activities\", \"delete\")",
+    "permissions": [
+      "activities.delete"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "activity_logs.ts",
+    "method": "GET",
+    "routePath": "/activity-logs",
+    "middlewares": ", requirePermission(\"activity_log\", \"view\")",
+    "permissions": [
+      "activity_log.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "activity_logs.ts",
+    "method": "GET",
+    "routePath": "/activity-logs/security",
+    "middlewares": ", requirePermission(\"activity_log\", \"view\")",
+    "permissions": [
+      "activity_log.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "assignments.ts",
+    "method": "GET",
+    "routePath": "/assignments/in-house",
+    "middlewares": ", requirePermission(\"accommodation\", \"view\")",
+    "permissions": [
+      "accommodation.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "assignments.ts",
+    "method": "GET",
+    "routePath": "/assignments/history",
+    "middlewares": ", requirePermission(\"accommodation\", \"view\")",
+    "permissions": [
+      "accommodation.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "assignments.ts",
+    "method": "GET",
+    "routePath": "/assignments",
+    "middlewares": ", requirePermission(\"accommodation\", \"view\")",
+    "permissions": [
+      "accommodation.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "assignments.ts",
+    "method": "POST",
+    "routePath": "/assignments",
+    "middlewares": ", requirePermission(\"accommodation\", \"create\")",
+    "permissions": [
+      "accommodation.create"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "assignments.ts",
+    "method": "POST",
+    "routePath": "/assignments/:id/checkout",
+    "middlewares": ", requirePermission(\"accommodation\", \"edit\")",
+    "permissions": [
+      "accommodation.edit"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "assignments.ts",
+    "method": "POST",
+    "routePath": "/assignments/:id/transfer",
+    "middlewares": ", requirePermission(\"accommodation\", \"edit\")",
+    "permissions": [
+      "accommodation.edit"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "assignments.ts",
+    "method": "PATCH",
+    "routePath": "/assignments/:id",
+    "middlewares": ", requirePermission(\"accommodation\", \"edit\")",
+    "permissions": [
+      "accommodation.edit"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "assignments.ts",
+    "method": "DELETE",
+    "routePath": "/assignments/:id",
+    "middlewares": ", requirePermission(\"accommodation\", \"delete\")",
+    "permissions": [
+      "accommodation.delete"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "assignments.ts",
+    "method": "POST",
+    "routePath": "/assignments/bulk-delete",
+    "middlewares": ", requirePermission(\"accommodation\", \"delete\")",
+    "permissions": [
+      "accommodation.delete"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "auth.ts",
+    "method": "POST",
+    "routePath": "/auth/login",
+    "middlewares": "",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "auth.ts",
+    "method": "GET",
+    "routePath": "/auth/ws-token",
+    "middlewares": "",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": true,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "auth.ts",
+    "method": "POST",
+    "routePath": "/auth/logout",
+    "middlewares": "",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "auth.ts",
+    "method": "GET",
+    "routePath": "/auth/me",
+    "middlewares": "",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": true,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "auth.ts",
+    "method": "POST",
+    "routePath": "/auth/change-password",
+    "middlewares": ", changePasswordRateLimit",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "auth.ts",
+    "method": "POST",
+    "routePath": "/auth/switch-property",
+    "middlewares": "",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": true,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "buildings.ts",
+    "method": "GET",
+    "routePath": "/buildings",
+    "middlewares": ", requireAnyPermission( [\"housing\", \"view\"], [\"accommodation\", \"view\"], [\"housekeeping\", \"view\"], [\"reservations\", \"view\"], [\"maintenance\", \"view\"], [\"reports\", \"view\"], )",
+    "permissions": [],
+    "anyPermissions": [
+      "housing.view OR accommodation.view OR housekeeping.view OR reservations.view OR maintenance.view OR reports.view"
+    ],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "buildings.ts",
+    "method": "POST",
+    "routePath": "/buildings",
+    "middlewares": ", requirePermission(\"housing\", \"create\")",
+    "permissions": [
+      "housing.create"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "buildings.ts",
+    "method": "PATCH",
+    "routePath": "/buildings/:id",
+    "middlewares": ", requirePermission(\"housing\", \"edit\")",
+    "permissions": [
+      "housing.edit"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "buildings.ts",
+    "method": "DELETE",
+    "routePath": "/buildings/:id",
+    "middlewares": ", requirePermission(\"housing\", \"delete\")",
+    "permissions": [
+      "housing.delete"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "dashboard.ts",
+    "method": "GET",
+    "routePath": "/dashboard/all-stats",
+    "middlewares": ", requirePermission(\"dashboard\", \"audit\")",
+    "permissions": [
+      "dashboard.audit"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "dashboard.ts",
+    "method": "GET",
+    "routePath": "/dashboard/stats",
+    "middlewares": ", requirePermission(\"dashboard\", \"view\")",
+    "permissions": [
+      "dashboard.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "dashboard.ts",
+    "method": "GET",
+    "routePath": "/dashboard/pending",
+    "middlewares": ", requirePermission(\"dashboard\", \"view\")",
+    "permissions": [
+      "dashboard.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "dashboard.ts",
+    "method": "GET",
+    "routePath": "/dashboard/recent-activity",
+    "middlewares": ", requirePermission(\"dashboard\", \"view\")",
+    "permissions": [
+      "dashboard.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "dashboard.ts",
+    "method": "GET",
+    "routePath": "/dashboard/occupancy-by-building",
+    "middlewares": ", requirePermission(\"dashboard\", \"view\")",
+    "permissions": [
+      "dashboard.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "documents.ts",
+    "method": "GET",
+    "routePath": "/",
+    "middlewares": ", requirePermission(\"documents\", \"view\")",
+    "permissions": [
+      "documents.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "documents.ts",
+    "method": "POST",
+    "routePath": "/",
+    "middlewares": ", requirePermission(\"documents\", \"create\")",
+    "permissions": [
+      "documents.create"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "documents.ts",
+    "method": "DELETE",
+    "routePath": "/:id",
+    "middlewares": ", requirePermission(\"documents\", \"delete\")",
+    "permissions": [
+      "documents.delete"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "evaluations.ts",
+    "method": "GET",
+    "routePath": "/evaluations",
+    "middlewares": ", requirePermission(\"evaluations\", \"view\")",
+    "permissions": [
+      "evaluations.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "evaluations.ts",
+    "method": "POST",
+    "routePath": "/evaluations",
+    "middlewares": ", requirePermission(\"evaluations\", \"create\")",
+    "permissions": [
+      "evaluations.create"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "evaluations.ts",
+    "method": "PUT",
+    "routePath": "/evaluations/:id/items",
+    "middlewares": ", requirePermission(\"evaluations\", \"edit\")",
+    "permissions": [
+      "evaluations.edit"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "evaluations.ts",
+    "method": "GET",
+    "routePath": "/evaluations/stats",
+    "middlewares": ", requirePermission(\"reports\", \"view\")",
+    "permissions": [
+      "reports.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "evaluations.ts",
+    "method": "GET",
+    "routePath": "/evaluations/:id/responses",
+    "middlewares": ", requirePermission(\"evaluations\", \"view\")",
+    "permissions": [
+      "evaluations.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "evaluations.ts",
+    "method": "DELETE",
+    "routePath": "/evaluations/:id",
+    "middlewares": ", requirePermission(\"evaluations\", \"delete\")",
+    "permissions": [
+      "evaluations.delete"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "floors.ts",
+    "method": "GET",
+    "routePath": "/floors",
+    "middlewares": ", requireAnyPermission( [\"housing\", \"view\"], [\"accommodation\", \"view\"], [\"housekeeping\", \"view\"], [\"reservations\", \"view\"], [\"maintenance\", \"view\"], [\"reports\", \"view\"], )",
+    "permissions": [],
+    "anyPermissions": [
+      "housing.view OR accommodation.view OR housekeeping.view OR reservations.view OR maintenance.view OR reports.view"
+    ],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "floors.ts",
+    "method": "POST",
+    "routePath": "/floors",
+    "middlewares": ", requirePermission(\"housing\", \"create\")",
+    "permissions": [
+      "housing.create"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "floors.ts",
+    "method": "PATCH",
+    "routePath": "/floors/:id",
+    "middlewares": ", requirePermission(\"housing\", \"edit\")",
+    "permissions": [
+      "housing.edit"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "floors.ts",
+    "method": "DELETE",
+    "routePath": "/floors/:id",
+    "middlewares": ", requirePermission(\"housing\", \"delete\")",
+    "permissions": [
+      "housing.delete"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "health.ts",
+    "method": "GET",
+    "routePath": "/healthz",
+    "middlewares": "",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "hosting-requests.ts",
+    "method": "POST",
+    "routePath": "/hosting-requests",
+    "middlewares": ", requirePermission(\"hosting_requests\", \"create\")",
+    "permissions": [
+      "hosting_requests.create"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "hosting-requests.ts",
+    "method": "GET",
+    "routePath": "/hosting-requests/history/:clockNumber",
+    "middlewares": ", requirePermission(\"hosting_requests\", \"view\")",
+    "permissions": [
+      "hosting_requests.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "hosting-requests.ts",
+    "method": "GET",
+    "routePath": "/hosting-requests",
+    "middlewares": ", requirePermission(\"hosting_requests\", \"view\")",
+    "permissions": [
+      "hosting_requests.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "hosting-requests.ts",
+    "method": "GET",
+    "routePath": "/hosting-requests/counts",
+    "middlewares": ", requirePermission(\"hosting_requests\", \"view\")",
+    "permissions": [
+      "hosting_requests.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "hosting-requests.ts",
+    "method": "GET",
+    "routePath": "/hosting-requests/pending-my-signature",
+    "middlewares": ", requirePermission(\"hosting_requests\", \"view\")",
+    "permissions": [
+      "hosting_requests.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "hosting-requests.ts",
+    "method": "POST",
+    "routePath": "/hosting-requests/:id/create-guest-hosting",
+    "middlewares": ", requirePermission(\"hosting_requests\", \"create\")",
+    "permissions": [
+      "hosting_requests.create"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": true,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "hosting-requests.ts",
+    "method": "GET",
+    "routePath": "/hosting-requests/:id",
+    "middlewares": ", requirePermission(\"hosting_requests\", \"view\")",
+    "permissions": [
+      "hosting_requests.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": true,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "hosting-requests.ts",
+    "method": "POST",
+    "routePath": "/hosting-requests/:id/sign",
+    "middlewares": ", requirePermission(\"hosting_requests\", \"approve\")",
+    "permissions": [
+      "hosting_requests.approve"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": true,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "hosting-requests.ts",
+    "method": "POST",
+    "routePath": "/hosting-requests/:id/reject",
+    "middlewares": ", requirePermission(\"hosting_requests\", \"approve\")",
+    "permissions": [
+      "hosting_requests.approve"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": true,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "hosting-requests.ts",
+    "method": "POST",
+    "routePath": "/hosting-requests/:id/reback",
+    "middlewares": ", requirePermission(\"hosting_requests\", \"edit\")",
+    "permissions": [
+      "hosting_requests.edit"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": true,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "hosting-requests.ts",
+    "method": "PUT",
+    "routePath": "/hosting-requests/:id",
+    "middlewares": ", requirePermission(\"hosting_requests\", \"edit\")",
+    "permissions": [
+      "hosting_requests.edit"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": true,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "hosting-requests.ts",
+    "method": "DELETE",
+    "routePath": "/hosting-requests/:id",
+    "middlewares": ", requirePermission(\"hosting_requests\", \"delete\")",
+    "permissions": [
+      "hosting_requests.delete"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": true,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "hostings.ts",
+    "method": "GET",
+    "routePath": "/hostings",
+    "middlewares": ", requirePermission(\"guest_hosting\", \"view\")",
+    "permissions": [
+      "guest_hosting.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "hostings.ts",
+    "method": "POST",
+    "routePath": "/hostings",
+    "middlewares": ", requirePermission(\"guest_hosting\", \"create\")",
+    "permissions": [
+      "guest_hosting.create"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "hostings.ts",
+    "method": "GET",
+    "routePath": "/hostings/:id",
+    "middlewares": ", requirePermission(\"guest_hosting\", \"view\")",
+    "permissions": [
+      "guest_hosting.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "hostings.ts",
+    "method": "PATCH",
+    "routePath": "/hostings/:id",
+    "middlewares": ", requirePermission(\"guest_hosting\", \"edit\")",
+    "permissions": [
+      "guest_hosting.edit"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "hostings.ts",
+    "method": "DELETE",
+    "routePath": "/hostings/:id",
+    "middlewares": ", requirePermission(\"guest_hosting\", \"delete\")",
+    "permissions": [
+      "guest_hosting.delete"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "hostings.ts",
+    "method": "POST",
+    "routePath": "/hostings/:id/approve",
+    "middlewares": ", requirePermission(\"guest_hosting\", \"approve\")",
+    "permissions": [
+      "guest_hosting.approve"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "hostings.ts",
+    "method": "POST",
+    "routePath": "/hostings/:id/checkin",
+    "middlewares": ", requirePermission(\"guest_hosting\", \"checkin\")",
+    "permissions": [
+      "guest_hosting.checkin"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "hostings.ts",
+    "method": "POST",
+    "routePath": "/hostings/:id/checkout",
+    "middlewares": ", requirePermission(\"guest_hosting\", \"checkout\")",
+    "permissions": [
+      "guest_hosting.checkout"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "hostings.ts",
+    "method": "GET",
+    "routePath": "/hostings/:id/companions",
+    "middlewares": ", requirePermission(\"guest_hosting\", \"view\")",
+    "permissions": [
+      "guest_hosting.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "hostings.ts",
+    "method": "POST",
+    "routePath": "/hostings/:id/companions",
+    "middlewares": ", requirePermission(\"guest_hosting\", \"create\")",
+    "permissions": [
+      "guest_hosting.create"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "hostings.ts",
+    "method": "DELETE",
+    "routePath": "/hostings/:id/companions/:companionId",
+    "middlewares": ", requirePermission(\"guest_hosting\", \"delete\")",
+    "permissions": [
+      "guest_hosting.delete"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "hotek-config.ts",
+    "method": "GET",
+    "routePath": "/config",
+    "middlewares": ", requirePermission(\"settings\", \"view\")",
+    "permissions": [
+      "settings.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "hotek-config.ts",
+    "method": "POST",
+    "routePath": "/servers",
+    "middlewares": ", requirePermission(\"settings\", \"edit\")",
+    "permissions": [
+      "settings.edit"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "hotek-config.ts",
+    "method": "PATCH",
+    "routePath": "/servers/:id",
+    "middlewares": ", requirePermission(\"settings\", \"edit\")",
+    "permissions": [
+      "settings.edit"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "hotek-config.ts",
+    "method": "POST",
+    "routePath": "/servers/:id/test",
+    "middlewares": ", requirePermission(\"settings\", \"view\")",
+    "permissions": [
+      "settings.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "hotek-config.ts",
+    "method": "DELETE",
+    "routePath": "/servers/:id",
+    "middlewares": ", requirePermission(\"settings\", \"edit\")",
+    "permissions": [
+      "settings.edit"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "hr-sync.ts",
+    "method": "GET",
+    "routePath": "/config",
+    "middlewares": ", requirePermission(\"settings\", \"view\")",
+    "permissions": [
+      "settings.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "hr-sync.ts",
+    "method": "PUT",
+    "routePath": "/config",
+    "middlewares": ", requirePermission(\"settings\", \"edit\")",
+    "permissions": [
+      "settings.edit"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "hr-sync.ts",
+    "method": "POST",
+    "routePath": "/receive",
+    "middlewares": "",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "hr-sync.ts",
+    "method": "POST",
+    "routePath": "/sync",
+    "middlewares": ", requirePermission(\"settings\", \"edit\")",
+    "permissions": [
+      "settings.edit"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "hr-sync.ts",
+    "method": "GET",
+    "routePath": "/logs",
+    "middlewares": ", requirePermission(\"settings\", \"view\")",
+    "permissions": [
+      "settings.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "hr-sync.ts",
+    "method": "GET",
+    "routePath": "/profiles/:profileId",
+    "middlewares": "",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "hr-sync.ts",
+    "method": "POST",
+    "routePath": "/notify-departure",
+    "middlewares": "",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "jobs.ts",
+    "method": "POST",
+    "routePath": "/export",
+    "middlewares": ", asyncHandler(",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "jobs.ts",
+    "method": "GET",
+    "routePath": "/:id/status",
+    "middlewares": ", asyncHandler(",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "jobs.ts",
+    "method": "GET",
+    "routePath": "/:id/download",
+    "middlewares": ", asyncHandler(",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "lookup_values.ts",
+    "method": "GET",
+    "routePath": "/lookup-values",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "lookup_values.ts",
+    "method": "POST",
+    "routePath": "/lookup-values",
+    "middlewares": ", requirePermission(\"settings\", \"create\")",
+    "permissions": [
+      "settings.create"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "lookup_values.ts",
+    "method": "PATCH",
+    "routePath": "/lookup-values/:id",
+    "middlewares": ", requirePermission(\"settings\", \"edit\")",
+    "permissions": [
+      "settings.edit"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "lookup_values.ts",
+    "method": "DELETE",
+    "routePath": "/lookup-values/:id",
+    "middlewares": ", requirePermission(\"settings\", \"delete\")",
+    "permissions": [
+      "settings.delete"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "maintenance.ts",
+    "method": "GET",
+    "routePath": "/maintenance",
+    "middlewares": ", requirePermission(\"maintenance\", \"view\")",
+    "permissions": [
+      "maintenance.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "maintenance.ts",
+    "method": "GET",
+    "routePath": "/maintenance/:id",
+    "middlewares": ", requirePermission(\"maintenance\", \"view\")",
+    "permissions": [
+      "maintenance.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "maintenance.ts",
+    "method": "POST",
+    "routePath": "/maintenance",
+    "middlewares": ", requirePermission(\"maintenance\", \"create\")",
+    "permissions": [
+      "maintenance.create"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "maintenance.ts",
+    "method": "PATCH",
+    "routePath": "/maintenance/:id",
+    "middlewares": ", requirePermission(\"maintenance\", \"edit\")",
+    "permissions": [
+      "maintenance.edit"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "maintenance.ts",
+    "method": "DELETE",
+    "routePath": "/maintenance/:id",
+    "middlewares": ", requirePermission(\"maintenance\", \"delete\")",
+    "permissions": [
+      "maintenance.delete"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "maintenance.ts",
+    "method": "GET",
+    "routePath": "/maintenance/:id/sub-tickets",
+    "middlewares": ", requirePermission(\"maintenance\", \"view\")",
+    "permissions": [
+      "maintenance.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "maintenance.ts",
+    "method": "POST",
+    "routePath": "/maintenance/:id/sub-tickets",
+    "middlewares": ", requirePermission(\"maintenance\", \"create\")",
+    "permissions": [
+      "maintenance.create"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "notifications.ts",
+    "method": "GET",
+    "routePath": "/notifications",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": true,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-analytics.ts",
+    "method": "GET",
+    "routePath": "/",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-analytics.ts",
+    "method": "GET",
+    "routePath": "/trends",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-analytics.ts",
+    "method": "GET",
+    "routePath": "/content-performance",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-auth.ts",
+    "method": "GET",
+    "routePath": "/ping",
+    "middlewares": "",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-auth.ts",
+    "method": "POST",
+    "routePath": "/login",
+    "middlewares": ", portalLoginRateLimit",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-auth.ts",
+    "method": "GET",
+    "routePath": "/profiles",
+    "middlewares": ", requirePortalAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-auth.ts",
+    "method": "GET",
+    "routePath": "/me",
+    "middlewares": ", requirePortalAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-auth.ts",
+    "method": "POST",
+    "routePath": "/change-password",
+    "middlewares": ", requirePortalAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-auth.ts",
+    "method": "POST",
+    "routePath": "/first-login-reset",
+    "middlewares": ", requirePortalAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-auth.ts",
+    "method": "POST",
+    "routePath": "/logout",
+    "middlewares": "",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-auth.ts",
+    "method": "POST",
+    "routePath": "/reset-password",
+    "middlewares": ", requirePermission(\"profiles\", \"reset_password\")",
+    "permissions": [
+      "profiles.reset_password"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-auth.ts",
+    "method": "POST",
+    "routePath": "/set-password",
+    "middlewares": ", requirePermission(\"profiles\", \"reset_password\")",
+    "permissions": [
+      "profiles.reset_password"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-auth.ts",
+    "method": "GET",
+    "routePath": "/accounts",
+    "middlewares": ", requirePermission(\"profiles\", \"view\")",
+    "permissions": [
+      "profiles.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-auth.ts",
+    "method": "POST",
+    "routePath": "/toggle-access",
+    "middlewares": ", requirePermission(\"profiles\", \"edit\")",
+    "permissions": [
+      "profiles.edit"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "portal-auth.ts",
+    "method": "POST",
+    "routePath": "/forgot-password/verify",
+    "middlewares": ", portalLoginRateLimit",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "portal-auth.ts",
+    "method": "POST",
+    "routePath": "/forgot-password/reset",
+    "middlewares": ", portalLoginRateLimit",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "portal-categories.ts",
+    "method": "GET",
+    "routePath": "/",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-categories.ts",
+    "method": "GET",
+    "routePath": "/statuses",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-categories.ts",
+    "method": "POST",
+    "routePath": "/",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-categories.ts",
+    "method": "GET",
+    "routePath": "/tags",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-categories.ts",
+    "method": "POST",
+    "routePath": "/tags",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-categories.ts",
+    "method": "GET",
+    "routePath": "/search",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-chat.ts",
+    "method": "GET",
+    "routePath": "/conversations",
+    "middlewares": ", requirePortalAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-chat.ts",
+    "method": "POST",
+    "routePath": "/conversations",
+    "middlewares": ", requirePortalAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-chat.ts",
+    "method": "GET",
+    "routePath": "/conversations/:id/messages",
+    "middlewares": ", requirePortalAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-chat.ts",
+    "method": "POST",
+    "routePath": "/conversations/:id/messages",
+    "middlewares": ", requirePortalAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-chat.ts",
+    "method": "PUT",
+    "routePath": "/conversations/:id/read",
+    "middlewares": ", requirePortalAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-chat.ts",
+    "method": "POST",
+    "routePath": "/conversations/:id/typing",
+    "middlewares": ", requirePortalAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-chat.ts",
+    "method": "GET",
+    "routePath": "/admin/conversations",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-chat.ts",
+    "method": "GET",
+    "routePath": "/admin/conversations/:id/messages",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-chat.ts",
+    "method": "POST",
+    "routePath": "/admin/conversations/:id/messages",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-chat.ts",
+    "method": "DELETE",
+    "routePath": "/admin/messages/:id",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-chat.ts",
+    "method": "GET",
+    "routePath": "/admin/stats",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-contacts.ts",
+    "method": "GET",
+    "routePath": "/portal-contacts",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-contacts.ts",
+    "method": "POST",
+    "routePath": "/portal-contacts",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-contacts.ts",
+    "method": "PUT",
+    "routePath": "/portal-contacts/:id",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-contacts.ts",
+    "method": "DELETE",
+    "routePath": "/portal-contacts/:id",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-data.ts",
+    "method": "GET",
+    "routePath": "/profile",
+    "middlewares": "",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-data.ts",
+    "method": "GET",
+    "routePath": "/room",
+    "middlewares": "",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-data.ts",
+    "method": "GET",
+    "routePath": "/notifications",
+    "middlewares": "",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-data.ts",
+    "method": "GET",
+    "routePath": "/alerts",
+    "middlewares": "",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-data.ts",
+    "method": "GET",
+    "routePath": "/my-profile",
+    "middlewares": "",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-data.ts",
+    "method": "PATCH",
+    "routePath": "/my-profile",
+    "middlewares": "",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-data.ts",
+    "method": "GET",
+    "routePath": "/my-room",
+    "middlewares": "",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-data.ts",
+    "method": "GET",
+    "routePath": "/roommates",
+    "middlewares": "",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-data.ts",
+    "method": "GET",
+    "routePath": "/my-maintenance",
+    "middlewares": "",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-data.ts",
+    "method": "POST",
+    "routePath": "/my-maintenance",
+    "middlewares": "",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-data.ts",
+    "method": "GET",
+    "routePath": "/my-contacts",
+    "middlewares": "",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-data.ts",
+    "method": "GET",
+    "routePath": "/contacts",
+    "middlewares": "",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-data.ts",
+    "method": "GET",
+    "routePath": "/documents",
+    "middlewares": "",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-data.ts",
+    "method": "GET",
+    "routePath": "/catalog",
+    "middlewares": "",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-data.ts",
+    "method": "GET",
+    "routePath": "/my-activities",
+    "middlewares": "",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-data.ts",
+    "method": "GET",
+    "routePath": "/my-evaluations",
+    "middlewares": "",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-data.ts",
+    "method": "POST",
+    "routePath": "/my-evaluations/:id/respond",
+    "middlewares": "",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-data.ts",
+    "method": "POST",
+    "routePath": "/activity-registration",
+    "middlewares": "",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-data.ts",
+    "method": "DELETE",
+    "routePath": "/activity-registration",
+    "middlewares": "",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-data.ts",
+    "method": "POST",
+    "routePath": "/activity-attendance",
+    "middlewares": "",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-feedback.ts",
+    "method": "GET",
+    "routePath": "/:contentType/:contentId",
+    "middlewares": "",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-feedback.ts",
+    "method": "POST",
+    "routePath": "/feedback",
+    "middlewares": "",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-feedback.ts",
+    "method": "POST",
+    "routePath": "/comments",
+    "middlewares": "",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-feedback.ts",
+    "method": "DELETE",
+    "routePath": "/comments/:id",
+    "middlewares": "",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-feedback.ts",
+    "method": "POST",
+    "routePath": "/comments/:id/like",
+    "middlewares": "",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-feedback.ts",
+    "method": "GET",
+    "routePath": "/stats",
+    "middlewares": "",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-food-transport.ts",
+    "method": "GET",
+    "routePath": "/menu",
+    "middlewares": ", requirePortalAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-food-transport.ts",
+    "method": "GET",
+    "routePath": "/my-orders",
+    "middlewares": ", requirePortalAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-food-transport.ts",
+    "method": "POST",
+    "routePath": "/order",
+    "middlewares": ", requirePortalAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-food-transport.ts",
+    "method": "PUT",
+    "routePath": "/order/:id/cancel",
+    "middlewares": ", requirePortalAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-food-transport.ts",
+    "method": "GET",
+    "routePath": "/schedules",
+    "middlewares": ", requirePortalAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-food-transport.ts",
+    "method": "GET",
+    "routePath": "/my-bookings",
+    "middlewares": ", requirePortalAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-food-transport.ts",
+    "method": "POST",
+    "routePath": "/book",
+    "middlewares": ", requirePortalAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-food-transport.ts",
+    "method": "PUT",
+    "routePath": "/booking/:id/cancel",
+    "middlewares": ", requirePortalAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-food-transport.ts",
+    "method": "GET",
+    "routePath": "/admin/menu",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-food-transport.ts",
+    "method": "POST",
+    "routePath": "/admin/menu",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-food-transport.ts",
+    "method": "DELETE",
+    "routePath": "/admin/menu/:id",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-food-transport.ts",
+    "method": "PUT",
+    "routePath": "/admin/menu/:id",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-food-transport.ts",
+    "method": "GET",
+    "routePath": "/admin/schedules",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-food-transport.ts",
+    "method": "POST",
+    "routePath": "/admin/schedules",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-food-transport.ts",
+    "method": "DELETE",
+    "routePath": "/admin/schedules/:id",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-food-transport.ts",
+    "method": "PUT",
+    "routePath": "/admin/schedules/:id",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-food-transport.ts",
+    "method": "GET",
+    "routePath": "/admin/stats",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-notifications.ts",
+    "method": "GET",
+    "routePath": "/my",
+    "middlewares": ", requirePortalAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-notifications.ts",
+    "method": "PUT",
+    "routePath": "/read/:id",
+    "middlewares": ", requirePortalAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-notifications.ts",
+    "method": "PUT",
+    "routePath": "/read-all",
+    "middlewares": ", requirePortalAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-notifications.ts",
+    "method": "GET",
+    "routePath": "/",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-notifications.ts",
+    "method": "POST",
+    "routePath": "/",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-notifications.ts",
+    "method": "DELETE",
+    "routePath": "/:id",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-notifications.ts",
+    "method": "GET",
+    "routePath": "/stats",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-reports.ts",
+    "method": "GET",
+    "routePath": "/",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-reports.ts",
+    "method": "POST",
+    "routePath": "/generate",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-reports.ts",
+    "method": "GET",
+    "routePath": "/evaluations-report",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-reports.ts",
+    "method": "GET",
+    "routePath": "/activities-report",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-reports.ts",
+    "method": "GET",
+    "routePath": "/engagement-report",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-reports.ts",
+    "method": "GET",
+    "routePath": "/custom-report",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-reports.ts",
+    "method": "GET",
+    "routePath": "/templates/list",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-reports.ts",
+    "method": "GET",
+    "routePath": "/departments",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-schedule.ts",
+    "method": "GET",
+    "routePath": "/",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-schedule.ts",
+    "method": "GET",
+    "routePath": "/calendar",
+    "middlewares": ", requirePortalAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-schedule.ts",
+    "method": "GET",
+    "routePath": "/priorities",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-schedule.ts",
+    "method": "GET",
+    "routePath": "/reminders",
+    "middlewares": ", requirePortalAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-schedule.ts",
+    "method": "POST",
+    "routePath": "/calendar/events",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "portal-schedule.ts",
+    "method": "POST",
+    "routePath": "/reminders/:id/snooze",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "profiles.ts",
+    "method": "GET",
+    "routePath": "/profiles",
+    "middlewares": ", requirePermission(\"profiles\", \"view\")",
+    "permissions": [
+      "profiles.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "profiles.ts",
+    "method": "GET",
+    "routePath": "/profiles/search",
+    "middlewares": ", requirePermission(\"profiles\", \"view\")",
+    "permissions": [
+      "profiles.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "profiles.ts",
+    "method": "GET",
+    "routePath": "/profiles/check-duplicate",
+    "middlewares": ", requirePermission(\"profiles\", \"view\")",
+    "permissions": [
+      "profiles.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "profiles.ts",
+    "method": "GET",
+    "routePath": "/profiles/existing-identifiers",
+    "middlewares": ", requirePermission(\"profiles\", \"view\")",
+    "permissions": [
+      "profiles.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "profiles.ts",
+    "method": "POST",
+    "routePath": "/profiles",
+    "middlewares": ", requirePermission(\"profiles\", \"create\")",
+    "permissions": [
+      "profiles.create"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "profiles.ts",
+    "method": "POST",
+    "routePath": "/profiles/bulk",
+    "middlewares": ", requirePermission(\"profiles\", \"create\")",
+    "permissions": [
+      "profiles.create"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "profiles.ts",
+    "method": "GET",
+    "routePath": "/profiles/:id",
+    "middlewares": ", requirePermission(\"profiles\", \"view\")",
+    "permissions": [
+      "profiles.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "profiles.ts",
+    "method": "PATCH",
+    "routePath": "/profiles/:id",
+    "middlewares": ", requirePermission(\"profiles\", \"edit\")",
+    "permissions": [
+      "profiles.edit"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "profiles.ts",
+    "method": "DELETE",
+    "routePath": "/profiles/:id",
+    "middlewares": ", requirePermission(\"profiles\", \"delete\")",
+    "permissions": [
+      "profiles.delete"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "profiles.ts",
+    "method": "PATCH",
+    "routePath": "/profiles/:id/photo",
+    "middlewares": ", requirePermission(\"profiles\", \"edit\")",
+    "permissions": [
+      "profiles.edit"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "profiles.ts",
+    "method": "PATCH",
+    "routePath": "/profiles/:id/id-image",
+    "middlewares": ", requirePermission(\"profiles\", \"edit\")",
+    "permissions": [
+      "profiles.edit"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "profiles.ts",
+    "method": "GET",
+    "routePath": "/profiles/:id/photo",
+    "middlewares": ", requirePermission(\"profiles\", \"view\")",
+    "permissions": [
+      "profiles.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "profiles.ts",
+    "method": "POST",
+    "routePath": "/profiles/:id/vacation",
+    "middlewares": ", requirePermission(\"profiles\", \"edit\")",
+    "permissions": [
+      "profiles.edit"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "profiles.ts",
+    "method": "POST",
+    "routePath": "/profiles/:id/return-vacation",
+    "middlewares": ", requirePermission(\"profiles\", \"edit\")",
+    "permissions": [
+      "profiles.edit"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "properties.ts",
+    "method": "GET",
+    "routePath": "/properties",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": true,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "properties.ts",
+    "method": "POST",
+    "routePath": "/properties",
+    "middlewares": ", requirePermission(\"properties\", \"create\")",
+    "permissions": [
+      "properties.create"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "properties.ts",
+    "method": "GET",
+    "routePath": "/properties/:id",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": true,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "properties.ts",
+    "method": "PATCH",
+    "routePath": "/properties/:id",
+    "middlewares": ", requirePermission(\"properties\", \"edit\")",
+    "permissions": [
+      "properties.edit"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "properties.ts",
+    "method": "DELETE",
+    "routePath": "/properties/:id",
+    "middlewares": ", requirePermission(\"properties\", \"delete\")",
+    "permissions": [
+      "properties.delete"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "push-notifications.ts",
+    "method": "GET",
+    "routePath": "/vapid-key",
+    "middlewares": "",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "push-notifications.ts",
+    "method": "POST",
+    "routePath": "/subscribe",
+    "middlewares": ", requirePortalAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "push-notifications.ts",
+    "method": "POST",
+    "routePath": "/unsubscribe",
+    "middlewares": ", requirePortalAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "reports.ts",
+    "method": "GET",
+    "routePath": "/",
+    "middlewares": ", requirePermission(\"reports\", \"view\")",
+    "permissions": [
+      "reports.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "reservations.ts",
+    "method": "GET",
+    "routePath": "/reservations",
+    "middlewares": ", requirePermission(\"reservations\", \"view\")",
+    "permissions": [
+      "reservations.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "reservations.ts",
+    "method": "POST",
+    "routePath": "/reservations",
+    "middlewares": ", requirePermission(\"reservations\", \"create\")",
+    "permissions": [
+      "reservations.create"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "reservations.ts",
+    "method": "GET",
+    "routePath": "/reservations/:id",
+    "middlewares": ", requirePermission(\"reservations\", \"view\")",
+    "permissions": [
+      "reservations.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "reservations.ts",
+    "method": "PATCH",
+    "routePath": "/reservations/:id",
+    "middlewares": ", requirePermission(\"reservations\", \"edit\")",
+    "permissions": [
+      "reservations.edit"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "reservations.ts",
+    "method": "DELETE",
+    "routePath": "/reservations/:id",
+    "middlewares": ", requirePermission(\"reservations\", \"delete\")",
+    "permissions": [
+      "reservations.delete"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "reservations.ts",
+    "method": "POST",
+    "routePath": "/reservations/:id/checkin",
+    "middlewares": ", requirePermission(\"reservations\", \"edit\")",
+    "permissions": [
+      "reservations.edit"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "reservations.ts",
+    "method": "PATCH",
+    "routePath": "/reservations/:id/checkout",
+    "middlewares": ", requirePermission(\"reservations\", \"edit\")",
+    "permissions": [
+      "reservations.edit"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "reservations.ts",
+    "method": "PATCH",
+    "routePath": "/reservations/:id/cancel",
+    "middlewares": ", requirePermission(\"reservations\", \"edit\"), handleCancelReservation);",
+    "permissions": [
+      "reservations.edit"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "reservations.ts",
+    "method": "POST",
+    "routePath": "/reservations/:id/cancel",
+    "middlewares": ", requirePermission(\"reservations\", \"edit\"), handleCancelReservation);",
+    "permissions": [
+      "reservations.edit"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "room-import.ts",
+    "method": "POST",
+    "routePath": "/rooms/import/execute",
+    "middlewares": ", requirePermission(\"housing\", \"create\")",
+    "permissions": [
+      "housing.create"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "room-import.ts",
+    "method": "GET",
+    "routePath": "/rooms/import/history",
+    "middlewares": ", requirePermission(\"housing\", \"view\")",
+    "permissions": [
+      "housing.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "room-import.ts",
+    "method": "GET",
+    "routePath": "/rooms/import/templates",
+    "middlewares": ", requirePermission(\"housing\", \"view\")",
+    "permissions": [
+      "housing.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "room-import.ts",
+    "method": "POST",
+    "routePath": "/rooms/import/templates",
+    "middlewares": ", requirePermission(\"housing\", \"create\")",
+    "permissions": [
+      "housing.create"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "rooms.ts",
+    "method": "GET",
+    "routePath": "/rooms/:id/bed-status",
+    "middlewares": ", requireAnyPermission( [\"housing\", \"view\"], [\"accommodation\", \"view\"], [\"housekeeping\", \"view\"], [\"reservations\", \"view\"], [\"maintenance\", \"view\"], [\"reports\", \"view\"], )",
+    "permissions": [],
+    "anyPermissions": [
+      "housing.view OR accommodation.view OR housekeeping.view OR reservations.view OR maintenance.view OR reports.view"
+    ],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "rooms.ts",
+    "method": "GET",
+    "routePath": "/rooms/by-number",
+    "middlewares": ", requireAnyPermission( [\"housing\", \"view\"], [\"accommodation\", \"view\"], [\"housekeeping\", \"view\"], [\"reservations\", \"view\"], [\"maintenance\", \"view\"], [\"reports\", \"view\"], )",
+    "permissions": [],
+    "anyPermissions": [
+      "housing.view OR accommodation.view OR housekeeping.view OR reservations.view OR maintenance.view OR reports.view"
+    ],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "rooms.ts",
+    "method": "GET",
+    "routePath": "/rooms",
+    "middlewares": ", requireAnyPermission( [\"housing\", \"view\"], [\"accommodation\", \"view\"], [\"housekeeping\", \"view\"], [\"reservations\", \"view\"], [\"maintenance\", \"view\"], [\"reports\", \"view\"], )",
+    "permissions": [],
+    "anyPermissions": [
+      "housing.view OR accommodation.view OR housekeeping.view OR reservations.view OR maintenance.view OR reports.view"
+    ],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "rooms.ts",
+    "method": "GET",
+    "routePath": "/rooms/:id/history",
+    "middlewares": ", requirePermission(\"housing\", \"view\")",
+    "permissions": [
+      "housing.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "rooms.ts",
+    "method": "POST",
+    "routePath": "/rooms",
+    "middlewares": ", requirePermission(\"housing\", \"create\")",
+    "permissions": [
+      "housing.create"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "rooms.ts",
+    "method": "GET",
+    "routePath": "/rooms/:id",
+    "middlewares": ", requireAnyPermission( [\"housing\", \"view\"], [\"accommodation\", \"view\"], [\"housekeeping\", \"view\"], [\"reservations\", \"view\"], [\"maintenance\", \"view\"], [\"reports\", \"view\"], )",
+    "permissions": [],
+    "anyPermissions": [
+      "housing.view OR accommodation.view OR housekeeping.view OR reservations.view OR maintenance.view OR reports.view"
+    ],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "rooms.ts",
+    "method": "PATCH",
+    "routePath": "/rooms/:id",
+    "middlewares": ", requireAnyPermission([\"housing\", \"edit\"], [\"housekeeping\", \"edit\"])",
+    "permissions": [],
+    "anyPermissions": [
+      "housing.edit OR housekeeping.edit"
+    ],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "rooms.ts",
+    "method": "PATCH",
+    "routePath": "/rooms/:id/features",
+    "middlewares": ", requirePermission(\"housing\", \"edit\")",
+    "permissions": [
+      "housing.edit"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "rooms.ts",
+    "method": "PATCH",
+    "routePath": "/rooms/:id/status",
+    "middlewares": "",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "rooms.ts",
+    "method": "POST",
+    "routePath": "/rooms/bulk-delete",
+    "middlewares": ", requirePermission(\"housing\", \"delete\")",
+    "permissions": [
+      "housing.delete"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "rooms.ts",
+    "method": "DELETE",
+    "routePath": "/rooms/:id",
+    "middlewares": ", requirePermission(\"housing\", \"delete\")",
+    "permissions": [
+      "housing.delete"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "settings.ts",
+    "method": "GET",
+    "routePath": "/settings",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "settings.ts",
+    "method": "PATCH",
+    "routePath": "/settings",
+    "middlewares": ", requirePermission(\"settings\", \"edit\")",
+    "permissions": [
+      "settings.edit"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "settings.ts",
+    "method": "GET",
+    "routePath": "/settings/portal-contacts",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "smart-lock.ts",
+    "method": "GET",
+    "routePath": "/encoder/status",
+    "middlewares": ", requirePermission(\"smart_locks\", \"view\")",
+    "permissions": [
+      "smart_locks.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "smart-lock.ts",
+    "method": "POST",
+    "routePath": "/encoder/connect",
+    "middlewares": ", requirePermission(\"smart_locks\", \"edit\")",
+    "permissions": [
+      "smart_locks.edit"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "smart-lock.ts",
+    "method": "POST",
+    "routePath": "/encoder/disconnect",
+    "middlewares": ", requirePermission(\"smart_locks\", \"edit\")",
+    "permissions": [
+      "smart_locks.edit"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "smart-lock.ts",
+    "method": "POST",
+    "routePath": "/encoder/read-card",
+    "middlewares": ", requirePermission(\"smart_locks\", \"view\")",
+    "permissions": [
+      "smart_locks.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "smart-lock.ts",
+    "method": "POST",
+    "routePath": "/encoder/eject",
+    "middlewares": ", requirePermission(\"smart_locks\", \"edit\")",
+    "permissions": [
+      "smart_locks.edit"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "smart-lock.ts",
+    "method": "POST",
+    "routePath": "/encoder/encode",
+    "middlewares": ", requirePermission(\"smart_locks\", \"create\")",
+    "permissions": [
+      "smart_locks.create"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "smart-lock.ts",
+    "method": "POST",
+    "routePath": "/encoder/smart/checkin-issue-key",
+    "middlewares": ", requirePermission(\"smart_locks\", \"create\")",
+    "permissions": [
+      "smart_locks.create"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": true,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "smart-lock.ts",
+    "method": "GET",
+    "routePath": "io",
+    "middlewares": ");",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "smart-lock.ts",
+    "method": "GET",
+    "routePath": "/locks",
+    "middlewares": ", requirePermission(\"smart_locks\", \"view\")",
+    "permissions": [
+      "smart_locks.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "smart-lock.ts",
+    "method": "POST",
+    "routePath": "/locks",
+    "middlewares": ", requirePermission(\"smart_locks\", \"create\")",
+    "permissions": [
+      "smart_locks.create"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "smart-lock.ts",
+    "method": "PATCH",
+    "routePath": "/locks/:id",
+    "middlewares": ", requirePermission(\"smart_locks\", \"edit\")",
+    "permissions": [
+      "smart_locks.edit"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "smart-lock.ts",
+    "method": "GET",
+    "routePath": "/keys",
+    "middlewares": ", requirePermission(\"smart_locks\", \"view\")",
+    "permissions": [
+      "smart_locks.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "smart-lock.ts",
+    "method": "POST",
+    "routePath": "/keys/issue",
+    "middlewares": ", requirePermission(\"smart_locks\", \"create\")",
+    "permissions": [
+      "smart_locks.create"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "smart-lock.ts",
+    "method": "GET",
+    "routePath": "io",
+    "middlewares": "); if (io) { io.to(`property:${propertyId}`).emit(\"keys:created\", key); } res.status(201).json(key); } catch (err: any) { console.error(\"[Keys] Issue error:\", err); res.status(500).json({ error: \"Failed to issue key\", details: err instanceof Error ? err.message : String(err), }); } }, ); router.post( \"/keys/:id/revoke\", requirePermission(\"smart_locks\", \"edit\")",
+    "permissions": [
+      "smart_locks.edit"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "smart-lock.ts",
+    "method": "POST",
+    "routePath": "/keys/:id/revoke",
+    "middlewares": ", requirePermission(\"smart_locks\", \"edit\")",
+    "permissions": [
+      "smart_locks.edit"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "smart-lock.ts",
+    "method": "GET",
+    "routePath": "io",
+    "middlewares": "); if (io) { io.to(`property:${propertyId}`).emit(\"keys:revoked\", updated); } res.json(updated); } catch (err: any) { console.error(\"[Keys] Revoke error:\", err); res.status(500).json({ error: \"Failed to revoke key\" }); } }, ); router.post( \"/keys/:id/extend\", requirePermission(\"smart_locks\", \"edit\")",
+    "permissions": [
+      "smart_locks.edit"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "smart-lock.ts",
+    "method": "POST",
+    "routePath": "/keys/:id/extend",
+    "middlewares": ", requirePermission(\"smart_locks\", \"edit\")",
+    "permissions": [
+      "smart_locks.edit"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "smart-lock.ts",
+    "method": "GET",
+    "routePath": "/keys/audit",
+    "middlewares": ", requirePermission(\"smart_locks\", \"view\")",
+    "permissions": [
+      "smart_locks.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": true,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "user-signature.ts",
+    "method": "GET",
+    "routePath": "/users/me/signature",
+    "middlewares": "",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "user-signature.ts",
+    "method": "POST",
+    "routePath": "/users/me/signature",
+    "middlewares": "",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "user-signature.ts",
+    "method": "GET",
+    "routePath": "/users/:id/signature",
+    "middlewares": "",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": true,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "user-signature.ts",
+    "method": "POST",
+    "routePath": "/users/:id/signature",
+    "middlewares": "",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": true,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "users.ts",
+    "method": "GET",
+    "routePath": "/users",
+    "middlewares": ", requirePermission(\"users\", \"view\")",
+    "permissions": [
+      "users.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": true,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "users.ts",
+    "method": "GET",
+    "routePath": "/users/:id",
+    "middlewares": ", requirePermission(\"users\", \"view\")",
+    "permissions": [
+      "users.view"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "users.ts",
+    "method": "POST",
+    "routePath": "/users",
+    "middlewares": ", requirePermission(\"users\", \"create\")",
+    "permissions": [
+      "users.create"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": true,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "users.ts",
+    "method": "PATCH",
+    "routePath": "/users/:id",
+    "middlewares": ", requireUserUpdatePermission",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": true,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  },
+  {
+    "file": "users.ts",
+    "method": "POST",
+    "routePath": "/users/:id/unlock",
+    "middlewares": ", requirePermission(\"users\", \"unlock\")",
+    "permissions": [
+      "users.unlock"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": true,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "users.ts",
+    "method": "DELETE",
+    "routePath": "/users/:id",
+    "middlewares": ", requirePermission(\"users\", \"delete\")",
+    "permissions": [
+      "users.delete"
+    ],
+    "anyPermissions": [],
+    "requireAuth": false,
+    "superAdminOrAdminCheck": true,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": true
+    }
+  },
+  {
+    "file": "users.ts",
+    "method": "PATCH",
+    "routePath": "/users/me/last-property",
+    "middlewares": ", requireAuth",
+    "permissions": [],
+    "anyPermissions": [],
+    "requireAuth": true,
+    "superAdminOrAdminCheck": false,
+    "tenantIsolation": {
+      "usesWithTenant": false,
+      "usesGetTenantId": false,
+      "usesSearchPath": false,
+      "directDbAccess": false
+    }
+  }
+]

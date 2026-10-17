@@ -1,0 +1,1927 @@
+[
+  {
+    "file": "activities.ts",
+    "method": "GET",
+    "endpoint": "/api/activities",
+    "permissionGuard": "requirePermission(\"activities\", \"view\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "activities.ts",
+    "method": "POST",
+    "endpoint": "/api/activities",
+    "permissionGuard": "requirePermission(\"activities\", \"create\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "activities.ts",
+    "method": "PUT",
+    "endpoint": "/api/activities/:id",
+    "permissionGuard": "requirePermission(\"activities\", \"edit\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "activities.ts",
+    "method": "GET",
+    "endpoint": "/api/activities/:id/registrations",
+    "permissionGuard": "requirePermission(\"activities\", \"view\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "activities.ts",
+    "method": "DELETE",
+    "endpoint": "/api/activities/:id",
+    "permissionGuard": "requirePermission(\"activities\", \"delete\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "activity_logs.ts",
+    "method": "GET",
+    "endpoint": "/api/activity-logs",
+    "permissionGuard": "requirePermission(\"activity_log\", \"view\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "activity_logs.ts",
+    "method": "GET",
+    "endpoint": "/api/activity-logs/security",
+    "permissionGuard": "requirePermission(\"activity_log\", \"view\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "assignments.ts",
+    "method": "GET",
+    "endpoint": "/api/assignments/in-house",
+    "permissionGuard": "requirePermission(\"accommodation\", \"view\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "assignments.ts",
+    "method": "GET",
+    "endpoint": "/api/assignments/history",
+    "permissionGuard": "requirePermission(\"accommodation\", \"view\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "assignments.ts",
+    "method": "GET",
+    "endpoint": "/api/assignments",
+    "permissionGuard": "requirePermission(\"accommodation\", \"view\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "assignments.ts",
+    "method": "POST",
+    "endpoint": "/api/assignments",
+    "permissionGuard": "requirePermission(\"accommodation\", \"create\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "assignments.ts",
+    "method": "POST",
+    "endpoint": "/api/assignments/:id/checkout",
+    "permissionGuard": "requirePermission(\"accommodation\", \"edit\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "assignments.ts",
+    "method": "POST",
+    "endpoint": "/api/assignments/:id/transfer",
+    "permissionGuard": "requirePermission(\"accommodation\", \"edit\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "assignments.ts",
+    "method": "PATCH",
+    "endpoint": "/api/assignments/:id",
+    "permissionGuard": "requirePermission(\"accommodation\", \"edit\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "assignments.ts",
+    "method": "DELETE",
+    "endpoint": "/api/assignments/:id",
+    "permissionGuard": "requirePermission(\"accommodation\", \"delete\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "assignments.ts",
+    "method": "POST",
+    "endpoint": "/api/assignments/bulk-delete",
+    "permissionGuard": "requirePermission(\"accommodation\", \"delete\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "auth.ts",
+    "method": "POST",
+    "endpoint": "/api/auth/login",
+    "permissionGuard": "None",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "auth.ts",
+    "method": "GET",
+    "endpoint": "/api/auth/ws-token",
+    "permissionGuard": "None",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "auth.ts",
+    "method": "POST",
+    "endpoint": "/api/auth/logout",
+    "permissionGuard": "None",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "auth.ts",
+    "method": "GET",
+    "endpoint": "/api/auth/me",
+    "permissionGuard": "None",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "auth.ts",
+    "method": "POST",
+    "endpoint": "/api/auth/change-password",
+    "permissionGuard": "None",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "auth.ts",
+    "method": "POST",
+    "endpoint": "/api/auth/switch-property",
+    "permissionGuard": "None",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "buildings.ts",
+    "method": "GET",
+    "endpoint": "/api/buildings",
+    "permissionGuard": "requireAnyPermission(housing.view, accommodation.view, housekeeping.view, reservations.view, maintenance.view, reports.view)",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "buildings.ts",
+    "method": "POST",
+    "endpoint": "/api/buildings",
+    "permissionGuard": "requirePermission(\"housing\", \"create\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "buildings.ts",
+    "method": "PATCH",
+    "endpoint": "/api/buildings/:id",
+    "permissionGuard": "requirePermission(\"housing\", \"edit\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "buildings.ts",
+    "method": "DELETE",
+    "endpoint": "/api/buildings/:id",
+    "permissionGuard": "requirePermission(\"housing\", \"delete\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "dashboard.ts",
+    "method": "GET",
+    "endpoint": "/api/dashboard/all-stats",
+    "permissionGuard": "requirePermission(\"dashboard\", \"audit\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "dashboard.ts",
+    "method": "GET",
+    "endpoint": "/api/dashboard/stats",
+    "permissionGuard": "requirePermission(\"dashboard\", \"view\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "dashboard.ts",
+    "method": "GET",
+    "endpoint": "/api/dashboard/pending",
+    "permissionGuard": "requirePermission(\"dashboard\", \"view\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "dashboard.ts",
+    "method": "GET",
+    "endpoint": "/api/dashboard/recent-activity",
+    "permissionGuard": "requirePermission(\"dashboard\", \"view\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "dashboard.ts",
+    "method": "GET",
+    "endpoint": "/api/dashboard/occupancy-by-building",
+    "permissionGuard": "requirePermission(\"dashboard\", \"view\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "documents.ts",
+    "method": "GET",
+    "endpoint": "/api/documents",
+    "permissionGuard": "requirePermission(\"documents\", \"view\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "documents.ts",
+    "method": "POST",
+    "endpoint": "/api/documents",
+    "permissionGuard": "requirePermission(\"documents\", \"create\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "documents.ts",
+    "method": "DELETE",
+    "endpoint": "/api/documents/:id",
+    "permissionGuard": "requirePermission(\"documents\", \"delete\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "evaluations.ts",
+    "method": "GET",
+    "endpoint": "/api/evaluations",
+    "permissionGuard": "requirePermission(\"evaluations\", \"view\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "evaluations.ts",
+    "method": "POST",
+    "endpoint": "/api/evaluations",
+    "permissionGuard": "requirePermission(\"evaluations\", \"create\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "evaluations.ts",
+    "method": "PUT",
+    "endpoint": "/api/evaluations/:id/items",
+    "permissionGuard": "requirePermission(\"evaluations\", \"edit\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "evaluations.ts",
+    "method": "GET",
+    "endpoint": "/api/evaluations/stats",
+    "permissionGuard": "requirePermission(\"reports\", \"view\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "evaluations.ts",
+    "method": "GET",
+    "endpoint": "/api/evaluations/:id/responses",
+    "permissionGuard": "requirePermission(\"evaluations\", \"view\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "evaluations.ts",
+    "method": "DELETE",
+    "endpoint": "/api/evaluations/:id",
+    "permissionGuard": "requirePermission(\"evaluations\", \"delete\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "floors.ts",
+    "method": "GET",
+    "endpoint": "/api/floors",
+    "permissionGuard": "requireAnyPermission(housing.view, accommodation.view, housekeeping.view, reservations.view, maintenance.view, reports.view)",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "floors.ts",
+    "method": "POST",
+    "endpoint": "/api/floors",
+    "permissionGuard": "requirePermission(\"housing\", \"create\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "floors.ts",
+    "method": "PATCH",
+    "endpoint": "/api/floors/:id",
+    "permissionGuard": "requirePermission(\"housing\", \"edit\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "floors.ts",
+    "method": "DELETE",
+    "endpoint": "/api/floors/:id",
+    "permissionGuard": "requirePermission(\"housing\", \"delete\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "health.ts",
+    "method": "GET",
+    "endpoint": "/api/healthz",
+    "permissionGuard": "None",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "hosting-requests.ts",
+    "method": "POST",
+    "endpoint": "/api/hosting-requests",
+    "permissionGuard": "requirePermission(\"hosting_requests\", \"create\")",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "hosting-requests.ts",
+    "method": "GET",
+    "endpoint": "/api/hosting-requests/history/:clockNumber",
+    "permissionGuard": "requirePermission(\"hosting_requests\", \"view\")",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "hosting-requests.ts",
+    "method": "GET",
+    "endpoint": "/api/hosting-requests",
+    "permissionGuard": "requirePermission(\"hosting_requests\", \"view\")",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "hosting-requests.ts",
+    "method": "GET",
+    "endpoint": "/api/hosting-requests/counts",
+    "permissionGuard": "requirePermission(\"hosting_requests\", \"view\")",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "hosting-requests.ts",
+    "method": "GET",
+    "endpoint": "/api/hosting-requests/pending-my-signature",
+    "permissionGuard": "requirePermission(\"hosting_requests\", \"view\")",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "hosting-requests.ts",
+    "method": "POST",
+    "endpoint": "/api/hosting-requests/:id/create-guest-hosting",
+    "permissionGuard": "requirePermission(\"hosting_requests\", \"create\")",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "hosting-requests.ts",
+    "method": "GET",
+    "endpoint": "/api/hosting-requests/:id",
+    "permissionGuard": "requirePermission(\"hosting_requests\", \"view\")",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "hosting-requests.ts",
+    "method": "POST",
+    "endpoint": "/api/hosting-requests/:id/sign",
+    "permissionGuard": "requirePermission(\"hosting_requests\", \"approve\")",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "hosting-requests.ts",
+    "method": "POST",
+    "endpoint": "/api/hosting-requests/:id/reject",
+    "permissionGuard": "requirePermission(\"hosting_requests\", \"approve\")",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "hosting-requests.ts",
+    "method": "POST",
+    "endpoint": "/api/hosting-requests/:id/reback",
+    "permissionGuard": "requirePermission(\"hosting_requests\", \"edit\")",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "hosting-requests.ts",
+    "method": "PUT",
+    "endpoint": "/api/hosting-requests/:id",
+    "permissionGuard": "requirePermission(\"hosting_requests\", \"edit\")",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "hosting-requests.ts",
+    "method": "DELETE",
+    "endpoint": "/api/hosting-requests/:id",
+    "permissionGuard": "requirePermission(\"hosting_requests\", \"delete\")",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "hostings.ts",
+    "method": "GET",
+    "endpoint": "/api/hostings",
+    "permissionGuard": "requirePermission(\"guest_hosting\", \"view\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "hostings.ts",
+    "method": "POST",
+    "endpoint": "/api/hostings",
+    "permissionGuard": "requirePermission(\"guest_hosting\", \"create\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "hostings.ts",
+    "method": "GET",
+    "endpoint": "/api/hostings/:id",
+    "permissionGuard": "requirePermission(\"guest_hosting\", \"view\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "hostings.ts",
+    "method": "PATCH",
+    "endpoint": "/api/hostings/:id",
+    "permissionGuard": "requirePermission(\"guest_hosting\", \"edit\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "hostings.ts",
+    "method": "DELETE",
+    "endpoint": "/api/hostings/:id",
+    "permissionGuard": "requirePermission(\"guest_hosting\", \"delete\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "hostings.ts",
+    "method": "POST",
+    "endpoint": "/api/hostings/:id/approve",
+    "permissionGuard": "requirePermission(\"guest_hosting\", \"approve\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "hostings.ts",
+    "method": "POST",
+    "endpoint": "/api/hostings/:id/checkin",
+    "permissionGuard": "requirePermission(\"guest_hosting\", \"checkin\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "hostings.ts",
+    "method": "POST",
+    "endpoint": "/api/hostings/:id/checkout",
+    "permissionGuard": "requirePermission(\"guest_hosting\", \"checkout\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "hostings.ts",
+    "method": "GET",
+    "endpoint": "/api/hostings/:id/companions",
+    "permissionGuard": "requirePermission(\"guest_hosting\", \"view\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "hostings.ts",
+    "method": "POST",
+    "endpoint": "/api/hostings/:id/companions",
+    "permissionGuard": "requirePermission(\"guest_hosting\", \"create\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "hostings.ts",
+    "method": "DELETE",
+    "endpoint": "/api/hostings/:id/companions/:companionId",
+    "permissionGuard": "requirePermission(\"guest_hosting\", \"delete\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "hotek-config.ts",
+    "method": "GET",
+    "endpoint": "/api/hotek/config",
+    "permissionGuard": "requirePermission(\"settings\", \"view\")",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "hotek-config.ts",
+    "method": "POST",
+    "endpoint": "/api/hotek/servers",
+    "permissionGuard": "requirePermission(\"settings\", \"edit\")",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "hotek-config.ts",
+    "method": "PATCH",
+    "endpoint": "/api/hotek/servers/:id",
+    "permissionGuard": "requirePermission(\"settings\", \"edit\")",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "hotek-config.ts",
+    "method": "POST",
+    "endpoint": "/api/hotek/servers/:id/test",
+    "permissionGuard": "requirePermission(\"settings\", \"view\")",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "hotek-config.ts",
+    "method": "DELETE",
+    "endpoint": "/api/hotek/servers/:id",
+    "permissionGuard": "requirePermission(\"settings\", \"edit\")",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "hr-sync.ts",
+    "method": "GET",
+    "endpoint": "/api/hr-sync/config",
+    "permissionGuard": "requirePermission(\"settings\", \"view\")",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "hr-sync.ts",
+    "method": "PUT",
+    "endpoint": "/api/hr-sync/config",
+    "permissionGuard": "requirePermission(\"settings\", \"edit\")",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "hr-sync.ts",
+    "method": "POST",
+    "endpoint": "/api/hr-sync/receive",
+    "permissionGuard": "x-api-key (HR_SYNC_API_KEY)",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "hr-sync.ts",
+    "method": "POST",
+    "endpoint": "/api/hr-sync/sync",
+    "permissionGuard": "requirePermission(\"settings\", \"edit\")",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "hr-sync.ts",
+    "method": "GET",
+    "endpoint": "/api/hr-sync/logs",
+    "permissionGuard": "requirePermission(\"settings\", \"view\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "hr-sync.ts",
+    "method": "GET",
+    "endpoint": "/api/hr-sync/profiles/:profileId",
+    "permissionGuard": "x-api-key (HR_SYNC_API_KEY)",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "hr-sync.ts",
+    "method": "POST",
+    "endpoint": "/api/hr-sync/notify-departure",
+    "permissionGuard": "x-api-key (HR_SYNC_API_KEY)",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "jobs.ts",
+    "method": "POST",
+    "endpoint": "/api/jobs/export",
+    "permissionGuard": "router.use(requireAuth)",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "jobs.ts",
+    "method": "GET",
+    "endpoint": "/api/jobs/:id/status",
+    "permissionGuard": "router.use(requireAuth)",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "jobs.ts",
+    "method": "GET",
+    "endpoint": "/api/jobs/:id/download",
+    "permissionGuard": "router.use(requireAuth)",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "lookup_values.ts",
+    "method": "GET",
+    "endpoint": "/api/lookup-values",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "lookup_values.ts",
+    "method": "POST",
+    "endpoint": "/api/lookup-values",
+    "permissionGuard": "requirePermission(\"settings\", \"create\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "lookup_values.ts",
+    "method": "PATCH",
+    "endpoint": "/api/lookup-values/:id",
+    "permissionGuard": "requirePermission(\"settings\", \"edit\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "lookup_values.ts",
+    "method": "DELETE",
+    "endpoint": "/api/lookup-values/:id",
+    "permissionGuard": "requirePermission(\"settings\", \"delete\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "maintenance.ts",
+    "method": "GET",
+    "endpoint": "/api/maintenance",
+    "permissionGuard": "requirePermission(\"maintenance\", \"view\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "maintenance.ts",
+    "method": "GET",
+    "endpoint": "/api/maintenance/:id",
+    "permissionGuard": "requirePermission(\"maintenance\", \"view\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "maintenance.ts",
+    "method": "POST",
+    "endpoint": "/api/maintenance",
+    "permissionGuard": "requirePermission(\"maintenance\", \"create\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "maintenance.ts",
+    "method": "PATCH",
+    "endpoint": "/api/maintenance/:id",
+    "permissionGuard": "requirePermission(\"maintenance\", \"edit\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "maintenance.ts",
+    "method": "DELETE",
+    "endpoint": "/api/maintenance/:id",
+    "permissionGuard": "requirePermission(\"maintenance\", \"delete\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "maintenance.ts",
+    "method": "GET",
+    "endpoint": "/api/maintenance/:id/sub-tickets",
+    "permissionGuard": "requirePermission(\"maintenance\", \"view\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "maintenance.ts",
+    "method": "POST",
+    "endpoint": "/api/maintenance/:id/sub-tickets",
+    "permissionGuard": "requirePermission(\"maintenance\", \"create\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "notifications.ts",
+    "method": "GET",
+    "endpoint": "/api/notifications",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-analytics.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-analytics",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-analytics.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-analytics/trends",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-analytics.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-analytics/content-performance",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-auth.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-auth/ping",
+    "permissionGuard": "None",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-auth.ts",
+    "method": "POST",
+    "endpoint": "/api/portal-auth/login",
+    "permissionGuard": "None",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-auth.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-auth/profiles",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-auth.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-auth/me",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-auth.ts",
+    "method": "POST",
+    "endpoint": "/api/portal-auth/change-password",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-auth.ts",
+    "method": "POST",
+    "endpoint": "/api/portal-auth/first-login-reset",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-auth.ts",
+    "method": "POST",
+    "endpoint": "/api/portal-auth/logout",
+    "permissionGuard": "None",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-auth.ts",
+    "method": "POST",
+    "endpoint": "/api/portal-auth/reset-password",
+    "permissionGuard": "requirePermission(\"profiles\", \"reset_password\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-auth.ts",
+    "method": "POST",
+    "endpoint": "/api/portal-auth/set-password",
+    "permissionGuard": "requirePermission(\"profiles\", \"reset_password\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-auth.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-auth/accounts",
+    "permissionGuard": "requirePermission(\"profiles\", \"view\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-auth.ts",
+    "method": "POST",
+    "endpoint": "/api/portal-auth/toggle-access",
+    "permissionGuard": "requirePermission(\"profiles\", \"edit\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-auth.ts",
+    "method": "POST",
+    "endpoint": "/api/portal-auth/forgot-password/verify",
+    "permissionGuard": "None",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-auth.ts",
+    "method": "POST",
+    "endpoint": "/api/portal-auth/forgot-password/reset",
+    "permissionGuard": "None",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-categories.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-categories",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "portal-categories.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-categories/statuses",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "portal-categories.ts",
+    "method": "POST",
+    "endpoint": "/api/portal-categories",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "portal-categories.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-categories/tags",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "portal-categories.ts",
+    "method": "POST",
+    "endpoint": "/api/portal-categories/tags",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "portal-categories.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-categories/search",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "portal-chat.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-chat/conversations",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-chat.ts",
+    "method": "POST",
+    "endpoint": "/api/portal-chat/conversations",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-chat.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-chat/conversations/:id/messages",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-chat.ts",
+    "method": "POST",
+    "endpoint": "/api/portal-chat/conversations/:id/messages",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-chat.ts",
+    "method": "PUT",
+    "endpoint": "/api/portal-chat/conversations/:id/read",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-chat.ts",
+    "method": "POST",
+    "endpoint": "/api/portal-chat/conversations/:id/typing",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-chat.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-chat/admin/conversations",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-chat.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-chat/admin/conversations/:id/messages",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-chat.ts",
+    "method": "POST",
+    "endpoint": "/api/portal-chat/admin/conversations/:id/messages",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-chat.ts",
+    "method": "DELETE",
+    "endpoint": "/api/portal-chat/admin/messages/:id",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-chat.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-chat/admin/stats",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-contacts.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-contacts",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-contacts.ts",
+    "method": "POST",
+    "endpoint": "/api/portal-contacts",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-contacts.ts",
+    "method": "PUT",
+    "endpoint": "/api/portal-contacts/:id",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-contacts.ts",
+    "method": "DELETE",
+    "endpoint": "/api/portal-contacts/:id",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-data.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-data/profile",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-data.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-data/room",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-data.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-data/notifications",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-data.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-data/alerts",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-data.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-data/my-profile",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-data.ts",
+    "method": "PATCH",
+    "endpoint": "/api/portal-data/my-profile",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-data.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-data/my-room",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-data.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-data/roommates",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-data.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-data/my-maintenance",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-data.ts",
+    "method": "POST",
+    "endpoint": "/api/portal-data/my-maintenance",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-data.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-data/my-contacts",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-data.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-data/contacts",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-data.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-data/documents",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-data.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-data/catalog",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-data.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-data/my-activities",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-data.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-data/my-evaluations",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-data.ts",
+    "method": "POST",
+    "endpoint": "/api/portal-data/my-evaluations/:id/respond",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-data.ts",
+    "method": "POST",
+    "endpoint": "/api/portal-data/activity-registration",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-data.ts",
+    "method": "DELETE",
+    "endpoint": "/api/portal-data/activity-registration",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-data.ts",
+    "method": "POST",
+    "endpoint": "/api/portal-data/activity-attendance",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-feedback.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-feedback/:contentType/:contentId",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-feedback.ts",
+    "method": "POST",
+    "endpoint": "/api/portal-feedback/feedback",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-feedback.ts",
+    "method": "POST",
+    "endpoint": "/api/portal-feedback/comments",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-feedback.ts",
+    "method": "DELETE",
+    "endpoint": "/api/portal-feedback/comments/:id",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-feedback.ts",
+    "method": "POST",
+    "endpoint": "/api/portal-feedback/comments/:id/like",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-feedback.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-feedback/stats",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-food-transport.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-food/menu",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-food-transport.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-food/my-orders",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-food-transport.ts",
+    "method": "POST",
+    "endpoint": "/api/portal-food/order",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-food-transport.ts",
+    "method": "PUT",
+    "endpoint": "/api/portal-food/order/:id/cancel",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-food-transport.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-food/schedules",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-food-transport.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-food/my-bookings",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-food-transport.ts",
+    "method": "POST",
+    "endpoint": "/api/portal-food/book",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-food-transport.ts",
+    "method": "PUT",
+    "endpoint": "/api/portal-food/booking/:id/cancel",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-food-transport.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-food/admin/menu",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-food-transport.ts",
+    "method": "POST",
+    "endpoint": "/api/portal-food/admin/menu",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-food-transport.ts",
+    "method": "DELETE",
+    "endpoint": "/api/portal-food/admin/menu/:id",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-food-transport.ts",
+    "method": "PUT",
+    "endpoint": "/api/portal-food/admin/menu/:id",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-food-transport.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-food/admin/schedules",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-food-transport.ts",
+    "method": "POST",
+    "endpoint": "/api/portal-food/admin/schedules",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-food-transport.ts",
+    "method": "DELETE",
+    "endpoint": "/api/portal-food/admin/schedules/:id",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-food-transport.ts",
+    "method": "PUT",
+    "endpoint": "/api/portal-food/admin/schedules/:id",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-food-transport.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-food/admin/stats",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-notifications.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-notifications/my",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-notifications.ts",
+    "method": "PUT",
+    "endpoint": "/api/portal-notifications/read/:id",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-notifications.ts",
+    "method": "PUT",
+    "endpoint": "/api/portal-notifications/read-all",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-notifications.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-notifications",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-notifications.ts",
+    "method": "POST",
+    "endpoint": "/api/portal-notifications",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-notifications.ts",
+    "method": "DELETE",
+    "endpoint": "/api/portal-notifications/:id",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-notifications.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-notifications/stats",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-reports.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-reports",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-reports.ts",
+    "method": "POST",
+    "endpoint": "/api/portal-reports/generate",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-reports.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-reports/evaluations-report",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-reports.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-reports/activities-report",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-reports.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-reports/engagement-report",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-reports.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-reports/custom-report",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-reports.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-reports/templates/list",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-reports.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-reports/departments",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-schedule.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-schedule",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-schedule.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-schedule/calendar",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-schedule.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-schedule/priorities",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-schedule.ts",
+    "method": "GET",
+    "endpoint": "/api/portal-schedule/reminders",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-schedule.ts",
+    "method": "POST",
+    "endpoint": "/api/portal-schedule/calendar/events",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "portal-schedule.ts",
+    "method": "POST",
+    "endpoint": "/api/portal-schedule/reminders/:id/snooze",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "profiles.ts",
+    "method": "GET",
+    "endpoint": "/api/profiles",
+    "permissionGuard": "requirePermission(\"profiles\", \"view\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "profiles.ts",
+    "method": "GET",
+    "endpoint": "/api/profiles/search",
+    "permissionGuard": "requirePermission(\"profiles\", \"view\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "profiles.ts",
+    "method": "GET",
+    "endpoint": "/api/profiles/check-duplicate",
+    "permissionGuard": "requirePermission(\"profiles\", \"view\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "profiles.ts",
+    "method": "GET",
+    "endpoint": "/api/profiles/existing-identifiers",
+    "permissionGuard": "requirePermission(\"profiles\", \"view\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "profiles.ts",
+    "method": "POST",
+    "endpoint": "/api/profiles",
+    "permissionGuard": "requirePermission(\"profiles\", \"create\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "profiles.ts",
+    "method": "POST",
+    "endpoint": "/api/profiles/bulk",
+    "permissionGuard": "requirePermission(\"profiles\", \"create\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "profiles.ts",
+    "method": "GET",
+    "endpoint": "/api/profiles/:id",
+    "permissionGuard": "requirePermission(\"profiles\", \"view\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "profiles.ts",
+    "method": "PATCH",
+    "endpoint": "/api/profiles/:id",
+    "permissionGuard": "requirePermission(\"profiles\", \"edit\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "profiles.ts",
+    "method": "DELETE",
+    "endpoint": "/api/profiles/:id",
+    "permissionGuard": "requirePermission(\"profiles\", \"delete\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "profiles.ts",
+    "method": "PATCH",
+    "endpoint": "/api/profiles/:id/photo",
+    "permissionGuard": "requirePermission(\"profiles\", \"edit\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "profiles.ts",
+    "method": "PATCH",
+    "endpoint": "/api/profiles/:id/id-image",
+    "permissionGuard": "requirePermission(\"profiles\", \"edit\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "profiles.ts",
+    "method": "GET",
+    "endpoint": "/api/profiles/:id/photo",
+    "permissionGuard": "requirePermission(\"profiles\", \"view\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "profiles.ts",
+    "method": "POST",
+    "endpoint": "/api/profiles/:id/vacation",
+    "permissionGuard": "requirePermission(\"profiles\", \"edit\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "profiles.ts",
+    "method": "POST",
+    "endpoint": "/api/profiles/:id/return-vacation",
+    "permissionGuard": "requirePermission(\"profiles\", \"edit\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "properties.ts",
+    "method": "GET",
+    "endpoint": "/api/properties",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "public.properties (Filtered by authUser.propertyIds)"
+  },
+  {
+    "file": "properties.ts",
+    "method": "POST",
+    "endpoint": "/api/properties",
+    "permissionGuard": "requirePermission(\"properties\", \"create\")",
+    "tenantIsolation": "public.properties (Filtered by authUser.propertyIds)"
+  },
+  {
+    "file": "properties.ts",
+    "method": "GET",
+    "endpoint": "/api/properties/:id",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "public.properties (Filtered by authUser.propertyIds)"
+  },
+  {
+    "file": "properties.ts",
+    "method": "PATCH",
+    "endpoint": "/api/properties/:id",
+    "permissionGuard": "requirePermission(\"properties\", \"edit\")",
+    "tenantIsolation": "public.properties (Filtered by authUser.propertyIds)"
+  },
+  {
+    "file": "properties.ts",
+    "method": "DELETE",
+    "endpoint": "/api/properties/:id",
+    "permissionGuard": "requirePermission(\"properties\", \"delete\")",
+    "tenantIsolation": "public.properties (Filtered by authUser.propertyIds)"
+  },
+  {
+    "file": "push-notifications.ts",
+    "method": "GET",
+    "endpoint": "/api/push/vapid-key",
+    "permissionGuard": "None",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "push-notifications.ts",
+    "method": "POST",
+    "endpoint": "/api/push/subscribe",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "push-notifications.ts",
+    "method": "POST",
+    "endpoint": "/api/push/unsubscribe",
+    "permissionGuard": "requirePortalAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "reports.ts",
+    "method": "GET",
+    "endpoint": "/api/reports",
+    "permissionGuard": "requirePermission(\"reports\", \"view\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "reservations.ts",
+    "method": "GET",
+    "endpoint": "/api/reservations",
+    "permissionGuard": "requirePermission(\"reservations\", \"view\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "reservations.ts",
+    "method": "POST",
+    "endpoint": "/api/reservations",
+    "permissionGuard": "requirePermission(\"reservations\", \"create\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "reservations.ts",
+    "method": "GET",
+    "endpoint": "/api/reservations/:id",
+    "permissionGuard": "requirePermission(\"reservations\", \"view\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "reservations.ts",
+    "method": "PATCH",
+    "endpoint": "/api/reservations/:id",
+    "permissionGuard": "requirePermission(\"reservations\", \"edit\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "reservations.ts",
+    "method": "DELETE",
+    "endpoint": "/api/reservations/:id",
+    "permissionGuard": "requirePermission(\"reservations\", \"delete\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "reservations.ts",
+    "method": "POST",
+    "endpoint": "/api/reservations/:id/checkin",
+    "permissionGuard": "requirePermission(\"reservations\", \"edit\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "reservations.ts",
+    "method": "PATCH",
+    "endpoint": "/api/reservations/:id/checkout",
+    "permissionGuard": "requirePermission(\"reservations\", \"edit\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "reservations.ts",
+    "method": "PATCH",
+    "endpoint": "/api/reservations/:id/cancel",
+    "permissionGuard": "requirePermission(\"reservations\", \"edit\")",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "reservations.ts",
+    "method": "POST",
+    "endpoint": "/api/reservations/:id/cancel",
+    "permissionGuard": "requirePermission(\"reservations\", \"edit\")",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "room-import.ts",
+    "method": "POST",
+    "endpoint": "/api/rooms/import/execute",
+    "permissionGuard": "requirePermission(\"housing\", \"create\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "room-import.ts",
+    "method": "GET",
+    "endpoint": "/api/rooms/import/history",
+    "permissionGuard": "requirePermission(\"housing\", \"view\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "room-import.ts",
+    "method": "GET",
+    "endpoint": "/api/rooms/import/templates",
+    "permissionGuard": "requirePermission(\"housing\", \"view\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "room-import.ts",
+    "method": "POST",
+    "endpoint": "/api/rooms/import/templates",
+    "permissionGuard": "requirePermission(\"housing\", \"create\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "rooms.ts",
+    "method": "GET",
+    "endpoint": "/api/rooms/:id/bed-status",
+    "permissionGuard": "requireAnyPermission(housing.view, accommodation.view, housekeeping.view, reservations.view, maintenance.view, reports.view)",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "rooms.ts",
+    "method": "GET",
+    "endpoint": "/api/rooms/by-number",
+    "permissionGuard": "requireAnyPermission(housing.view, accommodation.view, housekeeping.view, reservations.view, maintenance.view, reports.view)",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "rooms.ts",
+    "method": "GET",
+    "endpoint": "/api/rooms",
+    "permissionGuard": "requireAnyPermission(housing.view, accommodation.view, housekeeping.view, reservations.view, maintenance.view, reports.view)",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "rooms.ts",
+    "method": "GET",
+    "endpoint": "/api/rooms/:id/history",
+    "permissionGuard": "requirePermission(\"housing\", \"view\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "rooms.ts",
+    "method": "POST",
+    "endpoint": "/api/rooms",
+    "permissionGuard": "requirePermission(\"housing\", \"create\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "rooms.ts",
+    "method": "GET",
+    "endpoint": "/api/rooms/:id",
+    "permissionGuard": "requireAnyPermission(housing.view, accommodation.view, housekeeping.view, reservations.view, maintenance.view, reports.view)",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "rooms.ts",
+    "method": "PATCH",
+    "endpoint": "/api/rooms/:id",
+    "permissionGuard": "requireAnyPermission(housing.edit, housekeeping.edit)",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "rooms.ts",
+    "method": "PATCH",
+    "endpoint": "/api/rooms/:id/features",
+    "permissionGuard": "requirePermission(\"housing\", \"edit\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "rooms.ts",
+    "method": "PATCH",
+    "endpoint": "/api/rooms/:id/status",
+    "permissionGuard": "inline: accommodation.edit OR housing.edit OR housekeeping.edit",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "rooms.ts",
+    "method": "POST",
+    "endpoint": "/api/rooms/bulk-delete",
+    "permissionGuard": "requirePermission(\"housing\", \"delete\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "rooms.ts",
+    "method": "DELETE",
+    "endpoint": "/api/rooms/:id",
+    "permissionGuard": "requirePermission(\"housing\", \"delete\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "settings.ts",
+    "method": "GET",
+    "endpoint": "/api/settings",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "settings.ts",
+    "method": "PATCH",
+    "endpoint": "/api/settings",
+    "permissionGuard": "requirePermission(\"settings\", \"edit\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "settings.ts",
+    "method": "GET",
+    "endpoint": "/api/settings/portal-contacts",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "smart-lock.ts",
+    "method": "GET",
+    "endpoint": "/api/encoder/status",
+    "permissionGuard": "requirePermission(\"smart_locks\", \"view\")",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "smart-lock.ts",
+    "method": "POST",
+    "endpoint": "/api/encoder/connect",
+    "permissionGuard": "requirePermission(\"smart_locks\", \"edit\")",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "smart-lock.ts",
+    "method": "POST",
+    "endpoint": "/api/encoder/disconnect",
+    "permissionGuard": "requirePermission(\"smart_locks\", \"edit\")",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "smart-lock.ts",
+    "method": "POST",
+    "endpoint": "/api/encoder/read-card",
+    "permissionGuard": "requirePermission(\"smart_locks\", \"view\")",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "smart-lock.ts",
+    "method": "POST",
+    "endpoint": "/api/encoder/eject",
+    "permissionGuard": "requirePermission(\"smart_locks\", \"edit\")",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "smart-lock.ts",
+    "method": "POST",
+    "endpoint": "/api/encoder/encode",
+    "permissionGuard": "requirePermission(\"smart_locks\", \"create\")",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "smart-lock.ts",
+    "method": "POST",
+    "endpoint": "/api/encoder/smart/checkin-issue-key",
+    "permissionGuard": "requirePermission(\"smart_locks\", \"create\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "smart-lock.ts",
+    "method": "GET",
+    "endpoint": "/api/io",
+    "permissionGuard": "None",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "smart-lock.ts",
+    "method": "GET",
+    "endpoint": "/api/locks",
+    "permissionGuard": "requirePermission(\"smart_locks\", \"view\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "smart-lock.ts",
+    "method": "POST",
+    "endpoint": "/api/locks",
+    "permissionGuard": "requirePermission(\"smart_locks\", \"create\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "smart-lock.ts",
+    "method": "PATCH",
+    "endpoint": "/api/locks/:id",
+    "permissionGuard": "requirePermission(\"smart_locks\", \"edit\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "smart-lock.ts",
+    "method": "GET",
+    "endpoint": "/api/keys",
+    "permissionGuard": "requirePermission(\"smart_locks\", \"view\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "smart-lock.ts",
+    "method": "POST",
+    "endpoint": "/api/keys/issue",
+    "permissionGuard": "requirePermission(\"smart_locks\", \"create\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "smart-lock.ts",
+    "method": "GET",
+    "endpoint": "/api/io",
+    "permissionGuard": "requirePermission(\"smart_locks\", \"edit\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "smart-lock.ts",
+    "method": "POST",
+    "endpoint": "/api/keys/:id/revoke",
+    "permissionGuard": "requirePermission(\"smart_locks\", \"edit\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "smart-lock.ts",
+    "method": "GET",
+    "endpoint": "/api/io",
+    "permissionGuard": "requirePermission(\"smart_locks\", \"edit\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "smart-lock.ts",
+    "method": "POST",
+    "endpoint": "/api/keys/:id/extend",
+    "permissionGuard": "requirePermission(\"smart_locks\", \"edit\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "smart-lock.ts",
+    "method": "GET",
+    "endpoint": "/api/keys/audit",
+    "permissionGuard": "requirePermission(\"smart_locks\", \"view\")",
+    "tenantIsolation": "withTenant(propertyId) -> Schema isolated"
+  },
+  {
+    "file": "user-signature.ts",
+    "method": "GET",
+    "endpoint": "/api/users/me/signature",
+    "permissionGuard": "router.use session check + self / isSystemAdmin",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "user-signature.ts",
+    "method": "POST",
+    "endpoint": "/api/users/me/signature",
+    "permissionGuard": "router.use session check + self / isSystemAdmin",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "user-signature.ts",
+    "method": "GET",
+    "endpoint": "/api/users/:id/signature",
+    "permissionGuard": "router.use session check + self / isSystemAdmin",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "user-signature.ts",
+    "method": "POST",
+    "endpoint": "/api/users/:id/signature",
+    "permissionGuard": "router.use session check + self / isSystemAdmin",
+    "tenantIsolation": "Public / Global"
+  },
+  {
+    "file": "users.ts",
+    "method": "GET",
+    "endpoint": "/api/users",
+    "permissionGuard": "requirePermission(\"users\", \"view\")",
+    "tenantIsolation": "public.users (Filtered by sessionPropertyId / propertyIds)"
+  },
+  {
+    "file": "users.ts",
+    "method": "GET",
+    "endpoint": "/api/users/:id",
+    "permissionGuard": "requirePermission(\"users\", \"view\")",
+    "tenantIsolation": "public.users (Filtered by sessionPropertyId / propertyIds)"
+  },
+  {
+    "file": "users.ts",
+    "method": "POST",
+    "endpoint": "/api/users",
+    "permissionGuard": "requirePermission(\"users\", \"create\")",
+    "tenantIsolation": "public.users (Filtered by sessionPropertyId / propertyIds)"
+  },
+  {
+    "file": "users.ts",
+    "method": "PATCH",
+    "endpoint": "/api/users/:id",
+    "permissionGuard": "requireUserUpdatePermission (dynamic: users.manage_permissions / reset_password / edit)",
+    "tenantIsolation": "public.users (Filtered by sessionPropertyId / propertyIds)"
+  },
+  {
+    "file": "users.ts",
+    "method": "POST",
+    "endpoint": "/api/users/:id/unlock",
+    "permissionGuard": "requirePermission(\"users\", \"unlock\")",
+    "tenantIsolation": "public.users (Filtered by sessionPropertyId / propertyIds)"
+  },
+  {
+    "file": "users.ts",
+    "method": "DELETE",
+    "endpoint": "/api/users/:id",
+    "permissionGuard": "requirePermission(\"users\", \"delete\")",
+    "tenantIsolation": "public.users (Filtered by sessionPropertyId / propertyIds)"
+  },
+  {
+    "file": "users.ts",
+    "method": "PATCH",
+    "endpoint": "/api/users/me/last-property",
+    "permissionGuard": "requireAuth",
+    "tenantIsolation": "public.users (Filtered by sessionPropertyId / propertyIds)"
+  }
+]
