@@ -21,6 +21,10 @@ import { PageLoader } from "@/components/ui/loader";
 import { useWebSocket } from "@/hooks/use-websocket";
 import { usePermission } from "@/hooks/use-permission";
 import type { Module, Action } from "@/lib/permissions";
+import { Layers, LogOut, Sun, Moon, Languages } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useTheme } from "next-themes";
+import { Link } from "wouter";
 import NotFound from "@/pages/not-found";
 import Login from "@/pages/login";
 import Dashboard from "@/pages/dashboard";
@@ -48,6 +52,7 @@ const Users = lazy(() => import("@/pages/users"));
 const UserDetail = lazy(() => import("@/pages/users/detail"));
 const ActivityLog = lazy(() => import("@/pages/activity-log"));
 const Settings = lazy(() => import("@/pages/settings"));
+const SystemLauncher = lazy(() => import("@/pages/launcher"));
 const PayrollPage = lazy(() => import("@/pages/payroll"));
 const AttendancePage = lazy(() => import("@/pages/attendance"));
 const EditHostingRequest = lazy(
@@ -115,6 +120,90 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
   if (isLoading) return <PageLoader />;
   if (!isAuthenticated) return <Redirect to="/login" />;
   return <AppLayout>{children}</AppLayout>;
+}
+
+function ProtectedLauncher() {
+  const { isAuthenticated, isLoading } = useAuth();
+  if (isLoading) return <PageLoader />;
+  if (!isAuthenticated) return <Redirect to="/login" />;
+  return <SystemLauncher />;
+}
+
+function ProtectedStandaloneLayout({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, isLoading, user, logout } = useAuth();
+  const { language, setLanguage } = useLanguage();
+  const { theme, setTheme } = useTheme();
+  const ar = language === "ar";
+
+  if (isLoading) return <PageLoader />;
+  if (!isAuthenticated) return <Redirect to="/login" />;
+
+  return (
+    <div className="min-h-screen bg-background flex flex-col" dir={ar ? "rtl" : "ltr"}>
+      {/* Top Standalone Header */}
+      <header className="border-b bg-card/90 backdrop-blur-md sticky top-0 z-50 px-6 py-2.5 flex items-center justify-between shadow-xs">
+        <div className="flex items-center gap-4">
+          <Link href="/">
+            <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold transition-all cursor-pointer">
+              <Layers className="w-4 h-4" />
+              <span>{ar ? "بوابة الأنظمة (App Switcher)" : "All Systems"}</span>
+            </button>
+          </Link>
+          <div className="h-5 w-px bg-border"></div>
+          <div className="text-sm font-bold text-foreground tracking-tight flex items-center gap-2">
+            <span>SUNRISE</span>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-muted font-normal text-muted-foreground">
+              Enterprise Suite
+            </span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setLanguage(ar ? "en" : "ar")}
+            className="text-xs gap-1.5"
+          >
+            <Languages className="w-4 h-4" />
+            <span>{ar ? "English" : "العربية"}</span>
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            className="w-8 h-8 rounded-lg"
+          >
+            {theme === "dark" ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-600" />}
+          </Button>
+
+          <div className="h-4 w-px bg-border"></div>
+
+          <div className="flex items-center gap-2 text-xs">
+            <div className="w-7 h-7 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center text-xs">
+              {user?.username?.substring(0, 2).toUpperCase() || "SU"}
+            </div>
+            <span className="font-semibold text-foreground">{user?.username}</span>
+          </div>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => logout()}
+            className="w-8 h-8 text-destructive hover:bg-destructive/10"
+            title={ar ? "تسجيل الخروج" : "Logout"}
+          >
+            <LogOut className="w-4 h-4" />
+          </Button>
+        </div>
+      </header>
+
+      <main className="flex-1">
+        {children}
+      </main>
+    </div>
+  );
 }
 
 /** Renders `children` if user has permission, else redirects to /dashboard */
@@ -215,8 +304,6 @@ const APP_ROUTES: AppRouteDef[] = [
   { path: "/users", module: "users", component: Users },
   { path: "/properties", module: "properties", component: Properties },
   { path: "/portal", module: "portal_content", component: Portal },
-  { path: "/payroll", module: "payroll", component: PayrollPage },
-  { path: "/attendance", module: "attendance", component: AttendancePage },
   { path: "/settings", module: "settings", component: Settings },
   { path: "/activity-log", module: "activity_log", component: ActivityLog },
   { path: "/hosting-requests/create", module: "hosting_requests", action: "create", component: CreateHostingRequest },
@@ -252,8 +339,6 @@ function RootRedirect() {
     { module: "hosting_requests", href: "/hosting-requests" },
     { module: "housekeeping", href: "/housekeeping" },
     { module: "maintenance", href: "/maintenance" },
-    { module: "payroll", href: "/payroll" },
-    { module: "attendance", href: "/attendance" },
     { module: "reports", href: "/reports" },
     { module: "users", href: "/users" },
     { module: "portal_content", href: "/portal" },
@@ -284,9 +369,24 @@ function Router() {
           <RoomServiceLandingPage />
         </Route>
 
-        {/* 2. Root redirects to active property home */}
+        {/* 2. Unified System Launcher (App Switcher) */}
         <Route path="/">
-          <RootRedirect />
+          <ProtectedLauncher />
+        </Route>
+        <Route path="/apps">
+          <ProtectedLauncher />
+        </Route>
+
+        {/* 2b. Standalone Systems (Isolated from Housing AppLayout) */}
+        <Route path="/payroll">
+          <ProtectedStandaloneLayout>
+            <PayrollPage />
+          </ProtectedStandaloneLayout>
+        </Route>
+        <Route path="/attendance">
+          <ProtectedStandaloneLayout>
+            <AttendancePage />
+          </ProtectedStandaloneLayout>
         </Route>
 
         {/* 3. Property-prefixed application routes (/:property/:route) */}

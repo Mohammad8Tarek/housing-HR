@@ -44,8 +44,6 @@ import {
   CheckCheck,
   Laptop,
   QrCode,
-  DollarSign,
-  Fingerprint,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLogout, useGetSettings } from "@workspace/api-client-react";
@@ -417,18 +415,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       permissionModule: "gate",
     },
     {
-      href: "/payroll",
-      label: ar ? "المرتبات والأجور" : "Payroll System",
-      icon: DollarSign,
-      permissionModule: "payroll",
-    },
-    {
-      href: "/attendance",
-      label: ar ? "الحضور وأجهزة البصمة" : "Attendance",
-      icon: Fingerprint,
-      permissionModule: "attendance",
-    },
-    {
       href: "/users",
       label: ar ? "المستخدمين" : "Users",
       icon: UserCheck,
@@ -787,7 +773,16 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 ) : null)}
             </div>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-2">
+              <Link href="/">
+                <button
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg border bg-background hover:bg-muted text-foreground transition-all cursor-pointer shadow-xs"
+                  title={ar ? "بوابة اختيار الأنظمة" : "All Systems (Launcher)"}
+                >
+                  <LayoutGrid className="w-3.5 h-3.5 text-primary" />
+                  <span className="hidden md:inline">{ar ? "بوابة الأنظمة" : "Systems"}</span>
+                </button>
+              </Link>
               <DropdownMenu
                 open={notifOpen}
                 onOpenChange={(open) => {
