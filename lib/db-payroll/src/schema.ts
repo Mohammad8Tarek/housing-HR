@@ -1,4 +1,4 @@
-import { pgTable, serial, varchar, text, boolean, timestamp, date, time, integer, numeric } from "drizzle-orm/pg-core";
+import { pgTable, serial, varchar, text, boolean, timestamp, date, time, integer, numeric, jsonb } from "drizzle-orm/pg-core";
 
 // 1. Properties
 export const properties = pgTable("properties", {
@@ -288,3 +288,137 @@ export const salarySlipItems = pgTable("salary_slip_items", {
   amount: numeric("amount", { precision: 12, scale: 2 }).notNull().default("0.00"),
   description: varchar("description", { length: 200 }),
 });
+
+// 16. Dedicated HR / System Users
+export const hrUsers = pgTable("hr_users", {
+  id: serial("id").primaryKey(),
+  username: varchar("username", { length: 100 }).notNull().unique(),
+  passwordHash: varchar("password_hash", { length: 255 }).notNull(),
+  fullName: varchar("full_name", { length: 200 }).notNull(),
+  email: varchar("email", { length: 150 }),
+  role: varchar("role", { length: 50 }).notNull().default("officer"),
+  systemAccess: varchar("system_access", { length: 30 }).notNull().default("both"),
+  propertyId: integer("property_id").references(() => properties.id, { onDelete: "set null" }),
+  permissions: jsonb("permissions"),
+  isActive: boolean("is_active").default(true),
+  lastLoginAt: timestamp("last_login_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+});
+
+// 17. Service Charge & Tronc (12% فندقية)
+export const serviceChargePools = pgTable("service_charge_pools", {
+  id: serial("id").primaryKey(),
+  propertyId: integer("property_id").notNull().references(() => properties.id, { onDelete: "cascade" }),
+  payrollPeriodId: integer("payroll_period_id").notNull().references(() => payrollPeriods.id, { onDelete: "restrict" }),
+  totalServiceAmount: numeric("total_service_amount", { precision: 14, scale: 2 }).notNull().default("0.00"),
+  hotelSharePercent: numeric("hotel_share_percent", { precision: 5, scale: 2 }).default("15.00"),
+  staffDistributableAmount: numeric("staff_distributable_amount", { precision: 14, scale: 2 }).notNull().default("0.00"),
+  totalPoints: numeric("total_points", { precision: 10, scale: 2 }).notNull().default("0.00"),
+  pointValue: numeric("point_value", { precision: 10, scale: 4 }).notNull().default("0.00"),
+  status: varchar("status", { length: 30 }).default("draft"),
+  approvedBy: varchar("approved_by", { length: 150 }),
+  approvedAt: timestamp("approved_at", { withTimezone: true }),
+  notes: text("notes"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+export const serviceChargeItems = pgTable("service_charge_items", {
+  id: serial("id").primaryKey(),
+  poolId: integer("pool_id").notNull().references(() => serviceChargePools.id, { onDelete: "cascade" }),
+  employeeId: integer("employee_id").notNull().references(() => employees.id, { onDelete: "cascade" }),
+  designationPoints: numeric("designation_points", { precision: 6, scale: 2 }).notNull().default("1.00"),
+  workedDaysRatio: numeric("worked_days_ratio", { precision: 5, scale: 4 }).notNull().default("1.0000"),
+  finalPoints: numeric("final_points", { precision: 8, scale: 4 }).notNull().default("1.0000"),
+  amount: numeric("amount", { precision: 12, scale: 2 }).notNull().default("0.00"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// 18. Banking WPS Configs & Batches
+export const bankWpsConfigs = pgTable("bank_wps_configs", {
+  id: serial("id").primaryKey(),
+  propertyId: integer("property_id").notNull().references(() => properties.id, { onDelete: "cascade" }),
+  bankName: varchar("bank_name", { length: 100 }).notNull(),
+  companyBankCode: varchar("company_bank_code", { length: 50 }),
+  companyAccountNumber: varchar("company_account_number", { length: 50 }).notNull(),
+  companyIban: varchar("company_iban", { length: 50 }),
+  fileFormat: varchar("file_format", { length: 20 }).default("EXCEL_XLSX"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+export const bankWpsBatches = pgTable("bank_wps_batches", {
+  id: serial("id").primaryKey(),
+  payrollRunId: integer("payroll_run_id").notNull().references(() => payrollRuns.id, { onDelete: "cascade" }),
+  bankConfigId: integer("bank_config_id").notNull().references(() => bankWpsConfigs.id, { onDelete: "restrict" }),
+  batchReference: varchar("batch_reference", { length: 100 }).notNull(),
+  totalEmployees: integer("total_employees").notNull().default(0),
+  totalAmount: numeric("total_amount", { precision: 14, scale: 2 }).notNull().default("0.00"),
+  status: varchar("status", { length: 30 }).default("generated"),
+  fileName: varchar("file_name", { length: 255 }),
+  notes: text("notes"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// 19. Loan Installments
+export const loanInstallments = pgTable("loan_installments", {
+  id: serial("id").primaryKey(),
+  loanId: integer("loan_id").notNull().references(() => loansAndAdvances.id, { onDelete: "cascade" }),
+  installmentNumber: integer("installment_number").notNull(),
+  dueDate: date("due_date").notNull(),
+  amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
+  isPaid: boolean("is_paid").default(false),
+  paidAt: timestamp("paid_at", { withTimezone: true }),
+  payrollPeriodId: integer("payroll_period_id").references(() => payrollPeriods.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// 20. Rest Day Credits (بدلات الراحة)
+export const restDayCredits = pgTable("rest_day_credits", {
+  id: serial("id").primaryKey(),
+  propertyId: integer("property_id").notNull().references(() => properties.id, { onDelete: "cascade" }),
+  employeeId: integer("employee_id").notNull().references(() => employees.id, { onDelete: "cascade" }),
+  earnedDate: date("earned_date").notNull(),
+  reason: varchar("reason", { length: 200 }).notNull(),
+  creditDays: numeric("credit_days", { precision: 4, scale: 1 }).default("1.0"),
+  status: varchar("status", { length: 30 }).default("available"),
+  takenDate: date("taken_date"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// 21. Device Sync Logs
+export const deviceSyncLogs = pgTable("device_sync_logs", {
+  id: serial("id").primaryKey(),
+  deviceId: integer("device_id").notNull().references(() => biometricDevices.id, { onDelete: "cascade" }),
+  actionType: varchar("action_type", { length: 50 }).notNull(),
+  status: varchar("status", { length: 30 }).notNull(),
+  recordsCount: integer("records_count").default(0),
+  latencyMs: integer("latency_ms"),
+  message: text("message"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// 22. Attendance Monthly Summaries
+export const attendanceMonthlySummaries = pgTable("attendance_monthly_summaries", {
+  id: serial("id").primaryKey(),
+  propertyId: integer("property_id").notNull().references(() => properties.id, { onDelete: "cascade" }),
+  payrollPeriodId: integer("payroll_period_id").notNull().references(() => payrollPeriods.id, { onDelete: "cascade" }),
+  employeeId: integer("employee_id").notNull().references(() => employees.id, { onDelete: "cascade" }),
+  calendarDays: integer("calendar_days").notNull().default(30),
+  workedDays: numeric("worked_days", { precision: 4, scale: 1 }).notNull().default("0.0"),
+  restDays: numeric("rest_days", { precision: 4, scale: 1 }).notNull().default("0.0"),
+  paidLeaveDays: numeric("paid_leave_days", { precision: 4, scale: 1 }).notNull().default("0.0"),
+  unpaidLeaveDays: numeric("unpaid_leave_days", { precision: 4, scale: 1 }).notNull().default("0.0"),
+  absentDays: numeric("absent_days", { precision: 4, scale: 1 }).notNull().default("0.0"),
+  lateMinutes: integer("late_minutes").notNull().default(0),
+  lateDeductionDays: numeric("late_deduction_days", { precision: 4, scale: 1 }).notNull().default("0.0"),
+  overtimeNormalHours: numeric("overtime_normal_hours", { precision: 6, scale: 2 }).notNull().default("0.00"),
+  overtimeNightHours: numeric("overtime_night_hours", { precision: 6, scale: 2 }).notNull().default("0.00"),
+  overtimeHolidayHours: numeric("overtime_holiday_hours", { precision: 6, scale: 2 }).notNull().default("0.00"),
+  netPayableDays: numeric("net_payable_days", { precision: 4, scale: 1 }).notNull().default("0.0"),
+  status: varchar("status", { length: 30 }).default("draft"),
+  syncedToPayrollAt: timestamp("synced_to_payroll_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+});
+

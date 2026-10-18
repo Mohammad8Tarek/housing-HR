@@ -1,5 +1,6 @@
 import type { NextFunction, Request, RequestHandler, Response } from "express";
 import { db, usersTable } from "@workspace/db";
+import { payrollDb, hrUsers } from "@workspace/db-payroll";
 import { eq } from "drizzle-orm";
 
 export const PERMISSION_MODULES = [
@@ -541,9 +542,67 @@ export async function loadAuthUser(
 
   const session = req.session as any;
   const userId = Number(session?.userId);
-  if (!userId) {
+  const hrUserId = Number(session?.hrUserId);
+
+  if (!userId && !hrUserId) {
     res.status(401).json({ error: "Not authenticated" });
     return null;
+  }
+
+  // If authenticated via dedicated HR system
+  if (!userId && hrUserId) {
+    try {
+      const [hrRow] = await payrollDb
+        .select()
+        .from(hrUsers)
+        .where(eq(hrUsers.id, hrUserId))
+        .limit(1);
+
+      if (!hrRow || !hrRow.isActive) {
+        res.status(401).json({ error: "HR Account disabled or not found" });
+        return null;
+      }
+
+      const perms: string[] = [];
+      if (hrRow.role === "super_admin") {
+        perms.push("*");
+      } else {
+        const p = (hrRow.permissions as any) || {};
+        if (p.payroll) {
+          Object.entries(p.payroll).forEach(([act, allowed]) => {
+            if (allowed) {
+              perms.push(`payroll.${act}`);
+              perms.push(`payroll:${act}`);
+            }
+          });
+        }
+        if (p.attendance) {
+          Object.entries(p.attendance).forEach(([act, allowed]) => {
+            if (allowed) {
+              perms.push(`attendance.${act}`);
+              perms.push(`attendance:${act}`);
+            }
+          });
+        }
+      }
+
+      const authUser: AuthUser = {
+        id: hrRow.id,
+        username: hrRow.username,
+        status: "active",
+        roles: [hrRow.role],
+        permissions: perms,
+        propertyId: hrRow.propertyId,
+        propertyIds: hrRow.propertyId ? [hrRow.propertyId] : [],
+        isSystemAdmin: hrRow.role === "super_admin",
+      };
+      (req as any).authUser = authUser;
+      return authUser;
+    } catch (err: any) {
+      console.error("[permissions] Error loading hrUser:", err.message);
+      res.status(500).json({ error: "Error verifying HR user" });
+      return null;
+    }
   }
 
   const now = Date.now();

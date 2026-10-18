@@ -53,10 +53,14 @@ import portalFoodTransportRouter from "./portal-food-transport.js";
 import portalChatRouter from "./portal-chat.js";
 import roomServicePublicRouter from "./room-service-public.js";
 
+import hrAuthRouter from "./hr-auth.js";
+
 const router: IRouter = Router();
 
 // ─── 2. Core Admin API Routes ────────────────────────────────
 router.use(healthRouter);
+// ✅ Dedicated HR / Payroll / Attendance Authentication
+router.use(hrAuthRouter);
 // ✅ loginRateLimit properly applied BEFORE the auth handler
 router.post("/auth/login", loginRateLimit);
 router.use(authRouter);
@@ -99,7 +103,7 @@ router.use((req, res, next) => {
     return next();
   }
   // @ts-ignore
-  if (req.session?.userId) next();
+  if (req.session?.userId || req.session?.hrUserId) next();
   else res.status(401).json({ success: false, message: "Unauthorized" });
 });
 

@@ -10,6 +10,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
+import { HrAuthProvider, useHrAuth } from "@/context/HrAuthContext";
 import { LanguageProvider, useLanguage } from "@/context/LanguageContext";
 import {
   PropertyProvider,
@@ -21,7 +22,7 @@ import { PageLoader } from "@/components/ui/loader";
 import { useWebSocket } from "@/hooks/use-websocket";
 import { usePermission } from "@/hooks/use-permission";
 import type { Module, Action } from "@/lib/permissions";
-import { Layers, LogOut, Sun, Moon, Languages } from "lucide-react";
+import { Layers, LogOut, Sun, Moon, Languages, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { Link } from "wouter";
@@ -55,6 +56,7 @@ const Settings = lazy(() => import("@/pages/settings"));
 const SystemLauncher = lazy(() => import("@/pages/launcher"));
 const PayrollPage = lazy(() => import("@/pages/payroll"));
 const AttendancePage = lazy(() => import("@/pages/attendance"));
+const HrLoginPage = lazy(() => import("@/pages/hr-login"));
 const EditHostingRequest = lazy(
   () => import("@/pages/hosting-requests/EditHostingRequest"),
 );
@@ -129,31 +131,55 @@ function ProtectedLauncher() {
   return <SystemLauncher />;
 }
 
-function ProtectedStandaloneLayout({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isLoading, user, logout } = useAuth();
+function ProtectedPayrollLayout({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, isLoading, hrUser, logout } = useHrAuth();
   const { language, setLanguage } = useLanguage();
-  const { theme, setTheme } = useTheme();
   const ar = language === "ar";
 
   if (isLoading) return <PageLoader />;
-  if (!isAuthenticated) return <Redirect to="/login" />;
+  if (!isAuthenticated) return <Redirect to="/payroll/login" />;
+
+  // Verify payroll scope
+  if (hrUser && hrUser.systemAccess !== "both" && hrUser.systemAccess !== "payroll") {
+    return (
+      <div className="min-h-screen bg-[#f8fafc] flex flex-col justify-center items-center p-6 text-center" dir={ar ? "rtl" : "ltr"}>
+        <div className="w-16 h-16 rounded-2xl bg-rose-50 text-rose-600 border border-rose-200 flex items-center justify-center mb-4">
+          <ShieldAlert className="w-8 h-8" />
+        </div>
+        <h2 className="text-xl font-bold text-slate-800">
+          {ar ? "غير مصرح بالدخول لمنظومة المرتبات" : "Access Denied to Payroll System"}
+        </h2>
+        <p className="text-sm text-slate-500 max-w-md mt-2">
+          {ar 
+            ? "حسابك مخصص لمنظومة أخرى ولا يملك صلاحية الاطلاع أو إدارة المرتبات والأجور." 
+            : "Your account is not provisioned for Payroll & Compensation workspace."}
+        </p>
+        <div className="mt-6 flex gap-3">
+          <Link href="/">
+            <Button variant="outline" className="text-xs">{ar ? "العودة للبوابة الرئيسية" : "Back to Portal"}</Button>
+          </Link>
+          <Button variant="destructive" onClick={() => logout()} className="text-xs">{ar ? "تسجيل الخروج" : "Logout"}</Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col" dir={ar ? "rtl" : "ltr"}>
-      {/* Top Standalone Header */}
-      <header className="border-b bg-card/90 backdrop-blur-md sticky top-0 z-50 px-6 py-2.5 flex items-center justify-between shadow-xs">
+    <div className="min-h-screen bg-[#f8fafc] flex flex-col" dir={ar ? "rtl" : "ltr"}>
+      {/* Top Header */}
+      <header className="border-b bg-white sticky top-0 z-50 px-6 py-2.5 flex items-center justify-between shadow-xs">
         <div className="flex items-center gap-4">
           <Link href="/">
-            <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold transition-all cursor-pointer">
-              <Layers className="w-4 h-4" />
+            <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-[#0f2942] text-xs font-semibold transition-all cursor-pointer">
+              <Layers className="w-4 h-4 text-[#c89332]" />
               <span>{ar ? "بوابة الأنظمة (App Switcher)" : "All Systems"}</span>
             </button>
           </Link>
-          <div className="h-5 w-px bg-border"></div>
-          <div className="text-sm font-bold text-foreground tracking-tight flex items-center gap-2">
+          <div className="h-5 w-px bg-slate-200"></div>
+          <div className="text-sm font-bold text-[#0f2942] tracking-tight flex items-center gap-2">
             <span>SUNRISE</span>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-muted font-normal text-muted-foreground">
-              Enterprise Suite
+            <span className="text-xs px-2 py-0.5 rounded-md bg-amber-50 text-[#c89332] border border-amber-200/80 font-medium">
+              {ar ? "منظومة الرواتب والأجور" : "Payroll & Benefits"}
             </span>
           </div>
         </div>
@@ -163,35 +189,124 @@ function ProtectedStandaloneLayout({ children }: { children: React.ReactNode }) 
             variant="ghost"
             size="sm"
             onClick={() => setLanguage(ar ? "en" : "ar")}
-            className="text-xs gap-1.5"
+            className="text-xs text-slate-600 hover:text-[#0f2942] hover:bg-slate-100 rounded-lg h-9 gap-1.5"
           >
-            <Languages className="w-4 h-4" />
-            <span>{ar ? "English" : "العربية"}</span>
+            <Languages className="w-4 h-4 text-[#c89332]" />
+            <span className="font-medium">{ar ? "English" : "العربية"}</span>
           </Button>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="w-8 h-8 rounded-lg"
-          >
-            {theme === "dark" ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-600" />}
-          </Button>
+          <div className="h-4 w-px bg-slate-200"></div>
 
-          <div className="h-4 w-px bg-border"></div>
-
-          <div className="flex items-center gap-2 text-xs">
-            <div className="w-7 h-7 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center text-xs">
-              {user?.username?.substring(0, 2).toUpperCase() || "SU"}
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-[#0f2942] text-[#c89332] font-bold flex items-center justify-center text-xs">
+              {hrUser?.username?.substring(0, 2).toUpperCase() || "HR"}
             </div>
-            <span className="font-semibold text-foreground">{user?.username}</span>
+            <div className="hidden sm:block text-right rtl:text-right ltr:text-left">
+              <div className="text-xs font-bold text-slate-800">{hrUser?.fullName || hrUser?.username}</div>
+              <div className="text-[10px] text-slate-400 capitalize">{hrUser?.role}</div>
+            </div>
           </div>
 
           <Button
             variant="ghost"
             size="icon"
             onClick={() => logout()}
-            className="w-8 h-8 text-destructive hover:bg-destructive/10"
+            className="w-8 h-8 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50"
+            title={ar ? "تسجيل الخروج" : "Logout"}
+          >
+            <LogOut className="w-4 h-4" />
+          </Button>
+        </div>
+      </header>
+
+      <main className="flex-1">
+        {children}
+      </main>
+    </div>
+  );
+}
+
+function ProtectedAttendanceLayout({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, isLoading, hrUser, logout } = useHrAuth();
+  const { language, setLanguage } = useLanguage();
+  const ar = language === "ar";
+
+  if (isLoading) return <PageLoader />;
+  if (!isAuthenticated) return <Redirect to="/attendance/login" />;
+
+  // Verify attendance scope
+  if (hrUser && hrUser.systemAccess !== "both" && hrUser.systemAccess !== "attendance") {
+    return (
+      <div className="min-h-screen bg-[#f8fafc] flex flex-col justify-center items-center p-6 text-center" dir={ar ? "rtl" : "ltr"}>
+        <div className="w-16 h-16 rounded-2xl bg-rose-50 text-rose-600 border border-rose-200 flex items-center justify-center mb-4">
+          <ShieldAlert className="w-8 h-8" />
+        </div>
+        <h2 className="text-xl font-bold text-slate-800">
+          {ar ? "غير مصرح بالدخول لمنظومة البصمة والحضور" : "Access Denied to Attendance System"}
+        </h2>
+        <p className="text-sm text-slate-500 max-w-md mt-2">
+          {ar 
+            ? "حسابك مخصص لمنظومة أخرى ولا يملك صلاحية الاطلاع أو إدارة الحضور وأجهزة البصمة." 
+            : "Your account is not provisioned for Attendance & Biometrics workspace."}
+        </p>
+        <div className="mt-6 flex gap-3">
+          <Link href="/">
+            <Button variant="outline" className="text-xs">{ar ? "العودة للبوابة الرئيسية" : "Back to Portal"}</Button>
+          </Link>
+          <Button variant="destructive" onClick={() => logout()} className="text-xs">{ar ? "تسجيل الخروج" : "Logout"}</Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-[#f8fafc] flex flex-col" dir={ar ? "rtl" : "ltr"}>
+      {/* Top Header */}
+      <header className="border-b bg-white sticky top-0 z-50 px-6 py-2.5 flex items-center justify-between shadow-xs">
+        <div className="flex items-center gap-4">
+          <Link href="/">
+            <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-[#0f2942] text-xs font-semibold transition-all cursor-pointer">
+              <Layers className="w-4 h-4 text-[#c89332]" />
+              <span>{ar ? "بوابة الأنظمة (App Switcher)" : "All Systems"}</span>
+            </button>
+          </Link>
+          <div className="h-5 w-px bg-slate-200"></div>
+          <div className="text-sm font-bold text-[#0f2942] tracking-tight flex items-center gap-2">
+            <span>SUNRISE</span>
+            <span className="text-xs px-2 py-0.5 rounded-md bg-blue-50 text-[#0f2942] border border-blue-200/80 font-medium">
+              {ar ? "منظومة الحضور وأجهزة البصمة" : "Biometrics & Attendance"}
+            </span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setLanguage(ar ? "en" : "ar")}
+            className="text-xs text-slate-600 hover:text-[#0f2942] hover:bg-slate-100 rounded-lg h-9 gap-1.5"
+          >
+            <Languages className="w-4 h-4 text-[#c89332]" />
+            <span className="font-medium">{ar ? "English" : "العربية"}</span>
+          </Button>
+
+          <div className="h-4 w-px bg-slate-200"></div>
+
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-[#0f2942] text-[#c89332] font-bold flex items-center justify-center text-xs">
+              {hrUser?.username?.substring(0, 2).toUpperCase() || "ATT"}
+            </div>
+            <div className="hidden sm:block text-right rtl:text-right ltr:text-left">
+              <div className="text-xs font-bold text-slate-800">{hrUser?.fullName || hrUser?.username}</div>
+              <div className="text-[10px] text-slate-400 capitalize">{hrUser?.role}</div>
+            </div>
+          </div>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => logout()}
+            className="w-8 h-8 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50"
             title={ar ? "تسجيل الخروج" : "Logout"}
           >
             <LogOut className="w-4 h-4" />
@@ -377,16 +492,24 @@ function Router() {
           <SystemLauncher />
         </Route>
 
+        {/* Dedicated Login for Payroll and Attendance */}
+        <Route path="/payroll/login">
+          <HrLoginPage system="payroll" />
+        </Route>
+        <Route path="/attendance/login">
+          <HrLoginPage system="attendance" />
+        </Route>
+
         {/* 2b. Standalone Systems (Isolated from Housing AppLayout) */}
         <Route path="/payroll">
-          <ProtectedStandaloneLayout>
+          <ProtectedPayrollLayout>
             <PayrollPage />
-          </ProtectedStandaloneLayout>
+          </ProtectedPayrollLayout>
         </Route>
         <Route path="/attendance">
-          <ProtectedStandaloneLayout>
+          <ProtectedAttendanceLayout>
             <AttendancePage />
-          </ProtectedStandaloneLayout>
+          </ProtectedAttendanceLayout>
         </Route>
 
         {/* 3. Property-prefixed application routes (/:property/:route) */}
@@ -454,17 +577,19 @@ function App() {
         >
           <LanguageProvider>
             <AuthProvider>
-              <PropertyProvider>
-                <WebSocketProvider>
-                  <TooltipProvider>
-                    <WouterRouter>
-                      <Router />
-                    </WouterRouter>
-                    <Toaster />
-                    <SonnerToaster />
-                  </TooltipProvider>
-                </WebSocketProvider>
-              </PropertyProvider>
+              <HrAuthProvider>
+                <PropertyProvider>
+                  <WebSocketProvider>
+                    <TooltipProvider>
+                      <WouterRouter>
+                        <Router />
+                      </WouterRouter>
+                      <Toaster />
+                      <SonnerToaster />
+                    </TooltipProvider>
+                  </WebSocketProvider>
+                </PropertyProvider>
+              </HrAuthProvider>
             </AuthProvider>
           </LanguageProvider>
         </ThemeProvider>

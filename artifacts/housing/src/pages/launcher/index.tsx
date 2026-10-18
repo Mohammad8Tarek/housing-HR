@@ -28,11 +28,7 @@ export default function SystemLauncher() {
   const ArrowIcon = ar ? ArrowLeft : ArrowRight;
 
   const handleLaunch = (targetPath: string) => {
-    if (!isAuthenticated) {
-      setLocation(`/login?redirect=${encodeURIComponent(targetPath)}`);
-    } else {
-      setLocation(targetPath);
-    }
+    setLocation(targetPath);
   };
 
   const systems = [
