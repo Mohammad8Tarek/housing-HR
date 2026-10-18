@@ -846,16 +846,16 @@ export default function AttendancePage() {
                     </div>
                   </div>
                   <Badge
-                    variant={dev.status === "online" ? "default" : "secondary"}
-                    className={dev.status === "online" ? "bg-emerald-600" : ""}
+                    variant={(dev.status === "online" || dev.isActive) ? "default" : "secondary"}
+                    className={(dev.status === "online" || dev.isActive) ? "bg-emerald-600" : ""}
                   >
-                    {dev.status === "online" ? (ar ? "متصل Online" : "Online") : ar ? "غير متصل" : "Offline"}
+                    {(dev.status === "online" || dev.isActive) ? (ar ? "متصل Online" : "Online") : ar ? "غير متصل" : "Offline"}
                   </Badge>
                 </CardHeader>
                 <CardContent className="space-y-2 text-xs">
                   <div className="flex justify-between py-1 border-b">
                     <span className="text-muted-foreground">{ar ? "موديل الجهاز" : "Model"}:</span>
-                    <span className="font-semibold">{dev.deviceModel}</span>
+                    <span className="font-semibold">{dev.deviceModel || dev.deviceType || "ZKTeco Pro"}</span>
                   </div>
                   <div className="flex justify-between py-1 border-b">
                     <span className="text-muted-foreground">{ar ? "عنوان الشبكة (IP & Port)" : "IP & Port"}:</span>
@@ -865,7 +865,7 @@ export default function AttendancePage() {
                   </div>
                   <div className="flex justify-between py-1 border-b">
                     <span className="text-muted-foreground">{ar ? "كود المحطة (Terminal ID)" : "Terminal ID"}:</span>
-                    <span className="font-mono">{dev.terminalId}</span>
+                    <span className="font-mono">{dev.terminalId || dev.deviceId || String(dev.id)}</span>
                   </div>
                   <div className="flex justify-between py-1">
                     <span className="text-muted-foreground">{ar ? "آخر مزامنة" : "Last Sync"}:</span>
@@ -1062,17 +1062,17 @@ export default function AttendancePage() {
                   <tbody className="divide-y divide-border">
                     {shifts.map((s: any) => (
                       <tr key={s.id} className="hover:bg-muted/40 transition-colors">
-                        <td className="py-3 px-4 font-mono font-bold text-xs text-primary">{s.shiftCode}</td>
-                        <td className="py-3 px-4 font-medium">{s.name}</td>
+                        <td className="py-3 px-4 font-mono font-bold text-xs text-primary">{s.shiftCode || s.nameEn?.substring(0, 3).toUpperCase() || `SH-${s.id}`}</td>
+                        <td className="py-3 px-4 font-medium">{ar ? s.nameAr || s.name : s.nameEn || s.name}</td>
                         <td className="py-3 px-4 font-mono font-semibold text-emerald-600">{s.startTime}</td>
                         <td className="py-3 px-4 font-mono font-semibold text-blue-600">{s.endTime}</td>
                         <td className="py-3 px-4 text-center">
                           <Badge variant="outline" className="font-mono text-xs">
-                            {s.lateGraceMinutes} {ar ? "دقيقة" : "mins"}
+                            {s.lateGraceMinutes ?? s.gracePeriodEntryMins ?? 15} {ar ? "دقيقة" : "mins"}
                           </Badge>
                         </td>
                         <td className="py-3 px-4 text-center font-mono text-xs text-muted-foreground">
-                          {s.halfDayThresholdHours} {ar ? "ساعات" : "hours"}
+                          {s.halfDayThresholdHours ?? Math.round(Number(s.workingHours || 8) / 2)} {ar ? "ساعات" : "hours"}
                         </td>
                       </tr>
                     ))}

@@ -12,6 +12,7 @@ import {
   designations,
   attendanceMonthlySummaries,
   deviceSyncLogs,
+  leaveApplications,
 } from "@workspace/db-payroll";
 import { eq, and, desc, sql, gte, lte } from "drizzle-orm";
 import { requirePermission } from "../middlewares/permissions.js";
@@ -36,7 +37,13 @@ router.get("/attendance/devices", requirePermission("attendance", "view"), async
       ? payrollDb.select().from(biometricDevices).where(eq(biometricDevices.propertyId, propertyId))
       : payrollDb.select().from(biometricDevices);
     const devices = await query;
-    res.json({ success: true, devices });
+    const formatted = devices.map((d: any) => ({
+      ...d,
+      status: d.isActive ? "online" : "offline",
+      deviceModel: d.deviceType || "ZKTeco Pro",
+      terminalId: d.deviceId || String(d.id),
+    }));
+    res.json({ success: true, devices: formatted });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -69,7 +76,14 @@ router.get("/attendance/shifts", requirePermission("attendance", "view"), async 
       ? payrollDb.select().from(shifts).where(eq(shifts.propertyId, propertyId))
       : payrollDb.select().from(shifts);
     const list = await query;
-    res.json({ success: true, shifts: list });
+    const formatted = list.map((s: any) => ({
+      ...s,
+      shiftCode: s.nameEn ? s.nameEn.substring(0, 3).toUpperCase() : `SH-${s.id}`,
+      name: s.nameAr || s.nameEn,
+      lateGraceMinutes: s.gracePeriodEntryMins ?? 15,
+      halfDayThresholdHours: Math.round(Number(s.workingHours || 8) / 2),
+    }));
+    res.json({ success: true, shifts: formatted });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -323,17 +337,56 @@ router.post("/attendance/process-punches", requirePermission("attendance", "crea
         eq(employees.isActive, true)
       ));
 
+    // 2b. Fetch shifts & active shift assignments for this property
+    const propertyShifts = await payrollDb
+      .select()
+      .from(shifts)
+      .where(and(eq(shifts.propertyId, Number(propertyId)), eq(shifts.isActive, true)));
+    
+    const defaultShift = propertyShifts[0] || null;
+
+    const activeAssignments = await payrollDb
+      .select()
+      .from(shiftAssignments)
+      .where(and(
+        eq(shiftAssignments.propertyId, Number(propertyId)),
+        eq(shiftAssignments.isActive, true),
+        lte(shiftAssignments.startDate, dateStr),
+        sql`(${shiftAssignments.endDate} IS NULL OR ${shiftAssignments.endDate} >= ${dateStr})`
+      ));
+
+    const assignmentMap = new Map<number, number>();
+    for (const a of activeAssignments) {
+      assignmentMap.set(a.employeeId, a.shiftId);
+    }
+
+    // 2c. Fetch approved leaves covering target date
+    const activeLeaves = await payrollDb
+      .select()
+      .from(leaveApplications)
+      .where(and(
+        eq(leaveApplications.propertyId, Number(propertyId)),
+        eq(leaveApplications.status, "approved"),
+        lte(leaveApplications.startDate, dateStr),
+        gte(leaveApplications.endDate, dateStr)
+      ));
+    const leaveEmpIds = new Set(activeLeaves.map(l => l.employeeId));
+
     let processedCount = 0;
 
     for (const emp of staff) {
       const empPunches = punchesByEmp.get(emp.id) || [];
+      const assignedShiftId = assignmentMap.get(emp.id);
+      const shift = (assignedShiftId ? propertyShifts.find(s => s.id === assignedShiftId) : null) || defaultShift;
       
-      // Determine IN and OUT times
       let inTime: Date | null = null;
       let outTime: Date | null = null;
       let status = "absent";
       let hours = 0;
       let lateMins = 0;
+      let overtimeHours = 0;
+
+      const stdHours = Number(shift?.workingHours || 8.0);
 
       if (empPunches.length > 0) {
         inTime = empPunches[0];
@@ -342,9 +395,45 @@ router.post("/attendance/process-punches", requirePermission("attendance", "crea
           const diffMs = outTime.getTime() - inTime.getTime();
           hours = Math.round((diffMs / (1000 * 60 * 60)) * 100) / 100;
         } else {
-          hours = 8.0; // Default if single punch
+          hours = stdHours;
         }
-        status = hours >= 4.0 ? (hours >= 7.0 ? "present" : "half_day") : "absent";
+
+        // Calculate late minutes based on shift start time
+        if (shift?.startTime && inTime) {
+          const [shHour, shMin] = shift.startTime.split(":").map(Number);
+          const shiftStartTime = new Date(inTime);
+          shiftStartTime.setHours(shHour || 8, shMin || 0, 0, 0);
+
+          const gracePeriodMins = Number(shift.gracePeriodEntryMins ?? 15);
+          const graceLimitTime = new Date(shiftStartTime.getTime() + gracePeriodMins * 60 * 1000);
+
+          if (inTime.getTime() > graceLimitTime.getTime()) {
+            lateMins = Math.round((inTime.getTime() - shiftStartTime.getTime()) / (60 * 1000));
+          }
+        }
+
+        // Calculate overtime
+        if (hours > stdHours) {
+          overtimeHours = Math.round((hours - stdHours) * 100) / 100;
+        }
+
+        // Status classification
+        if (lateMins > 0) {
+          status = "late";
+        } else if (hours >= stdHours * 0.8) {
+          status = "present";
+        } else if (hours >= stdHours * 0.4) {
+          status = "half_day";
+        } else {
+          status = "absent";
+        }
+      } else {
+        // No punches: Check if employee has approved leave
+        if (leaveEmpIds.has(emp.id)) {
+          status = "leave";
+        } else {
+          status = "absent";
+        }
       }
 
       // Upsert into attendanceRecords
@@ -354,20 +443,24 @@ router.post("/attendance/process-punches", requirePermission("attendance", "crea
           propertyId: Number(propertyId),
           employeeId: emp.id,
           attendanceDate: dateStr,
+          shiftId: shift?.id || null,
           inTime,
           outTime,
           status,
           actualWorkingHours: String(hours),
           lateMinutes: lateMins,
+          overtimeHours: String(overtimeHours),
         })
         .onConflictDoUpdate({
           target: [attendanceRecords.employeeId, attendanceRecords.attendanceDate],
           set: {
+            shiftId: shift?.id || null,
             inTime,
             outTime,
             status,
             actualWorkingHours: String(hours),
             lateMinutes: lateMins,
+            overtimeHours: String(overtimeHours),
             updatedAt: new Date(),
           }
         });
@@ -575,26 +668,71 @@ router.get("/attendance/roster/matrix", requirePermission("attendance", "view"),
       .from(shifts)
       .where(propertyId ? eq(shifts.propertyId, propertyId) : undefined);
 
+    // Fetch real shift assignments for the month
+    const monthStart = `${year}-${String(month).padStart(2, "0")}-01`;
+    const monthEnd = `${year}-${String(month).padStart(2, "0")}-${String(daysInMonth).padStart(2, "0")}`;
+
+    const activeAssignments = await payrollDb
+      .select({
+        assignment: shiftAssignments,
+        shift: shifts,
+      })
+      .from(shiftAssignments)
+      .innerJoin(shifts, eq(shiftAssignments.shiftId, shifts.id))
+      .where(and(
+        propertyId ? eq(shiftAssignments.propertyId, propertyId) : undefined,
+        eq(shiftAssignments.isActive, true),
+        lte(shiftAssignments.startDate, monthEnd),
+        sql`(${shiftAssignments.endDate} IS NULL OR ${shiftAssignments.endDate} >= ${monthStart})`
+      ));
+
+    const empAssignmentsMap = new Map<number, Array<{ shiftId: number; startDate: string; endDate: string | null; shift: any }>>();
+    for (const a of activeAssignments) {
+      const list = empAssignmentsMap.get(a.assignment.employeeId) || [];
+      list.push({
+        shiftId: a.assignment.shiftId,
+        startDate: a.assignment.startDate,
+        endDate: a.assignment.endDate,
+        shift: a.shift,
+      });
+      empAssignmentsMap.set(a.assignment.employeeId, list);
+    }
+
     // Shift code pattern helper for hotel operations
     const rosterRows = staff.map((s, index) => {
-      // Deterministic shift schedule rotation based on index and department
       const schedule: { [day: number]: { shiftCode: string; name: string; color: string } } = {};
+      const empAssignments = empAssignmentsMap.get(s.employee.id) || [];
       
       for (let d = 1; d <= daysInMonth; d++) {
         const dateObj = new Date(year, month - 1, d);
         const dayOfWeek = dateObj.getDay();
+        const dateStr = `${year}-${String(month).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 
-        // Hotel off-day pattern (Friday or Tuesday)
-        if ((index % 2 === 0 && dayOfWeek === 5) || (index % 2 !== 0 && dayOfWeek === 2)) {
-          schedule[d] = { shiftCode: "OFF", name: "راحة أسبوعية", color: "#64748b" };
-        } else if (index % 4 === 0) {
-          schedule[d] = { shiftCode: "NIGHT", name: "وردية ليلية", color: "#6366f1" };
-        } else if (index % 3 === 0) {
-          schedule[d] = { shiftCode: "SPLIT", name: "سيرفيس مقسوم", color: "#d97706" };
-        } else if (index % 2 === 0) {
-          schedule[d] = { shiftCode: "EVENING", name: "وردية مسائية", color: "#2563eb" };
+        // Check if employee has an explicit assigned shift in shift_assignments
+        const customAssign = empAssignments.find(ca => {
+          return ca.startDate <= dateStr && (!ca.endDate || ca.endDate >= dateStr);
+        });
+
+        if (customAssign) {
+          const cShift = customAssign.shift;
+          schedule[d] = {
+            shiftCode: cShift.nameEn ? cShift.nameEn.substring(0, 3).toUpperCase() : `SH-${cShift.id}`,
+            name: cShift.nameAr || cShift.nameEn,
+            color: cShift.color || "#059669",
+          };
         } else {
-          schedule[d] = { shiftCode: "MORNING", name: "وردية صباحية", color: "#059669" };
+          // Hotel off-day pattern (Friday or Tuesday)
+          if ((index % 2 === 0 && dayOfWeek === 5) || (index % 2 !== 0 && dayOfWeek === 2)) {
+            schedule[d] = { shiftCode: "OFF", name: "راحة أسبوعية", color: "#64748b" };
+          } else if (index % 4 === 0) {
+            schedule[d] = { shiftCode: "NIGHT", name: "وردية ليلية", color: "#6366f1" };
+          } else if (index % 3 === 0) {
+            schedule[d] = { shiftCode: "SPLIT", name: "سيرفيس مقسوم", color: "#d97706" };
+          } else if (index % 2 === 0) {
+            schedule[d] = { shiftCode: "EVENING", name: "وردية مسائية", color: "#2563eb" };
+          } else {
+            schedule[d] = { shiftCode: "MORNING", name: "وردية صباحية", color: "#059669" };
+          }
         }
       }
 

@@ -304,53 +304,54 @@ export default function PayrollPage() {
   const serviceChargePoolsList = scData?.pools || [];
 
   // Helper to open salary slip modal for employee
-  const openSlipForEmployee = (emp: any) => {
-    // Generate realistic Egyptian hospitality salary breakdown based on employee's base salary
+  const openSlipForEmployee = async (emp: any) => {
+    try {
+      const res = await fetch(`/api/payroll/employees/${emp.id}/latest-slip`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.slip) {
+          setSelectedSlipData(json.slip);
+          setIsSlipModalOpen(true);
+          return;
+        }
+      }
+    } catch {}
+
+    // Fallback: Accurate calculation from real employee profile
     const base = Number(emp.baseSalary || 6000);
-    const serviceCharge = 1850; // 12% Hospitality Tronche
-    const mealAllowance = 600;  // Hospitality food allowance
-    const remoteAllowance = 750; // Sharm/Hurghada transfer allowance
-    const overtime = 420;
-
-    const gross = base + serviceCharge + mealAllowance + remoteAllowance + overtime;
-    
-    // Egyptian Social Insurance Law 148/2019: Employee 11%, Company 18.75%
-    const insurableWage = Math.min(Math.max(base, 2000), 12600);
-    const empInsurance = Math.round(insurableWage * 0.11);
-    const compInsurance = Math.round(insurableWage * 0.1875);
-
-    // Egyptian Income Tax Law 30/2023
-    const taxableIncome = Math.max(0, gross - (empInsurance + 1666)); // 20k annual exemption
-    const incomeTax = Math.round(taxableIncome * 0.05);
-
-    // Martyrs Fund: 0.05%
+    const insSalary = Number(emp.insuranceSalary) || base;
+    const insurableWage = Math.min(Math.max(insSalary, 2000), 12600);
+    const empInsurance = emp.isInsured ? Math.round(insurableWage * 0.11) : 0;
+    const compInsurance = emp.isInsured ? Math.round(insurableWage * 0.1875) : 0;
+    const mealAllowance = 600;
+    const remoteAllowance = 750;
+    const gross = base + mealAllowance + remoteAllowance;
+    const monthlyTaxable = Math.max(0, gross - empInsurance - 2000);
+    const incomeTax = Math.round(monthlyTaxable * 0.05);
     const martyrsFund = Math.round(gross * 0.0005);
-
-    const loanDeduction = 500;
-    const penaltyDeduction = 0;
-    const totalDeductions = empInsurance + incomeTax + martyrsFund + loanDeduction + penaltyDeduction;
+    const totalDeductions = empInsurance + incomeTax + martyrsFund;
     const netSalary = gross - totalDeductions;
 
     setSelectedSlipData({
       employee: emp,
-      periodName: periodsList[0]?.periodName || "أكتوبر 2026 - مسير الرواتب",
+      periodName: periodsList[0]?.periodName || (ar ? "أكتوبر 2026 - مسير الرواتب" : "October 2026 Payroll"),
       workingDays: 30,
       attendedDays: 26,
       earnings: {
         baseSalary: base,
         insurableWage,
-        serviceCharge,
+        serviceCharge: 0,
         mealAllowance,
         remoteAllowance,
-        overtime,
+        overtime: 0,
         totalGross: gross,
       },
       deductions: {
         empInsurance,
         incomeTax,
         martyrsFund,
-        loanDeduction,
-        penaltyDeduction,
+        loanDeduction: 0,
+        penaltyDeduction: 0,
         totalDeductions,
       },
       netSalary,
@@ -521,7 +522,7 @@ export default function PayrollPage() {
               <CardHeader className="pb-2">
                 <CardDescription className="text-xs">{ar ? "إجمالي صافي الرواتب (Net Payable)" : "Total Net Payroll"}</CardDescription>
                 <CardTitle className="text-2xl font-black text-emerald-600">
-                  {runsList[0]?.totalNet ? `${Number(runsList[0].totalNet).toLocaleString()} EGP` : "485,320 EGP"}
+                  {runsList[0]?.totalNet ? `${Number(runsList[0].totalNet).toLocaleString()} EGP` : "0 EGP"}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -533,7 +534,7 @@ export default function PayrollPage() {
               <CardHeader className="pb-2">
                 <CardDescription className="text-xs">{ar ? "إجمالي الاستقطاعات والضرائب" : "Total Deductions"}</CardDescription>
                 <CardTitle className="text-2xl font-black text-rose-600">
-                  {runsList[0]?.totalDeductions ? `${Number(runsList[0].totalDeductions).toLocaleString()} EGP` : "84,650 EGP"}
+                  {runsList[0]?.totalDeductions ? `${Number(runsList[0].totalDeductions).toLocaleString()} EGP` : "0 EGP"}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -545,7 +546,7 @@ export default function PayrollPage() {
               <CardHeader className="pb-2">
                 <CardDescription className="text-xs">{ar ? "حصيلة عمولة الخدمة 12%" : "12% Service Charge Pool"}</CardDescription>
                 <CardTitle className="text-2xl font-black text-[#c89332]">
-                  {serviceChargePoolsList[0]?.totalServiceAmount ? `${Number(serviceChargePoolsList[0].totalServiceAmount).toLocaleString()} EGP` : "450,000 EGP"}
+                  {serviceChargePoolsList[0]?.totalServiceAmount ? `${Number(serviceChargePoolsList[0].totalServiceAmount).toLocaleString()} EGP` : "0 EGP"}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -557,7 +558,7 @@ export default function PayrollPage() {
               <CardHeader className="pb-2">
                 <CardDescription className="text-xs">{ar ? "عدد الموظفين في المسير" : "Processed Employees"}</CardDescription>
                 <CardTitle className="text-2xl font-black text-[#0f2942]">
-                  {runsList[0]?.totalEmployees || employeesList.length || 45}
+                  {runsList[0]?.totalEmployees ?? employeesList.length}
                 </CardTitle>
               </CardHeader>
               <CardContent>

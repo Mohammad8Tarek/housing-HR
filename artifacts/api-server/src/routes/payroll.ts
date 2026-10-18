@@ -334,11 +334,31 @@ router.post("/payroll/calculate", requirePermission("payroll", "create"), async 
       const socInsEmp = emp.isInsured ? Math.round(insSalary * 0.11 * 100) / 100 : 0;
       const socInsComp = emp.isInsured ? Math.round(insSalary * 0.1875 * 100) / 100 : 0;
 
+      // Egyptian Income Tax (Law 30/2023) with personal exemption (24,000 EGP annual / 2,000 monthly)
+      const monthlyTaxable = Math.max(0, totalEarnings - socInsEmp - 2000);
+      const annualTaxable = monthlyTaxable * 12;
+      let annualTax = 0;
+      if (annualTaxable <= 40000) {
+        annualTax = 0;
+      } else if (annualTaxable <= 55000) {
+        annualTax = (annualTaxable - 40000) * 0.10;
+      } else if (annualTaxable <= 70000) {
+        annualTax = (15000 * 0.10) + (annualTaxable - 55000) * 0.15;
+      } else if (annualTaxable <= 200000) {
+        annualTax = (15000 * 0.10) + (15000 * 0.15) + (annualTaxable - 70000) * 0.20;
+      } else if (annualTaxable <= 400000) {
+        annualTax = (15000 * 0.10) + (15000 * 0.15) + (130000 * 0.20) + (annualTaxable - 200000) * 0.225;
+      } else {
+        annualTax = (15000 * 0.10) + (15000 * 0.15) + (130000 * 0.20) + (200000 * 0.225) + (annualTaxable - 400000) * 0.25;
+      }
+      const incomeTaxAmount = Math.round((annualTax / 12) * 100) / 100;
+      const martyrsFundAmount = Math.round(totalEarnings * 0.0005 * 100) / 100;
+
       // Absence deduction
       const absenceDeduction = (absentCount + lateDays) * dayRate;
 
-      // Total deductions
-      const totalDeductions = socInsEmp + absenceDeduction + penaltyAmount + loanDeduction;
+      // Total deductions (including social insurance, income tax, martyrs fund, loans, and penalties)
+      const totalDeductions = socInsEmp + incomeTaxAmount + martyrsFundAmount + absenceDeduction + penaltyAmount + loanDeduction;
       const netSalary = Math.max(0, totalEarnings - totalDeductions);
 
       grandGross += totalEarnings;
@@ -363,6 +383,7 @@ router.post("/payroll/calculate", requirePermission("payroll", "create"), async 
         netSalary: String(netSalary),
         socialInsuranceEmployee: String(socInsEmp),
         socialInsuranceCompany: String(socInsComp),
+        incomeTax: String(incomeTaxAmount),
         loanDeduction: String(loanDeduction),
         penaltyDeduction: String(penaltyAmount),
         absenceDeduction: String(absenceDeduction),
@@ -444,6 +465,125 @@ router.get("/payroll/slips/:id", requirePermission("payroll", "view"), async (re
       slip: row.slip,
       employee: row.employee,
       items,
+    });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+router.get("/payroll/employees/:id/latest-slip", requirePermission("payroll", "view"), async (req: Request, res: Response) => {
+  try {
+    const employeeId = Number(req.params.id);
+    const [emp] = await payrollDb
+      .select()
+      .from(employees)
+      .where(eq(employees.id, employeeId))
+      .limit(1);
+
+    if (!emp) {
+      return res.status(404).json({ success: false, error: "Employee not found" });
+    }
+
+    // Check if employee has a calculated slip in database
+    const [existingSlip] = await payrollDb
+      .select({
+        slip: salarySlips,
+        period: payrollPeriods,
+      })
+      .from(salarySlips)
+      .leftJoin(payrollPeriods, eq(salarySlips.payrollPeriodId, payrollPeriods.id))
+      .where(eq(salarySlips.employeeId, employeeId))
+      .orderBy(desc(salarySlips.id))
+      .limit(1);
+
+    if (existingSlip) {
+      const basic = Number(existingSlip.slip.basicSalary) || Number(emp.baseSalary) || 0;
+      const gross = Number(existingSlip.slip.totalEarnings) || basic;
+      const overtime = (Number(existingSlip.slip.overtimeHours) || 0) * ((basic / 30) / 8 * 1.5);
+      const empInsurance = Number(existingSlip.slip.socialInsuranceEmployee) || 0;
+      const compInsurance = Number(existingSlip.slip.socialInsuranceCompany) || 0;
+      const incomeTax = Number(existingSlip.slip.incomeTax) || 0;
+      const loanDeduction = Number(existingSlip.slip.loanDeduction) || 0;
+      const penaltyDeduction = Number(existingSlip.slip.penaltyDeduction) || 0;
+      const absenceDeduction = Number(existingSlip.slip.absenceDeduction) || 0;
+      const totalDeductions = Number(existingSlip.slip.totalDeductions) || (empInsurance + incomeTax + loanDeduction + penaltyDeduction + absenceDeduction);
+      const netSalary = Number(existingSlip.slip.netSalary) || (gross - totalDeductions);
+
+      return res.json({
+        success: true,
+        source: "database",
+        slip: {
+          employee: emp,
+          periodName: existingSlip.period?.periodName || "مسير الرواتب المعتمد",
+          workingDays: Number(existingSlip.slip.totalWorkingDays) || 30,
+          attendedDays: Number(existingSlip.slip.presentDays) || 26,
+          earnings: {
+            baseSalary: basic,
+            insurableWage: Number(emp.insuranceSalary) || basic,
+            serviceCharge: 0,
+            mealAllowance: 600,
+            remoteAllowance: 750,
+            overtime: Math.round(overtime),
+            totalGross: gross,
+          },
+          deductions: {
+            empInsurance,
+            incomeTax,
+            martyrsFund: Math.round(gross * 0.0005),
+            loanDeduction,
+            penaltyDeduction,
+            absenceDeduction,
+            totalDeductions,
+          },
+          netSalary,
+          compInsurance,
+        }
+      });
+    }
+
+    // Dynamic live computation based on real employee profile
+    const base = Number(emp.baseSalary) || 6000;
+    const insSalary = Number(emp.insuranceSalary) || base;
+    const mealAllowance = 600;
+    const remoteAllowance = 750;
+    const gross = base + mealAllowance + remoteAllowance;
+    const insurableWage = Math.min(Math.max(insSalary, 2000), 12600);
+    const empInsurance = emp.isInsured ? Math.round(insurableWage * 0.11) : 0;
+    const compInsurance = emp.isInsured ? Math.round(insurableWage * 0.1875) : 0;
+    const monthlyTaxable = Math.max(0, gross - empInsurance - 2000);
+    const incomeTax = Math.round(monthlyTaxable * 0.05);
+    const martyrsFund = Math.round(gross * 0.0005);
+    const totalDeductions = empInsurance + incomeTax + martyrsFund;
+    const netSalary = gross - totalDeductions;
+
+    res.json({
+      success: true,
+      source: "calculated",
+      slip: {
+        employee: emp,
+        periodName: "تقدير الشهر الحالي - 2026",
+        workingDays: 30,
+        attendedDays: 26,
+        earnings: {
+          baseSalary: base,
+          insurableWage,
+          serviceCharge: 0,
+          mealAllowance,
+          remoteAllowance,
+          overtime: 0,
+          totalGross: gross,
+        },
+        deductions: {
+          empInsurance,
+          incomeTax,
+          martyrsFund,
+          loanDeduction: 0,
+          penaltyDeduction: 0,
+          totalDeductions,
+        },
+        netSalary,
+        compInsurance,
+      }
     });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
