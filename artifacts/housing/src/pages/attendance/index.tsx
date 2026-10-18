@@ -193,6 +193,58 @@ export default function AttendancePage() {
     },
   });
 
+  // 10. Fetch Leave Balances (Egyptian Labor Law 12/2003)
+  const { data: leaveBalancesData } = useQuery({
+    queryKey: ["attendance-leave-balances", selectedPropertyId],
+    queryFn: async () => {
+      const res = await fetch(`/api/payroll-ops/leave-balances?propertyId=${selectedPropertyId}`);
+      if (!res.ok) return { balances: [] };
+      return res.json();
+    },
+  });
+
+  // Assign Day Roster Shift Mutation
+  const assignRosterDayMutation = useMutation({
+    mutationFn: async (payload: { employeeId: number; date: string; shiftCode: string }) => {
+      const res = await fetch("/api/attendance/roster/assign-day", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          propertyId: selectedPropertyId,
+          ...payload,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to assign shift");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["attendance-roster-matrix"] });
+    },
+    onError: (err: any) => {
+      toast.error(err.message);
+    },
+  });
+
+  const nextShiftMap: Record<string, string> = {
+    OFF: "MORNING",
+    MORNING: "EVENING",
+    EVENING: "NIGHT",
+    NIGHT: "SPLIT",
+    SPLIT: "OFF",
+  };
+
+  const handleCycleShift = (employeeId: number, date: string, currentCode: string) => {
+    const nextCode = nextShiftMap[currentCode] || "MORNING";
+    assignRosterDayMutation.mutate({
+      employeeId,
+      date,
+      shiftCode: nextCode,
+    });
+  };
+
   const staffList = staffData?.employees || [];
   const leaveTypesList = leaveTypesData?.leaveTypes || [];
 
@@ -1020,22 +1072,25 @@ export default function AttendancePage() {
 
                           return (
                             <td key={day.dayNumber} className="py-1.5 px-0.5 text-center">
-                              <span
-                                title={`${sched.name} - ${day.date}`}
-                                className={`inline-flex items-center justify-center w-6 h-6 rounded-md text-[10px] font-black font-mono cursor-pointer transition-transform hover:scale-110 shadow-2xs ${
+                              <button
+                                type="button"
+                                disabled={assignRosterDayMutation.isPending}
+                                onClick={() => handleCycleShift(row.employeeId, day.date, sched.shiftCode)}
+                                title={`${sched.name} - ${day.date} (${ar ? "انقر للتبديل: ص -> م -> ل -> س -> OFF" : "Click to cycle: M -> E -> N -> S -> OFF"})`}
+                                className={`inline-flex items-center justify-center w-6 h-6 rounded-md text-[10px] font-black font-mono cursor-pointer transition-all hover:scale-115 active:scale-95 shadow-2xs ${
                                   isOff
-                                    ? "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+                                    ? "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 hover:bg-slate-200"
                                     : isMorning
-                                    ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300/40"
+                                    ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300/40 hover:bg-emerald-200"
                                     : isEvening
-                                    ? "bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-300/40"
+                                    ? "bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-300/40 hover:bg-blue-200"
                                     : isNight
-                                    ? "bg-indigo-100 text-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-300/40"
-                                    : "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300/40"
+                                    ? "bg-indigo-100 text-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-300/40 hover:bg-indigo-200"
+                                    : "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300/40 hover:bg-amber-200"
                                 }`}
                               >
                                 {isOff ? "OFF" : isMorning ? "ص" : isEvening ? "م" : isNight ? "ل" : "س"}
-                              </span>
+                              </button>
                             </td>
                           );
                         })}
@@ -1085,6 +1140,69 @@ export default function AttendancePage() {
 
         {/* Tab 5: Leaves & Permissions */}
         <TabsContent value="leaves" className="mt-4 space-y-4">
+          {/* Egyptian Labor Law 12/2003 Leave Entitlement Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card className="border shadow-xs bg-muted/20">
+              <CardContent className="p-4">
+                <p className="text-xs font-medium text-muted-foreground">
+                  {ar ? "رصيد الإجازات السنوي الإجمالي" : "Total Annual Leave Pool"}
+                </p>
+                <h4 className="text-2xl font-bold font-mono mt-1 text-foreground">
+                  {(leaveBalancesData?.balances || []).reduce((acc: number, b: any) => acc + (b.totalEntitlement || 0), 0)}{" "}
+                  <span className="text-xs font-normal text-muted-foreground">{ar ? "يوم عمل" : "days"}</span>
+                </h4>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  {ar ? "قانون العمل 12/2003 (21 إلى 30 يوماً)" : "Law 12/2003 (21 to 30 days)"}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="border shadow-xs bg-muted/20">
+              <CardContent className="p-4">
+                <p className="text-xs font-medium text-muted-foreground">
+                  {ar ? "الأيام المستهلكة المعتمدة" : "Consumed Leave Days"}
+                </p>
+                <h4 className="text-2xl font-bold font-mono mt-1 text-amber-600">
+                  {(leaveBalancesData?.balances || []).reduce((acc: number, b: any) => acc + (b.usedDays || 0), 0)}{" "}
+                  <span className="text-xs font-normal text-muted-foreground">{ar ? "يوم" : "days"}</span>
+                </h4>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  {ar ? "تم خصمها من الرصيد السنوي" : "Approved & deducted"}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="border shadow-xs bg-muted/20">
+              <CardContent className="p-4">
+                <p className="text-xs font-medium text-muted-foreground">
+                  {ar ? "صافي الرصيد المتاح" : "Remaining Available Days"}
+                </p>
+                <h4 className="text-2xl font-bold font-mono mt-1 text-emerald-600">
+                  {(leaveBalancesData?.balances || []).reduce((acc: number, b: any) => acc + (b.remainingDays || 0), 0)}{" "}
+                  <span className="text-xs font-normal text-muted-foreground">{ar ? "يوم" : "days"}</span>
+                </h4>
+                <p className="text-[11px] text-emerald-600 font-medium mt-0.5">
+                  {ar ? "متاح للاستهلاك خلال السنة" : "Available for calendar year"}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="border shadow-xs bg-muted/20">
+              <CardContent className="p-4">
+                <p className="text-xs font-medium text-muted-foreground">
+                  {ar ? "الموظفون المسجلون" : "Eligible Staff Count"}
+                </p>
+                <h4 className="text-2xl font-bold font-mono mt-1 text-primary">
+                  {(leaveBalancesData?.balances || []).length}{" "}
+                  <span className="text-xs font-normal text-muted-foreground">{ar ? "موظف" : "employees"}</span>
+                </h4>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  {ar ? "خاضعون لقوانين العمل المصرية" : "Active contracted employees"}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
           <Card className="border shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm text-right rtl:text-right ltr:text-left">

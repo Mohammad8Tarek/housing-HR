@@ -85,6 +85,62 @@ router.patch(["/payroll-ops/leaves/:id/status", "/payroll-operations/leaves/:id/
   }
 });
 
+router.get(["/payroll-ops/leave-balances", "/payroll-operations/leave-balances"], requirePermission("payroll", "view"), async (req: Request, res: Response) => {
+  try {
+    const propertyId = req.query.propertyId ? Number(req.query.propertyId) : undefined;
+    const year = Number(req.query.year) || new Date().getFullYear();
+
+    const staff = await payrollDb
+      .select()
+      .from(employees)
+      .where(and(
+        propertyId ? eq(employees.propertyId, propertyId) : undefined,
+        eq(employees.status, "active")
+      ));
+
+    const leaves = await payrollDb
+      .select()
+      .from(leaveApplications)
+      .where(and(
+        propertyId ? eq(leaveApplications.propertyId, propertyId) : undefined,
+        eq(leaveApplications.status, "approved"),
+        sql`extract(year from ${leaveApplications.startDate}) = ${year}`
+      ));
+
+    const balances = staff.map(emp => {
+      const empLeaves = leaves.filter(l => l.employeeId === emp.id);
+      const usedDays = empLeaves.reduce((acc, curr) => acc + (Number(curr.totalDays) || 0), 0);
+
+      // Egyptian Labor Law 12/2003: 21 days annual leave, 30 days if age >= 50 or service >= 10 years
+      let totalEntitlement = 21;
+      if (emp.joiningDate) {
+        const joinYear = new Date(emp.joiningDate).getFullYear();
+        if (year - joinYear >= 10) totalEntitlement = 30;
+      }
+      if (emp.dateOfBirth) {
+        const birthYear = new Date(emp.dateOfBirth).getFullYear();
+        if (year - birthYear >= 50) totalEntitlement = 30;
+      }
+
+      const remainingDays = Math.max(0, totalEntitlement - usedDays);
+
+      return {
+        employeeId: emp.id,
+        employeeCode: emp.employeeCode,
+        fullName: emp.fullName,
+        fullNameAr: emp.fullNameAr,
+        totalEntitlement,
+        usedDays,
+        remainingDays,
+      };
+    });
+
+    res.json({ success: true, year, balances });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // ─── 2. Penalties & Disciplinary Actions (SST Legal & Penalties) ─────
 router.get(["/payroll-ops/penalties", "/payroll-operations/penalties"], requirePermission("payroll", "view"), async (req: Request, res: Response) => {
   try {

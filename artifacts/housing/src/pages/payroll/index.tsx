@@ -37,7 +37,8 @@ import {
   Percent,
   FileCheck2,
   Eye,
-  AlertTriangle
+  AlertTriangle,
+  Pencil
 } from "lucide-react";
 import { toast } from "sonner";
 import { PermissionGate } from "@/components/ui/permission-gate";
@@ -98,6 +99,33 @@ export default function PayrollPage() {
   // Tax Simulator State
   const [isTaxSimOpen, setIsTaxSimOpen] = useState(false);
   const [taxSimSalary, setTaxSimSalary] = useState<number>(12000);
+
+  // New Period Modal State
+  const [isNewPeriodOpen, setIsNewPeriodOpen] = useState(false);
+  const [periodForm, setPeriodForm] = useState({
+    periodName: `نوفمبر ${new Date().getFullYear()}`,
+    year: new Date().getFullYear(),
+    month: new Date().getMonth() + 1,
+    startDate: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}-01`,
+    endDate: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}-30`,
+    totalWorkingDays: 30,
+  });
+
+  // Edit Employee Salary Modal State
+  const [isEditEmployeeOpen, setIsEditEmployeeOpen] = useState(false);
+  const [editEmployeeForm, setEditEmployeeForm] = useState({
+    id: 0,
+    employeeCode: "",
+    fullName: "",
+    baseSalary: "0.00",
+    insuranceSalary: "0.00",
+    isInsured: true,
+    bankName: "",
+    bankAccountNumber: "",
+    iban: "",
+    employmentType: "regular",
+    biometricId: "",
+  });
 
   // 1. Fetch Properties from sunrise_payroll_attendance
   const { data: propData } = useQuery({
@@ -265,6 +293,50 @@ export default function PayrollPage() {
     onSuccess: (data) => {
       setEosResult(data.settlement);
       toast.success(ar ? "تم احتساب مكافأة نهاية الخدمة وتصفية المستحقات بنجاح!" : "End of service settlement calculated!");
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  // Create Payroll Period Mutation
+  const createPeriodMutation = useMutation({
+    mutationFn: async (payload: any) => {
+      const res = await fetch("/api/payroll/periods", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...payload, propertyId: selectedPropertyId }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to create payroll period");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      toast.success(ar ? "تم إنشاء الفترة المالية بنجاح!" : "Payroll period created successfully!");
+      setIsNewPeriodOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["payroll-periods"] });
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  // Update Employee Salary & Allowances Mutation
+  const updateEmployeeMutation = useMutation({
+    mutationFn: async (payload: { id: number; data: any }) => {
+      const res = await fetch(`/api/payroll/employees/${payload.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload.data),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to update employee salary");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      toast.success(ar ? "تم تحديث بيانات وراتب الموظف بنجاح!" : "Employee salary updated successfully!");
+      setIsEditEmployeeOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["payroll-employees"] });
     },
     onError: (err: any) => toast.error(err.message),
   });
@@ -495,9 +567,20 @@ export default function PayrollPage() {
 
               <PermissionGate module="payroll" action="create">
                 <Button 
+                  variant="outline"
+                  onClick={() => setIsNewPeriodOpen(true)}
+                  className="gap-1.5 border-blue-300 text-blue-700 bg-blue-50/50 hover:bg-blue-100 rounded-xl text-xs font-semibold h-10 px-3"
+                >
+                  <Calendar className="w-4 h-4 text-blue-600" />
+                  <span>{ar ? "فترة مالية جديدة" : "New Period"}</span>
+                </Button>
+              </PermissionGate>
+
+              <PermissionGate module="payroll" action="create">
+                <Button 
                   onClick={() => {
                     if (periodsList.length === 0) {
-                      toast.error(ar ? "يرجى إنشاء فترة مالية أولاً" : "Please create a payroll period first");
+                      toast.error(ar ? "يرجى إنشاء فترة مالية أولاً بالضغط على 'فترة مالية جديدة'" : "Please create a payroll period first using 'New Period'");
                       return;
                     }
                     calculateMutation.mutate({
@@ -727,6 +810,32 @@ export default function PayrollPage() {
                           </td>
                           <td className="p-3.5 text-center">
                             <div className="flex items-center justify-center gap-1.5">
+                              <PermissionGate module="payroll" action="edit">
+                                <Button 
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    setEditEmployeeForm({
+                                      id: emp.id,
+                                      employeeCode: emp.employeeCode,
+                                      fullName: emp.fullName,
+                                      baseSalary: emp.baseSalary || "0.00",
+                                      insuranceSalary: emp.insuranceSalary || "0.00",
+                                      isInsured: emp.isInsured ?? true,
+                                      bankName: emp.bankName || "",
+                                      bankAccountNumber: emp.bankAccountNumber || "",
+                                      iban: emp.iban || "",
+                                      employmentType: emp.employmentType || "regular",
+                                      biometricId: emp.biometricId || "",
+                                    });
+                                    setIsEditEmployeeOpen(true);
+                                  }}
+                                  className="h-8 gap-1 text-[11px] font-semibold rounded-xl border-blue-200 text-blue-700 hover:bg-blue-50"
+                                >
+                                  <Pencil className="w-3.5 h-3.5" />
+                                  <span>{ar ? "تعديل الراتب" : "Edit Salary"}</span>
+                                </Button>
+                              </PermissionGate>
                               <Button 
                                 size="sm"
                                 variant="outline"
@@ -1768,6 +1877,233 @@ export default function PayrollPage() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsTaxSimOpen(false)} className="rounded-xl">
               {ar ? "إغلاق" : "Close"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal: New Payroll Period */}
+      <Dialog open={isNewPeriodOpen} onOpenChange={setIsNewPeriodOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{ar ? "إنشاء فترة مالية جديدة للمرتبات" : "Create New Payroll Period"}</DialogTitle>
+            <DialogDescription>
+              {ar
+                ? "تحديد شهر وسنة دورة المرتبات ونطاق تواريخ الحضور وأيام العمل"
+                : "Define the payroll cycle dates, month/year, and standard working days"}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3 py-2 text-xs" dir={ar ? "rtl" : "ltr"}>
+            <div>
+              <label className="font-bold text-slate-700 block mb-1">{ar ? "اسم الفترة المالية:" : "Period Name:"}</label>
+              <Input
+                value={periodForm.periodName}
+                onChange={(e) => setPeriodForm({ ...periodForm, periodName: e.target.value })}
+                placeholder="نوفمبر 2026"
+                className="h-9 text-xs rounded-xl"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">{ar ? "السنة:" : "Year:"}</label>
+                <Input
+                  type="number"
+                  value={periodForm.year}
+                  onChange={(e) => setPeriodForm({ ...periodForm, year: Number(e.target.value) })}
+                  className="h-9 text-xs font-mono rounded-xl"
+                />
+              </div>
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">{ar ? "الشهر (1 - 12):" : "Month (1 - 12):"}</label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={12}
+                  value={periodForm.month}
+                  onChange={(e) => setPeriodForm({ ...periodForm, month: Number(e.target.value) })}
+                  className="h-9 text-xs font-mono rounded-xl"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">{ar ? "تاريخ البداية:" : "Start Date:"}</label>
+                <Input
+                  type="date"
+                  value={periodForm.startDate}
+                  onChange={(e) => setPeriodForm({ ...periodForm, startDate: e.target.value })}
+                  className="h-9 text-xs rounded-xl"
+                />
+              </div>
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">{ar ? "تاريخ النهاية:" : "End Date:"}</label>
+                <Input
+                  type="date"
+                  value={periodForm.endDate}
+                  onChange={(e) => setPeriodForm({ ...periodForm, endDate: e.target.value })}
+                  className="h-9 text-xs rounded-xl"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="font-bold text-slate-700 block mb-1">{ar ? "عدد أيام العمل القياسية بالشهر:" : "Standard Working Days:"}</label>
+              <Input
+                type="number"
+                value={periodForm.totalWorkingDays}
+                onChange={(e) => setPeriodForm({ ...periodForm, totalWorkingDays: Number(e.target.value) })}
+                className="h-9 text-xs font-mono rounded-xl"
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsNewPeriodOpen(false)} className="rounded-xl">
+              {ar ? "إلغاء" : "Cancel"}
+            </Button>
+            <Button
+              onClick={() => createPeriodMutation.mutate(periodForm)}
+              disabled={createPeriodMutation.isPending || !periodForm.periodName}
+              className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl"
+            >
+              {createPeriodMutation.isPending ? (ar ? "جاري الحفظ..." : "Saving...") : (ar ? "إنشاء الفترة" : "Create Period")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal: Edit Employee Salary & Allowances */}
+      <Dialog open={isEditEmployeeOpen} onOpenChange={setIsEditEmployeeOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Pencil className="w-4 h-4 text-primary" />
+              <span>{ar ? `تعديل راتب وبيانات: ${editEmployeeForm.fullName}` : `Edit Salary: ${editEmployeeForm.fullName}`}</span>
+            </DialogTitle>
+            <DialogDescription>
+              {ar
+                ? `كود الموظف: ${editEmployeeForm.employeeCode} • تعديل الراتب الأساسي، التأمينات، والحساب البنكي`
+                : `Employee Code: ${editEmployeeForm.employeeCode} • Base salary, insurance salary, and banking`}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3 py-2 text-xs" dir={ar ? "rtl" : "ltr"}>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">{ar ? "الراتب الأساسي الشهري (EGP):" : "Base Salary (EGP):"}</label>
+                <Input
+                  type="number"
+                  value={editEmployeeForm.baseSalary}
+                  onChange={(e) => setEditEmployeeForm({ ...editEmployeeForm, baseSalary: e.target.value })}
+                  className="h-9 text-xs font-mono font-bold rounded-xl"
+                />
+              </div>
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">{ar ? "الأجر التأميني (قانون 148):" : "Insurance Salary (EGP):"}</label>
+                <Input
+                  type="number"
+                  value={editEmployeeForm.insuranceSalary}
+                  onChange={(e) => setEditEmployeeForm({ ...editEmployeeForm, insuranceSalary: e.target.value })}
+                  className="h-9 text-xs font-mono font-bold rounded-xl"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">{ar ? "الاشتراك بالتأمينات الاجتماعية:" : "Social Insurance Status:"}</label>
+                <select
+                  value={editEmployeeForm.isInsured ? "true" : "false"}
+                  onChange={(e) => setEditEmployeeForm({ ...editEmployeeForm, isInsured: e.target.value === "true" })}
+                  className="w-full h-9 px-3 text-xs rounded-xl border border-slate-200 bg-background"
+                >
+                  <option value="true">{ar ? "مؤمن عليه (خاضع لنسبة 11%)" : "Insured (11% deduction)"}</option>
+                  <option value="false">{ar ? "غير مؤمن عليه" : "Not Insured"}</option>
+                </select>
+              </div>
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">{ar ? "نوع العمالة:" : "Employment Type:"}</label>
+                <select
+                  value={editEmployeeForm.employmentType}
+                  onChange={(e) => setEditEmployeeForm({ ...editEmployeeForm, employmentType: e.target.value })}
+                  className="w-full h-9 px-3 text-xs rounded-xl border border-slate-200 bg-background"
+                >
+                  <option value="regular">{ar ? "عمالة فندقية مثبتة (Regular)" : "Regular Hotel Staff"}</option>
+                  <option value="casual">{ar ? "عمالة يوميات وحفلات (Casual)" : "Casual / Daily Staff"}</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">{ar ? "رقم البصمة في الأجهزة:" : "Biometric Device ID:"}</label>
+                <Input
+                  value={editEmployeeForm.biometricId}
+                  onChange={(e) => setEditEmployeeForm({ ...editEmployeeForm, biometricId: e.target.value })}
+                  placeholder="1042"
+                  className="h-9 text-xs font-mono rounded-xl"
+                />
+              </div>
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">{ar ? "اسم البنك المحول إليه:" : "Bank Name:"}</label>
+                <Input
+                  value={editEmployeeForm.bankName}
+                  onChange={(e) => setEditEmployeeForm({ ...editEmployeeForm, bankName: e.target.value })}
+                  placeholder="البنك الأهلي المصري (NBE)"
+                  className="h-9 text-xs rounded-xl"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">{ar ? "رقم الحساب البنكي:" : "Bank Account Number:"}</label>
+                <Input
+                  value={editEmployeeForm.bankAccountNumber}
+                  onChange={(e) => setEditEmployeeForm({ ...editEmployeeForm, bankAccountNumber: e.target.value })}
+                  placeholder="0123456789012"
+                  className="h-9 text-xs font-mono rounded-xl"
+                />
+              </div>
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">{ar ? "رقم الآيبان الدولي (IBAN):" : "IBAN:"}</label>
+                <Input
+                  value={editEmployeeForm.iban}
+                  onChange={(e) => setEditEmployeeForm({ ...editEmployeeForm, iban: e.target.value })}
+                  placeholder="EG123456789012345678901234567"
+                  className="h-9 text-xs font-mono rounded-xl"
+                />
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditEmployeeOpen(false)} className="rounded-xl">
+              {ar ? "إلغاء" : "Cancel"}
+            </Button>
+            <Button
+              onClick={() => {
+                updateEmployeeMutation.mutate({
+                  id: editEmployeeForm.id,
+                  data: {
+                    baseSalary: editEmployeeForm.baseSalary,
+                    insuranceSalary: editEmployeeForm.insuranceSalary,
+                    isInsured: editEmployeeForm.isInsured,
+                    bankName: editEmployeeForm.bankName,
+                    bankAccountNumber: editEmployeeForm.bankAccountNumber,
+                    iban: editEmployeeForm.iban,
+                    employmentType: editEmployeeForm.employmentType,
+                    biometricId: editEmployeeForm.biometricId,
+                  },
+                });
+              }}
+              disabled={updateEmployeeMutation.isPending}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl"
+            >
+              {updateEmployeeMutation.isPending ? (ar ? "جاري الحفظ..." : "Saving...") : (ar ? "حفظ التعديلات" : "Save Changes")}
             </Button>
           </DialogFooter>
         </DialogContent>

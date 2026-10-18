@@ -684,7 +684,8 @@ router.get("/attendance/roster/matrix", requirePermission("attendance", "view"),
         eq(shiftAssignments.isActive, true),
         lte(shiftAssignments.startDate, monthEnd),
         sql`(${shiftAssignments.endDate} IS NULL OR ${shiftAssignments.endDate} >= ${monthStart})`
-      ));
+      ))
+      .orderBy(desc(shiftAssignments.id));
 
     const empAssignmentsMap = new Map<number, Array<{ shiftId: number; startDate: string; endDate: string | null; shift: any }>>();
     for (const a of activeAssignments) {
@@ -756,6 +757,103 @@ router.get("/attendance/roster/matrix", requirePermission("attendance", "view"),
       roster: rosterRows,
       shifts: allShifts,
     });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Single-day shift assignment for roster matrix interaction
+router.post("/attendance/roster/assign-day", requirePermission("attendance", "create"), async (req: Request, res: Response) => {
+  try {
+    const { propertyId, employeeId, date, shiftId, shiftCode } = req.body;
+    if (!employeeId || !date) {
+      return res.status(400).json({ success: false, error: "employeeId and date are required" });
+    }
+
+    const propId = Number(propertyId) || 2;
+    const empId = Number(employeeId);
+
+    let resolvedShiftId = shiftId !== undefined && shiftId !== null ? Number(shiftId) : null;
+    const isOff = shiftCode === "OFF" || shiftId === "OFF" || resolvedShiftId === 0;
+
+    if (!isOff && isNaN(resolvedShiftId as number)) {
+      resolvedShiftId = null;
+    }
+
+    if (!isOff && !resolvedShiftId && shiftCode) {
+      const [matchedShift] = await payrollDb
+        .select()
+        .from(shifts)
+        .where(and(
+          propertyId ? eq(shifts.propertyId, propId) : undefined,
+          or(
+            ilike(shifts.nameEn, `%${shiftCode}%`),
+            ilike(shifts.nameAr, `%${shiftCode}%`)
+          )
+        ))
+        .limit(1);
+
+      if (matchedShift) {
+        resolvedShiftId = matchedShift.id;
+      }
+    }
+
+    // Check if an exact single-day assignment already exists for this date and employee
+    const [existing] = await payrollDb
+      .select()
+      .from(shiftAssignments)
+      .where(and(
+        eq(shiftAssignments.employeeId, empId),
+        eq(shiftAssignments.startDate, date),
+        eq(shiftAssignments.endDate, date)
+      ))
+      .limit(1);
+
+    if (isOff) {
+      if (existing) {
+        await payrollDb
+          .update(shiftAssignments)
+          .set({ isActive: false })
+          .where(eq(shiftAssignments.id, existing.id));
+      }
+      return res.json({ success: true, message: "Shift set to OFF", isOff: true });
+    }
+
+    if (!resolvedShiftId) {
+      const [firstShift] = await payrollDb
+        .select()
+        .from(shifts)
+        .where(eq(shifts.propertyId, propId))
+        .limit(1);
+      if (firstShift) resolvedShiftId = firstShift.id;
+    }
+
+    if (!resolvedShiftId) {
+      return res.status(400).json({ success: false, error: "No shift found to assign" });
+    }
+
+    if (existing) {
+      await payrollDb
+        .update(shiftAssignments)
+        .set({
+          shiftId: resolvedShiftId,
+          isActive: true,
+        })
+        .where(eq(shiftAssignments.id, existing.id));
+    } else {
+      await payrollDb
+        .insert(shiftAssignments)
+        .values({
+          propertyId: propId,
+          employeeId: empId,
+          shiftId: resolvedShiftId,
+          startDate: date,
+          endDate: date,
+          isActive: true,
+        });
+    }
+
+    res.json({ success: true, message: "Shift assigned successfully", shiftId: resolvedShiftId });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }
