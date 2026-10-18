@@ -38,6 +38,12 @@ import gateRouter from "./gate.js";
 import payrollRouter from "./payroll.js";
 import attendanceRouter from "./attendance.js";
 import payrollOperationsRouter from "./payroll-operations.js";
+import hrmsOrgRouter from "./hrms-org.js";
+import hrmsEmployeesRouter from "./hrms-employees.js";
+import hrmsRecruitmentRouter from "./hrms-recruitment.js";
+import hrmsFinanceRouter from "./hrms-finance.js";
+import hrmsLearningRouter from "./hrms-learning.js";
+import hrmsServicesRouter from "./hrms-services.js";
 
 // ✅ Portal Imports
 import portalAuthRouter from "./portal-auth.js";
@@ -142,5 +148,11 @@ router.use(workersRouter);
 router.use(payrollRouter);
 router.use(attendanceRouter);
 router.use(payrollOperationsRouter);
+router.use(hrmsOrgRouter);
+router.use(hrmsEmployeesRouter);
+router.use(hrmsRecruitmentRouter);
+router.use(hrmsFinanceRouter);
+router.use(hrmsLearningRouter);
+router.use(hrmsServicesRouter);
 
 export default router;

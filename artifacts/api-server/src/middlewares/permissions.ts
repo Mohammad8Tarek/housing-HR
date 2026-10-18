@@ -31,6 +31,8 @@ export const PERMISSION_MODULES = [
   "gate",
   "payroll",
   "attendance",
+  "hrms",
+  "recruitment",
 ] as const;
 
 export const PERMISSION_ACTIONS = [
@@ -153,6 +155,10 @@ export const MODULE_ACTIONS: Record<PermissionModule, PermissionAction[]> = {
   hr_sync: ["view", "edit", "export"],
   portal_notifications: ["view", "create", "delete"],
   gate: ["view", "create", "export"],
+  payroll: ["view", "create", "edit", "delete", "export", "approve"],
+  attendance: ["view", "create", "edit", "delete", "export", "approve"],
+  hrms: ["view", "create", "edit", "delete", "export", "approve"],
+  recruitment: ["view", "create", "edit", "delete", "export", "approve"],
 };
 
 type AuthUser = {

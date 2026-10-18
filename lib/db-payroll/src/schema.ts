@@ -67,7 +67,18 @@ export const employees = pgTable("employees", {
   phone: varchar("phone", { length: 50 }),
   email: varchar("email", { length: 150 }),
   address: text("address"),
-  notes: text("notes"),
+  sectionId: integer("section_id"),
+  jobGradeId: integer("job_grade_id"),
+  costCenterId: integer("cost_center_id"),
+  directManagerId: integer("direct_manager_id"),
+  profilePhotoUrl: text("profile_photo_url"),
+  emergencyContactName: varchar("emergency_contact_name", { length: 150 }),
+  emergencyContactPhone: varchar("emergency_contact_phone", { length: 50 }),
+  emergencyContactRelation: varchar("emergency_contact_relation", { length: 50 }),
+  probationEndDate: date("probation_end_date"),
+  contractEndDate: date("contract_end_date"),
+  workLocation: varchar("work_location", { length: 150 }),
+  militaryStatus: varchar("military_status", { length: 50 }),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
@@ -429,5 +440,561 @@ export const attendanceMonthlySummaries = pgTable("attendance_monthly_summaries"
   syncedToPayrollAt: timestamp("synced_to_payroll_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+});
+
+// ═══════════════════════════════════════════════════════════════════════
+// 23. ORGANIZATION & MASTER DATA
+// ═══════════════════════════════════════════════════════════════════════
+
+// 23.1 Legal Entities (Corporate holding and operating companies)
+export const legalEntities = pgTable("legal_entities", {
+  id: serial("id").primaryKey(),
+  nameEn: varchar("name_en", { length: 250 }).notNull(),
+  nameAr: varchar("name_ar", { length: 250 }).notNull(),
+  commercialRegistrationNo: varchar("commercial_registration_no", { length: 100 }),
+  taxCardNo: varchar("tax_card_no", { length: 100 }),
+  socialInsuranceOffice: varchar("social_insurance_office", { length: 150 }),
+  socialInsuranceNo: varchar("social_insurance_no", { length: 100 }),
+  registeredAddress: text("registered_address"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+});
+
+// 23.2 Cost Centers (USALI Standard for Hotel Group)
+export const costCenters = pgTable("cost_centers", {
+  id: serial("id").primaryKey(),
+  propertyId: integer("property_id").notNull().references(() => properties.id, { onDelete: "restrict" }),
+  legalEntityId: integer("legal_entity_id").references(() => legalEntities.id, { onDelete: "set null" }),
+  parentId: integer("parent_id"),
+  code: varchar("code", { length: 50 }).notNull(),
+  nameEn: varchar("name_en", { length: 200 }).notNull(),
+  nameAr: varchar("name_ar", { length: 200 }).notNull(),
+  division: varchar("division", { length: 50 }).notNull().default("Rooms"), // Rooms, F&B, A&G, POM, Sales
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+});
+
+// 23.3 Department Sections
+export const sections = pgTable("sections", {
+  id: serial("id").primaryKey(),
+  departmentId: integer("department_id").notNull().references(() => departments.id, { onDelete: "cascade" }),
+  propertyId: integer("property_id").notNull().references(() => properties.id, { onDelete: "restrict" }),
+  costCenterId: integer("cost_center_id").references(() => costCenters.id, { onDelete: "set null" }),
+  nameEn: varchar("name_en", { length: 150 }).notNull(),
+  nameAr: varchar("name_ar", { length: 150 }).notNull(),
+  code: varchar("code", { length: 50 }),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// 23.4 Hospitality Job Grades & Bands
+export const jobGrades = pgTable("job_grades", {
+  id: serial("id").primaryKey(),
+  code: varchar("code", { length: 50 }).notNull().unique(),
+  nameEn: varchar("name_en", { length: 150 }).notNull(),
+  nameAr: varchar("name_ar", { length: 150 }).notNull(),
+  levelOrder: integer("level_order").notNull().default(1),
+  minSalary: numeric("min_salary", { precision: 12, scale: 2 }).default("0.00"),
+  maxSalary: numeric("max_salary", { precision: 12, scale: 2 }).default("0.00"),
+  serviceChargePoints: numeric("service_charge_points", { precision: 6, scale: 2 }).default("1.00"),
+  housingEligibility: varchar("housing_eligibility", { length: 50 }).default("shared"), // single, shared, family, allowance
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// 23.5 Holiday Calendars (Egyptian National & Religious Holidays)
+export const holidayCalendars = pgTable("holiday_calendars", {
+  id: serial("id").primaryKey(),
+  nameEn: varchar("name_en", { length: 200 }).notNull(),
+  nameAr: varchar("name_ar", { length: 200 }).notNull(),
+  holidayDate: date("holiday_date").notNull(),
+  durationDays: integer("duration_days").default(1),
+  isReligious: boolean("is_religious").default(false),
+  overtimeMultiplier: numeric("overtime_multiplier", { precision: 4, scale: 2 }).default("2.00"),
+  applicableYear: integer("applicable_year").notNull().default(2026),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// 23.6 Approval Workflows
+export const approvalWorkflows = pgTable("approval_workflows", {
+  id: serial("id").primaryKey(),
+  propertyId: integer("property_id").references(() => properties.id, { onDelete: "cascade" }),
+  workflowType: varchar("workflow_type", { length: 50 }).notNull(), // leave, loan, resignation, promotion, requisition
+  name: varchar("name", { length: 150 }).notNull(),
+  description: text("description"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// 23.7 Approval Workflow Steps
+export const approvalWorkflowSteps = pgTable("approval_workflow_steps", {
+  id: serial("id").primaryKey(),
+  workflowId: integer("workflow_id").notNull().references(() => approvalWorkflows.id, { onDelete: "cascade" }),
+  stepOrder: integer("step_order").notNull(),
+  approverRole: varchar("approver_role", { length: 50 }).notNull(), // dept_head, hr_officer, hr_manager, financial_controller, gm
+  approverUserId: integer("approver_user_id").references(() => hrUsers.id, { onDelete: "set null" }),
+  isFinalStep: boolean("is_final_step").default(false),
+  timeoutHours: integer("timeout_hours").default(48),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// ═══════════════════════════════════════════════════════════════════════
+// 24. TALENT ACQUISITION & RECRUITMENT PIPELINE
+// ═══════════════════════════════════════════════════════════════════════
+
+// 24.1 Manpower Requisitions
+export const manpowerRequisitions = pgTable("manpower_requisitions", {
+  id: serial("id").primaryKey(),
+  requisitionNumber: varchar("requisition_number", { length: 50 }).notNull().unique(),
+  propertyId: integer("property_id").notNull().references(() => properties.id, { onDelete: "restrict" }),
+  departmentId: integer("department_id").notNull().references(() => departments.id, { onDelete: "restrict" }),
+  designationId: integer("designation_id").notNull().references(() => designations.id, { onDelete: "restrict" }),
+  requiredCount: integer("required_count").notNull().default(1),
+  reasonForRequest: varchar("reason_for_request", { length: 50 }).notNull().default("replacement"), // replacement, expansion, seasonal
+  budgetStatus: varchar("budget_status", { length: 50 }).default("budgeted"),
+  expectedJoiningDate: date("expected_joining_date"),
+  requestedByUserId: integer("requested_by_user_id").references(() => hrUsers.id, { onDelete: "set null" }),
+  status: varchar("status", { length: 30 }).notNull().default("draft"), // draft, pending_gm, approved, rejected, fulfilled
+  gmApprovalDate: timestamp("gm_approval_date", { withTimezone: true }),
+  notes: text("notes"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+});
+
+// 24.2 Job Vacancies
+export const jobVacancies = pgTable("job_vacancies", {
+  id: serial("id").primaryKey(),
+  requisitionId: integer("requisition_id").references(() => manpowerRequisitions.id, { onDelete: "set null" }),
+  propertyId: integer("property_id").notNull().references(() => properties.id, { onDelete: "restrict" }),
+  titleEn: varchar("title_en", { length: 200 }).notNull(),
+  titleAr: varchar("title_ar", { length: 200 }).notNull(),
+  description: text("description"),
+  requirements: text("requirements"),
+  experienceYearsMin: integer("experience_years_min").default(1),
+  postedDate: date("posted_date").notNull(),
+  closingDate: date("closing_date"),
+  status: varchar("status", { length: 30 }).notNull().default("open"), // open, closed, on_hold
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// 24.3 Candidates (ATS)
+export const candidates = pgTable("candidates", {
+  id: serial("id").primaryKey(),
+  vacancyId: integer("vacancy_id").references(() => jobVacancies.id, { onDelete: "set null" }),
+  fullName: varchar("full_name", { length: 250 }).notNull(),
+  fullNameAr: varchar("full_name_ar", { length: 250 }),
+  email: varchar("email", { length: 150 }).notNull(),
+  phoneNumber: varchar("phone_number", { length: 50 }).notNull(),
+  nationalId: varchar("national_id", { length: 30 }),
+  dateOfBirth: date("date_of_birth"),
+  gender: varchar("gender", { length: 10 }),
+  resumeUrl: text("resume_url"),
+  currentPosition: varchar("current_position", { length: 150 }),
+  expectedSalary: numeric("expected_salary", { precision: 12, scale: 2 }),
+  stage: varchar("stage", { length: 50 }).notNull().default("applied"), // applied, screened, interviewed, offer_made, hired, rejected
+  rating: integer("rating").default(0), // 1-5 stars
+  rejectionReason: text("rejection_reason"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+});
+
+// 24.4 Candidate Interviews
+export const candidateInterviews = pgTable("candidate_interviews", {
+  id: serial("id").primaryKey(),
+  candidateId: integer("candidate_id").notNull().references(() => candidates.id, { onDelete: "cascade" }),
+  interviewRound: integer("interview_round").notNull().default(1),
+  interviewerUserId: integer("interviewer_user_id").references(() => hrUsers.id, { onDelete: "set null" }),
+  scheduledAt: timestamp("scheduled_at", { withTimezone: true }).notNull(),
+  locationOrLink: varchar("location_or_link", { length: 250 }),
+  technicalScore: integer("technical_score").default(0), // 0-100
+  englishScore: integer("english_score").default(0),
+  appearanceAttitudeScore: integer("appearance_attitude_score").default(0),
+  feedbackNotes: text("feedback_notes"),
+  recommendation: varchar("recommendation", { length: 30 }).default("undecided"), // hire, second_interview, reject
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// 24.5 Job Offers
+export const jobOffers = pgTable("job_offers", {
+  id: serial("id").primaryKey(),
+  candidateId: integer("candidate_id").notNull().references(() => candidates.id, { onDelete: "restrict" }),
+  propertyId: integer("property_id").notNull().references(() => properties.id, { onDelete: "restrict" }),
+  designationId: integer("designation_id").notNull().references(() => designations.id, { onDelete: "restrict" }),
+  basicSalary: numeric("basic_salary", { precision: 12, scale: 2 }).notNull(),
+  livingAllowance: numeric("living_allowance", { precision: 12, scale: 2 }).default("0.00"),
+  housingProvided: boolean("housing_provided").default(true),
+  transportationProvided: boolean("transportation_provided").default(true),
+  serviceChargeEligible: boolean("service_charge_eligible").default(true),
+  offerDate: date("offer_date").notNull(),
+  validUntil: date("valid_until").notNull(),
+  expectedJoiningDate: date("expected_joining_date"),
+  status: varchar("status", { length: 30 }).notNull().default("draft"), // draft, sent, accepted, declined
+  approvedByUserId: integer("approved_by_user_id").references(() => hrUsers.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// 24.6 Onboarding Checklists
+export const onboardingTasks = pgTable("onboarding_tasks", {
+  id: serial("id").primaryKey(),
+  candidateId: integer("candidate_id").references(() => candidates.id, { onDelete: "set null" }),
+  employeeId: integer("employee_id").references(() => employees.id, { onDelete: "set null" }),
+  propertyId: integer("property_id").notNull().references(() => properties.id, { onDelete: "restrict" }),
+  taskCategory: varchar("task_category", { length: 50 }).notNull(), // medical_fit, housing, uniform, it_creds, contract_sign
+  titleEn: varchar("title_en", { length: 200 }).notNull(),
+  titleAr: varchar("title_ar", { length: 200 }).notNull(),
+  isMandatory: boolean("is_mandatory").default(true),
+  status: varchar("status", { length: 30 }).notNull().default("pending"), // pending, in_progress, completed, waived
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+  completedByUserId: integer("completed_by_user_id").references(() => hrUsers.id, { onDelete: "set null" }),
+  notes: text("notes"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// ═══════════════════════════════════════════════════════════════════════
+// 25. CORE HR EXPANSION TABLES
+// ═══════════════════════════════════════════════════════════════════════
+
+// 25.1 Employee Documents (مسوغات التعيين)
+export const employeeDocuments = pgTable("employee_documents", {
+  id: serial("id").primaryKey(),
+  employeeId: integer("employee_id").notNull().references(() => employees.id, { onDelete: "cascade" }),
+  documentType: varchar("document_type", { length: 50 }).notNull(), // national_id, birth_cert, military_cert, criminal_record, health_cert, graduation_cert, passport
+  documentNumber: varchar("document_number", { length: 100 }),
+  issuedDate: date("issued_date"),
+  expiryDate: date("expiry_date"),
+  fileUrl: text("file_url").notNull(),
+  fileSize: integer("file_size"),
+  mimeType: varchar("mime_type", { length: 100 }),
+  isVerified: boolean("is_verified").default(false),
+  verifiedByUserId: integer("verified_by_user_id").references(() => hrUsers.id, { onDelete: "set null" }),
+  verifiedAt: timestamp("verified_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// 25.2 Employee Qualifications
+export const employeeQualifications = pgTable("employee_qualifications", {
+  id: serial("id").primaryKey(),
+  employeeId: integer("employee_id").notNull().references(() => employees.id, { onDelete: "cascade" }),
+  educationLevel: varchar("education_level", { length: 100 }).notNull(), // high_school, diploma, bachelor, master, phd
+  institutionName: varchar("institution_name", { length: 250 }).notNull(),
+  majorOrField: varchar("major_or_field", { length: 200 }),
+  graduationYear: integer("graduation_year"),
+  gradeOrGpa: varchar("grade_or_gpa", { length: 50 }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// 25.3 Employee Dependents
+export const employeeDependents = pgTable("employee_dependents", {
+  id: serial("id").primaryKey(),
+  employeeId: integer("employee_id").notNull().references(() => employees.id, { onDelete: "cascade" }),
+  relationship: varchar("relationship", { length: 50 }).notNull(), // spouse, child, parent
+  nameEn: varchar("name_en", { length: 200 }).notNull(),
+  nameAr: varchar("name_ar", { length: 200 }).notNull(),
+  nationalId: varchar("national_id", { length: 30 }),
+  dateOfBirth: date("date_of_birth"),
+  gender: varchar("gender", { length: 10 }),
+  hasMedicalCoverage: boolean("has_medical_coverage").default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// 25.4 Employee Career History (Promotions, Transfers, Salary Adjustments)
+export const employeeHistory = pgTable("employee_history", {
+  id: serial("id").primaryKey(),
+  employeeId: integer("employee_id").notNull().references(() => employees.id, { onDelete: "cascade" }),
+  actionType: varchar("action_type", { length: 50 }).notNull(), // promotion, transfer, salary_increment, status_change
+  effectiveDate: date("effective_date").notNull(),
+  previousPropertyId: integer("previous_property_id").references(() => properties.id, { onDelete: "set null" }),
+  newPropertyId: integer("new_property_id").references(() => properties.id, { onDelete: "set null" }),
+  previousDepartmentId: integer("previous_department_id").references(() => departments.id, { onDelete: "set null" }),
+  newDepartmentId: integer("new_department_id").references(() => departments.id, { onDelete: "set null" }),
+  previousDesignationId: integer("previous_designation_id").references(() => designations.id, { onDelete: "set null" }),
+  newDesignationId: integer("new_designation_id").references(() => designations.id, { onDelete: "set null" }),
+  previousSalary: numeric("previous_salary", { precision: 12, scale: 2 }),
+  newSalary: numeric("new_salary", { precision: 12, scale: 2 }),
+  reason: text("reason"),
+  approvedByUserId: integer("approved_by_user_id").references(() => hrUsers.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// 25.5 Employee Clearances (End of Service & Exit Protocol)
+export const employeeClearances = pgTable("employee_clearances", {
+  id: serial("id").primaryKey(),
+  employeeId: integer("employee_id").notNull().references(() => employees.id, { onDelete: "restrict" }),
+  propertyId: integer("property_id").notNull().references(() => properties.id, { onDelete: "restrict" }),
+  resignationDate: date("resignation_date"),
+  lastWorkingDay: date("last_working_day").notNull(),
+  exitReason: varchar("exit_reason", { length: 100 }).notNull(), // resignation, termination, contract_end, retirement
+  isHousingCleared: boolean("is_housing_cleared").default(false),
+  housingClearedAt: timestamp("housing_cleared_at", { withTimezone: true }),
+  isUniformReturned: boolean("is_uniform_returned").default(false),
+  isItAssetsReturned: boolean("is_it_assets_returned").default(false),
+  isLoanSettled: boolean("is_loan_settled").default(false),
+  severanceGratuityAmount: numeric("severance_gratuity_amount", { precision: 12, scale: 2 }).default("0.00"),
+  unusedLeaveDaysEncashment: numeric("unused_leave_days_encashment", { precision: 6, scale: 2 }).default("0.00"),
+  totalFinalSettlement: numeric("total_final_settlement", { precision: 12, scale: 2 }).default("0.00"),
+  status: varchar("status", { length: 30 }).default("in_progress"), // in_progress, approved, paid, closed
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// ═══════════════════════════════════════════════════════════════════════
+// 26. PERFORMANCE APPRAISAL & TRAINING (L&D)
+// ═══════════════════════════════════════════════════════════════════════
+
+// 26.1 Appraisal Cycles
+export const appraisalCycles = pgTable("appraisal_cycles", {
+  id: serial("id").primaryKey(),
+  propertyId: integer("property_id").notNull().references(() => properties.id, { onDelete: "cascade" }),
+  nameEn: varchar("name_en", { length: 150 }).notNull(),
+  nameAr: varchar("name_ar", { length: 150 }).notNull(),
+  startDate: date("start_date").notNull(),
+  endDate: date("end_date").notNull(),
+  applicableYear: integer("applicable_year").notNull().default(2026),
+  status: varchar("status", { length: 30 }).notNull().default("active"), // draft, active, closed
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// 26.2 Appraisal Templates
+export const appraisalTemplates = pgTable("appraisal_templates", {
+  id: serial("id").primaryKey(),
+  nameEn: varchar("name_en", { length: 150 }).notNull(),
+  nameAr: varchar("name_ar", { length: 150 }).notNull(),
+  targetGradeId: integer("target_grade_id").references(() => jobGrades.id, { onDelete: "set null" }),
+  sectionsConfig: jsonb("sections_config").notNull().default([]), // array of competencies, weights, questions
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// 26.3 Employee Appraisals
+export const employeeAppraisals = pgTable("employee_appraisals", {
+  id: serial("id").primaryKey(),
+  cycleId: integer("cycle_id").notNull().references(() => appraisalCycles.id, { onDelete: "restrict" }),
+  templateId: integer("template_id").notNull().references(() => appraisalTemplates.id, { onDelete: "restrict" }),
+  employeeId: integer("employee_id").notNull().references(() => employees.id, { onDelete: "cascade" }),
+  managerUserId: integer("manager_user_id").references(() => hrUsers.id, { onDelete: "set null" }),
+  selfScore: numeric("self_score", { precision: 5, scale: 2 }),
+  managerScore: numeric("manager_score", { precision: 5, scale: 2 }),
+  finalScore: numeric("final_score", { precision: 5, scale: 2 }),
+  performanceBand: varchar("performance_band", { length: 50 }), // outstanding, exceeds, meets, needs_improvement
+  strengths: text("strengths"),
+  developmentNeeds: text("development_needs"),
+  recommendedIncrementPercent: numeric("recommended_increment_percent", { precision: 4, scale: 2 }),
+  status: varchar("status", { length: 30 }).notNull().default("pending_self"), // pending_self, pending_manager, pending_hr, completed
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// 26.4 Training Courses
+export const trainingCourses = pgTable("training_courses", {
+  id: serial("id").primaryKey(),
+  courseCode: varchar("course_code", { length: 50 }).notNull().unique(),
+  nameEn: varchar("name_en", { length: 200 }).notNull(),
+  nameAr: varchar("name_ar", { length: 200 }).notNull(),
+  category: varchar("category", { length: 50 }).notNull().default("Hospitality"), // HACCP, FireSafety, GuestService, Leadership
+  durationHours: integer("duration_hours").notNull().default(4),
+  isMandatory: boolean("is_mandatory").default(false),
+  validityMonths: integer("validity_months"), // e.g. 12 months for Food Handler
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// 26.5 Training Sessions
+export const trainingSessions = pgTable("training_sessions", {
+  id: serial("id").primaryKey(),
+  courseId: integer("course_id").notNull().references(() => trainingCourses.id, { onDelete: "restrict" }),
+  propertyId: integer("property_id").notNull().references(() => properties.id, { onDelete: "restrict" }),
+  trainerName: varchar("trainer_name", { length: 150 }).notNull(),
+  startDate: timestamp("start_date", { withTimezone: true }).notNull(),
+  endDate: timestamp("end_date", { withTimezone: true }).notNull(),
+  locationVenue: varchar("location_venue", { length: 200 }),
+  maxCapacity: integer("max_capacity").default(25),
+  status: varchar("status", { length: 30 }).default("scheduled"), // scheduled, completed, cancelled
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// 26.6 Training Enrollments
+export const trainingEnrollments = pgTable("training_enrollments", {
+  id: serial("id").primaryKey(),
+  sessionId: integer("session_id").notNull().references(() => trainingSessions.id, { onDelete: "cascade" }),
+  employeeId: integer("employee_id").notNull().references(() => employees.id, { onDelete: "cascade" }),
+  attendanceStatus: varchar("attendance_status", { length: 30 }).default("enrolled"), // enrolled, attended, absent, excused
+  preTestScore: integer("pre_test_score"),
+  postTestScore: integer("post_test_score"),
+  certificateUrl: text("certificate_url"),
+  certificateExpiryDate: date("certificate_expiry_date"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// ═══════════════════════════════════════════════════════════════════════
+// 27. GENERAL LEDGER & BUDGET INTEGRATION (USALI Standard)
+// ═══════════════════════════════════════════════════════════════════════
+
+// 27.1 Payroll Budgets
+export const payrollBudgets = pgTable("payroll_budgets", {
+  id: serial("id").primaryKey(),
+  propertyId: integer("property_id").notNull().references(() => properties.id, { onDelete: "restrict" }),
+  departmentId: integer("department_id").notNull().references(() => departments.id, { onDelete: "restrict" }),
+  fiscalYear: integer("fiscal_year").notNull().default(2026),
+  fiscalMonth: integer("fiscal_month").notNull(), // 1-12
+  approvedHeadcount: integer("approved_headcount").notNull(),
+  allocatedBudget: numeric("allocated_budget", { precision: 14, scale: 2 }).notNull(),
+  actualSpent: numeric("actual_spent", { precision: 14, scale: 2 }).default("0.00"),
+  variance: numeric("variance", { precision: 14, scale: 2 }).default("0.00"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// 27.2 GL Chart of Accounts
+export const glAccounts = pgTable("gl_accounts", {
+  id: serial("id").primaryKey(),
+  propertyId: integer("property_id").notNull().references(() => properties.id, { onDelete: "cascade" }),
+  accountNumber: varchar("account_number", { length: 50 }).notNull(),
+  accountNameEn: varchar("account_name_en", { length: 200 }).notNull(),
+  accountNameAr: varchar("account_name_ar", { length: 200 }).notNull(),
+  accountType: varchar("account_type", { length: 50 }).notNull(), // expense, liability, clearing
+  subLedgerCode: varchar("sub_ledger_code", { length: 50 }),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// 27.3 GL Journal Entries (Vouchers)
+export const glJournalEntries = pgTable("gl_journal_entries", {
+  id: serial("id").primaryKey(),
+  payrollRunId: integer("payroll_run_id").notNull().references(() => payrollRuns.id, { onDelete: "cascade" }),
+  propertyId: integer("property_id").notNull().references(() => properties.id, { onDelete: "restrict" }),
+  voucherNumber: varchar("voucher_number", { length: 100 }).notNull().unique(),
+  voucherDate: date("voucher_date").notNull(),
+  periodLabel: varchar("period_label", { length: 50 }).notNull(),
+  totalDebit: numeric("total_debit", { precision: 14, scale: 2 }).notNull(),
+  totalCredit: numeric("total_credit", { precision: 14, scale: 2 }).notNull(),
+  isBalanced: boolean("is_balanced").notNull().default(true),
+  isExportedToErp: boolean("is_exported_to_erp").default(false),
+  exportedAt: timestamp("exported_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// 27.4 GL Journal Lines
+export const glJournalLines = pgTable("gl_journal_lines", {
+  id: serial("id").primaryKey(),
+  journalEntryId: integer("journal_entry_id").notNull().references(() => glJournalEntries.id, { onDelete: "cascade" }),
+  accountId: integer("account_id").notNull().references(() => glAccounts.id, { onDelete: "restrict" }),
+  costCenterId: integer("cost_center_id").references(() => costCenters.id, { onDelete: "set null" }),
+  description: varchar("description", { length: 250 }).notNull(),
+  debitAmount: numeric("debit_amount", { precision: 14, scale: 2 }).default("0.00"),
+  creditAmount: numeric("credit_amount", { precision: 14, scale: 2 }).default("0.00"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// ═══════════════════════════════════════════════════════════════════════
+// 28. EMPLOYEE SERVICES, OCCUPATIONAL HEALTH & TRANSPORT
+// ═══════════════════════════════════════════════════════════════════════
+
+// 28.1 Occupational Health & Clinic Visits
+export const medicalRecords = pgTable("medical_records", {
+  id: serial("id").primaryKey(),
+  employeeId: integer("employee_id").notNull().references(() => employees.id, { onDelete: "cascade" }),
+  visitDate: date("visit_date").notNull(),
+  diagnosis: text("diagnosis").notNull(),
+  prescription: text("prescription"),
+  restDaysGranted: integer("rest_days_granted").default(0),
+  isWorkInjury: boolean("is_work_injury").default(false),
+  doctorName: varchar("doctor_name", { length: 150 }).notNull(),
+  foodHandlerCertExpiry: date("food_handler_cert_expiry"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// 28.2 Staff Transportation Routes
+export const staffTransportRoutes = pgTable("staff_transport_routes", {
+  id: serial("id").primaryKey(),
+  propertyId: integer("property_id").notNull().references(() => properties.id, { onDelete: "cascade" }),
+  routeNameEn: varchar("route_name_en", { length: 150 }).notNull(),
+  routeNameAr: varchar("route_name_ar", { length: 150 }).notNull(),
+  vehicleNumber: varchar("vehicle_number", { length: 50 }).notNull(),
+  driverName: varchar("driver_name", { length: 100 }),
+  driverPhone: varchar("driver_phone", { length: 50 }),
+  seatingCapacity: integer("seating_capacity").default(30),
+  departureTime: varchar("departure_time", { length: 20 }),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// 28.3 Staff Transportation Assignments
+export const staffTransportAssignments = pgTable("staff_transport_assignments", {
+  id: serial("id").primaryKey(),
+  routeId: integer("route_id").notNull().references(() => staffTransportRoutes.id, { onDelete: "cascade" }),
+  employeeId: integer("employee_id").notNull().references(() => employees.id, { onDelete: "cascade" }),
+  pickupPoint: varchar("pickup_point", { length: 150 }).notNull(),
+  monthlyDeduction: numeric("monthly_deduction", { precision: 8, scale: 2 }).default("0.00"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// 28.4 Foreign Employee Residency & Work Permits
+export const foreignEmployeeDocs = pgTable("foreign_employee_docs", {
+  id: serial("id").primaryKey(),
+  employeeId: integer("employee_id").notNull().references(() => employees.id, { onDelete: "cascade" }),
+  passportNumber: varchar("passport_number", { length: 100 }).notNull(),
+  passportExpiryDate: date("passport_expiry_date").notNull(),
+  workPermitNumber: varchar("work_permit_number", { length: 100 }),
+  workPermitExpiryDate: date("work_permit_expiry_date"),
+  residencyVisaExpiryDate: date("residency_visa_expiry_date"),
+  securityClearanceStatus: varchar("security_clearance_status", { length: 50 }).default("pending"), // pending, cleared, expired
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// ═══════════════════════════════════════════════════════════════════════
+// 29. DOCUMENT ARCHIVES, AUDIT LOGS & NOTIFICATIONS
+// ═══════════════════════════════════════════════════════════════════════
+
+// 29.1 Document Categories Taxonomy
+export const documentCategories = pgTable("document_categories", {
+  id: serial("id").primaryKey(),
+  nameEn: varchar("name_en", { length: 150 }).notNull(),
+  nameAr: varchar("name_ar", { length: 150 }).notNull(),
+  retentionYears: integer("retention_years").default(5),
+  isConfidential: boolean("is_confidential").default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// 29.2 Central Document Storage Records
+export const documentStorageRecords = pgTable("document_storage_records", {
+  id: serial("id").primaryKey(),
+  propertyId: integer("property_id").notNull().references(() => properties.id, { onDelete: "cascade" }),
+  categoryId: integer("category_id").notNull().references(() => documentCategories.id, { onDelete: "restrict" }),
+  employeeId: integer("employee_id").references(() => employees.id, { onDelete: "set null" }),
+  title: varchar("title", { length: 250 }).notNull(),
+  fileUrl: text("file_url").notNull(),
+  fileSize: integer("file_size"),
+  mimeType: varchar("mime_type", { length: 100 }),
+  expiryDate: date("expiry_date"),
+  uploadedByUserId: integer("uploaded_by_user_id").references(() => hrUsers.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// 29.3 HRMS Security & Activity Audit Logs
+export const hrmsAuditLogs = pgTable("hrms_audit_logs", {
+  id: serial("id").primaryKey(),
+  propertyId: integer("property_id").references(() => properties.id, { onDelete: "set null" }),
+  userId: integer("user_id").references(() => hrUsers.id, { onDelete: "set null" }),
+  action: varchar("action", { length: 100 }).notNull(), // LOGIN, SALARY_VIEW, PAYROLL_RUN, LEAVE_APPROVE, WPS_EXPORT
+  entityType: varchar("entity_type", { length: 100 }).notNull(), // employee, payroll_run, leave, loan
+  entityId: integer("entity_id"),
+  ipAddress: varchar("ip_address", { length: 50 }),
+  userAgent: text("user_agent"),
+  details: jsonb("details"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// 29.4 System In-App Notifications
+export const systemNotifications = pgTable("system_notifications", {
+  id: serial("id").primaryKey(),
+  propertyId: integer("property_id").references(() => properties.id, { onDelete: "cascade" }),
+  targetUserId: integer("target_user_id").notNull().references(() => hrUsers.id, { onDelete: "cascade" }),
+  titleEn: varchar("title_en", { length: 200 }).notNull(),
+  titleAr: varchar("title_ar", { length: 200 }).notNull(),
+  messageEn: text("message_en").notNull(),
+  messageAr: text("message_ar").notNull(),
+  notificationType: varchar("notification_type", { length: 50 }).default("info"), // info, warning, approval_pending, expiry
+  linkUrl: varchar("link_url", { length: 250 }),
+  isRead: boolean("is_read").default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 

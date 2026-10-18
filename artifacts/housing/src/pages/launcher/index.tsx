@@ -7,6 +7,7 @@ import {
   Building2, 
   Coins, 
   Fingerprint, 
+  Users,
   ArrowRight, 
   ArrowLeft, 
   Languages, 
@@ -64,6 +65,17 @@ export default function SystemLauncher() {
       icon: Fingerprint,
       target: "/attendance",
       iconBg: "bg-slate-100 text-[#0f2942] border border-slate-200",
+    },
+    {
+      id: "hrms",
+      title: ar ? "الموارد البشرية والكفاءات" : "HRMS & People Suite",
+      subtitle: ar ? "سجل الموظفين والتوظيف والتطوير المهني" : "Master Dossier, ATS, L&D & Welfare",
+      description: ar
+        ? "دليل الموظفين المركزي، الهيكل التنظيمي، التوظيف واستقطاب الكفاءات، والتدريب الفندقي."
+        : "Central Employee Directory, Org Chart, Talent Acquisition ATS, and Hospitality Certifications.",
+      icon: Users,
+      target: "/hrms",
+      iconBg: "bg-indigo-50 text-indigo-700 border border-indigo-200",
     },
   ];
 

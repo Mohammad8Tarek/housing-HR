@@ -56,6 +56,7 @@ const Settings = lazy(() => import("@/pages/settings"));
 const SystemLauncher = lazy(() => import("@/pages/launcher"));
 const PayrollPage = lazy(() => import("@/pages/payroll"));
 const AttendancePage = lazy(() => import("@/pages/attendance"));
+const HrmsSuitePage = lazy(() => import("@/pages/hrms"));
 const HrLoginPage = lazy(() => import("@/pages/hr-login"));
 const EditHostingRequest = lazy(
   () => import("@/pages/hosting-requests/EditHostingRequest"),
@@ -493,6 +494,11 @@ function Router() {
           <ProtectedAttendanceLayout>
             <AttendancePage />
           </ProtectedAttendanceLayout>
+        </Route>
+        <Route path="/hrms">
+          <ProtectedPayrollLayout>
+            <HrmsSuitePage />
+          </ProtectedPayrollLayout>
         </Route>
 
         {/* 3. Property-prefixed application routes (/:property/:route) */}
