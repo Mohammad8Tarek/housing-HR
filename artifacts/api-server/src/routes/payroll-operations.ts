@@ -5,6 +5,7 @@ import {
   leaveApplications, 
   penalties,
   loansAndAdvances, 
+  loanInstallments,
   employees,
 } from "@workspace/db-payroll";
 import { eq, desc } from "drizzle-orm";
@@ -13,7 +14,7 @@ import { requirePermission } from "../middlewares/permissions.js";
 const router = Router();
 
 // ─── 1. Leaves Management ───────────────────────────────────────────
-router.get("/payroll-ops/leave-types", requirePermission("payroll", "view"), async (_req: Request, res: Response) => {
+router.get(["/payroll-ops/leave-types", "/payroll-operations/leave-types"], requirePermission("payroll", "view"), async (_req: Request, res: Response) => {
   try {
     const list = await payrollDb.select().from(leaveTypes).where(eq(leaveTypes.isActive, true));
     res.json({ success: true, leaveTypes: list });
@@ -22,7 +23,7 @@ router.get("/payroll-ops/leave-types", requirePermission("payroll", "view"), asy
   }
 });
 
-router.get("/payroll-ops/leaves", requirePermission("payroll", "view"), async (req: Request, res: Response) => {
+router.get(["/payroll-ops/leaves", "/payroll-operations/leaves"], requirePermission("payroll", "view"), async (req: Request, res: Response) => {
   try {
     const propertyId = req.query.propertyId ? Number(req.query.propertyId) : undefined;
     const query = payrollDb
@@ -45,7 +46,7 @@ router.get("/payroll-ops/leaves", requirePermission("payroll", "view"), async (r
   }
 });
 
-router.post("/payroll-ops/leaves", requirePermission("payroll", "create"), async (req: Request, res: Response) => {
+router.post(["/payroll-ops/leaves", "/payroll-operations/leaves"], requirePermission("payroll", "create"), async (req: Request, res: Response) => {
   try {
     const { propertyId, employeeId, leaveTypeId, startDate, endDate, totalDays, reason } = req.body;
     const [leave] = await payrollDb.insert(leaveApplications).values({
@@ -64,8 +65,28 @@ router.post("/payroll-ops/leaves", requirePermission("payroll", "create"), async
   }
 });
 
+router.patch(["/payroll-ops/leaves/:id/status", "/payroll-operations/leaves/:id/status"], requirePermission("payroll", "edit"), async (req: Request, res: Response) => {
+  try {
+    const leaveId = Number(req.params.id);
+    const { status, approvedBy } = req.body;
+    const [updated] = await payrollDb
+      .update(leaveApplications)
+      .set({
+        status,
+        approvedBy: approvedBy || "HR Admin",
+        approvedAt: new Date(),
+      })
+      .where(eq(leaveApplications.id, leaveId))
+      .returning();
+
+    res.json({ success: true, leave: updated });
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
 // ─── 2. Penalties & Disciplinary Actions (SST Legal & Penalties) ─────
-router.get("/payroll-ops/penalties", requirePermission("payroll", "view"), async (req: Request, res: Response) => {
+router.get(["/payroll-ops/penalties", "/payroll-operations/penalties"], requirePermission("payroll", "view"), async (req: Request, res: Response) => {
   try {
     const propertyId = req.query.propertyId ? Number(req.query.propertyId) : undefined;
     const list = await payrollDb
@@ -85,7 +106,7 @@ router.get("/payroll-ops/penalties", requirePermission("payroll", "view"), async
   }
 });
 
-router.post("/payroll-ops/penalties", requirePermission("payroll", "create"), async (req: Request, res: Response) => {
+router.post(["/payroll-ops/penalties", "/payroll-operations/penalties"], requirePermission("payroll", "create"), async (req: Request, res: Response) => {
   try {
     const { propertyId, employeeId, incidentDate, penaltyType, deductionDays, deductionAmount, reason, investigationNumber } = req.body;
     const [penalty] = await payrollDb.insert(penalties).values({
@@ -106,7 +127,7 @@ router.post("/payroll-ops/penalties", requirePermission("payroll", "create"), as
 });
 
 // ─── 3. Loans & Cash Advances (SST Loans) ───────────────────────────
-router.get("/payroll-ops/loans", requirePermission("payroll", "view"), async (req: Request, res: Response) => {
+router.get(["/payroll-ops/loans", "/payroll-operations/loans"], requirePermission("payroll", "view"), async (req: Request, res: Response) => {
   try {
     const propertyId = req.query.propertyId ? Number(req.query.propertyId) : undefined;
     const list = await payrollDb
@@ -126,23 +147,58 @@ router.get("/payroll-ops/loans", requirePermission("payroll", "view"), async (re
   }
 });
 
-router.post("/payroll-ops/loans", requirePermission("payroll", "create"), async (req: Request, res: Response) => {
+router.post(["/payroll-ops/loans", "/payroll-operations/loans"], requirePermission("payroll", "create"), async (req: Request, res: Response) => {
   try {
-    const { propertyId, employeeId, requestType, totalAmount, monthlyInstallment, disbursedDate, notes } = req.body;
+    const { propertyId, employeeId, requestType, totalAmount, monthlyInstallment, disbursedDate, notes, installmentsCount } = req.body;
+    const total = Number(totalAmount);
+    const installment = Number(monthlyInstallment || (total / (Number(installmentsCount) || 1)));
+
     const [loan] = await payrollDb.insert(loansAndAdvances).values({
       propertyId: Number(propertyId),
       employeeId: Number(employeeId),
       requestType: requestType || "monthly_advance",
-      totalAmount: String(totalAmount),
-      monthlyInstallment: String(monthlyInstallment),
-      remainingAmount: String(totalAmount),
+      totalAmount: String(total.toFixed(2)),
+      monthlyInstallment: String(installment.toFixed(2)),
+      remainingAmount: String(total.toFixed(2)),
       disbursedDate: disbursedDate || new Date().toISOString().split('T')[0],
       status: "active",
       notes,
     }).returning();
+
+    // Auto-generate installments schedule
+    const count = Number(installmentsCount) || Math.max(1, Math.round(total / installment));
+    const baseDate = new Date(disbursedDate || Date.now());
+
+    for (let i = 1; i <= count; i++) {
+      const dueDate = new Date(baseDate.getFullYear(), baseDate.getMonth() + i, 25);
+      await payrollDb.insert(loanInstallments).values({
+        loanId: loan.id,
+        installmentNumber: i,
+        dueDate: dueDate.toISOString().split("T")[0],
+        amount: String(installment.toFixed(2)),
+        isPaid: false,
+      });
+    }
+
     res.status(201).json({ success: true, loan });
   } catch (err: any) {
     res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+// View installments for a specific loan
+router.get(["/payroll-ops/loans/:id/installments", "/payroll-operations/loans/:id/installments"], requirePermission("payroll", "view"), async (req: Request, res: Response) => {
+  try {
+    const loanId = Number(req.params.id);
+    const items = await payrollDb
+      .select()
+      .from(loanInstallments)
+      .where(eq(loanInstallments.loanId, loanId))
+      .orderBy(loanInstallments.installmentNumber);
+
+    res.json({ success: true, installments: items });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 

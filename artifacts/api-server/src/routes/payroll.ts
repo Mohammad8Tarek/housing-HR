@@ -13,6 +13,10 @@ import {
   attendanceRecords,
   penalties,
   loansAndAdvances,
+  serviceChargePools,
+  serviceChargeItems,
+  bankWpsConfigs,
+  bankWpsBatches,
 } from "@workspace/db-payroll";
 import { eq, and, or, ilike, desc, sql, inArray } from "drizzle-orm";
 import { requirePermission } from "../middlewares/permissions.js";
@@ -413,9 +417,44 @@ router.get("/payroll/runs/:id/slips", requirePermission("payroll", "view"), asyn
   }
 });
 
+router.get("/payroll/slips/:id", requirePermission("payroll", "view"), async (req: Request, res: Response) => {
+  try {
+    const slipId = Number(req.params.id);
+    const [row] = await payrollDb
+      .select({
+        slip: salarySlips,
+        employee: employees,
+      })
+      .from(salarySlips)
+      .innerJoin(employees, eq(salarySlips.employeeId, employees.id))
+      .where(eq(salarySlips.id, slipId))
+      .limit(1);
+
+    if (!row) {
+      return res.status(404).json({ success: false, error: "Salary slip not found" });
+    }
+
+    const items = await payrollDb
+      .select()
+      .from(salarySlipItems)
+      .where(eq(salarySlipItems.salarySlipId, slipId));
+
+    res.json({
+      success: true,
+      slip: row.slip,
+      employee: row.employee,
+      items,
+    });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 router.get("/payroll/runs/:id/wps", requirePermission("payroll", "export"), async (req: Request, res: Response) => {
   try {
     const runId = Number(req.params.id);
+    const format = ((req.query.format as string) || "standard").toLowerCase();
+
     const slips = await payrollDb
       .select({
         slip: salarySlips,
@@ -425,16 +464,387 @@ router.get("/payroll/runs/:id/wps", requirePermission("payroll", "export"), asyn
       .innerJoin(employees, eq(salarySlips.employeeId, employees.id))
       .where(eq(salarySlips.payrollRunId, runId));
 
-    // Generate Standard Bank WPS CSV/Text
-    let csv = "EmployeeCode,EmployeeName,BankAccount,IBAN,NetSalary,Currency\n";
-    for (const item of slips) {
-      const net = Number(item.slip.netSalary).toFixed(2);
-      csv += `"${item.employee.employeeCode}","${item.employee.fullName}","${item.slip.bankAccountNumber || ''}","${item.slip.iban || ''}",${net},EGP\n`;
+    let output = "";
+    let contentType = "text/csv; charset=utf-8";
+    let filename = `Sunrise_Payroll_WPS_${runId}.csv`;
+
+    if (format === "nbe") {
+      // National Bank of Egypt (NBE) WPS Pipe-delimited Format
+      output = "RECORD_TYPE|EMP_ID|NAT_ID|EMP_NAME|BANK_ACC|AMOUNT|CURRENCY|VALUE_DATE\n";
+      for (const item of slips) {
+        const net = Number(item.slip.netSalary).toFixed(2);
+        output += `PAY|${item.employee.employeeCode}|${item.employee.nationalId || '00000000000000'}|${item.employee.fullName}|${item.slip.bankAccountNumber || 'CASH'}|${net}|EGP|${new Date().toISOString().split('T')[0]}\n`;
+      }
+      filename = `Sunrise_NBE_WPS_Run_${runId}.txt`;
+    } else if (format === "cib") {
+      // Commercial International Bank (CIB) Corporate Electronic Payroll
+      output = "Seq,EmployeeCode,EmployeeName,BankCode,AccountNumber,IBAN,Amount,Currency,Narration\n";
+      let seq = 1;
+      for (const item of slips) {
+        const net = Number(item.slip.netSalary).toFixed(2);
+        output += `${seq++},${item.employee.employeeCode},"${item.employee.fullName}",CIBEG,"${item.slip.bankAccountNumber || ''}","${item.slip.iban || ''}",${net},EGP,"Salary Payroll Run #${runId}"\n`;
+      }
+      filename = `Sunrise_CIB_Payroll_Run_${runId}.csv`;
+    } else if (format === "misr") {
+      // Banque Misr Payroll Layout
+      output = "TransactionType,EmployeeNumber,BeneficiaryName,AccountNumber,Amount,TransactionDetails\n";
+      for (const item of slips) {
+        const net = Number(item.slip.netSalary).toFixed(2);
+        output += `SALARY,${item.employee.employeeCode},"${item.employee.fullName}","${item.slip.bankAccountNumber || ''}",${net},"Monthly Salaries Run #${runId}"\n`;
+      }
+      filename = `Sunrise_Banque_Misr_Run_${runId}.csv`;
+    } else {
+      // Comprehensive Egyptian Enterprise Payroll Sheet
+      output = "EmployeeCode,EmployeeName,Department,BaseSalary,ServiceCharge12,Allowances,GrossSalary,SocialInsurance11,IncomeTax,Loans,Penalties,Absence,TotalDeductions,NetSalary,BankAccount,IBAN\n";
+      for (const item of slips) {
+        const gross = Number(item.slip.totalEarnings).toFixed(2);
+        const net = Number(item.slip.netSalary).toFixed(2);
+        const ded = Number(item.slip.totalDeductions).toFixed(2);
+        const ins = Number(item.slip.socialInsuranceEmployee).toFixed(2);
+        const tax = Number(item.slip.incomeTax).toFixed(2);
+        const loan = Number(item.slip.loanDeduction).toFixed(2);
+        const pen = Number(item.slip.penaltyDeduction).toFixed(2);
+        const abs = Number(item.slip.absenceDeduction).toFixed(2);
+
+        output += `"${item.employee.employeeCode}","${item.employee.fullName}","Hospitality",${item.slip.basicSalary},0.00,0.00,${gross},${ins},${tax},${loan},${pen},${abs},${ded},${net},"${item.slip.bankAccountNumber || ''}","${item.slip.iban || ''}"\n`;
+      }
+      filename = `Sunrise_Comprehensive_Payroll_Run_${runId}.csv`;
     }
 
-    res.setHeader("Content-Type", "text/csv; charset=utf-8");
-    res.setHeader("Content-Disposition", `attachment; filename="Sunrise_Payroll_WPS_${runId}.csv"`);
-    res.send(csv);
+    res.setHeader("Content-Type", contentType);
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    res.send(output);
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ─── 6. Service Charge Pool (وعاء عمولة الخدمة الفندقية 12%) ─────────
+router.get("/payroll/service-charge", requirePermission("payroll", "view"), async (req: Request, res: Response) => {
+  try {
+    const propertyId = req.query.propertyId ? Number(req.query.propertyId) : undefined;
+    const query = propertyId 
+      ? payrollDb.select().from(serviceChargePools).where(eq(serviceChargePools.propertyId, propertyId)).orderBy(desc(serviceChargePools.id))
+      : payrollDb.select().from(serviceChargePools).orderBy(desc(serviceChargePools.id));
+    const pools = await query;
+    res.json({ success: true, pools });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+router.post("/payroll/service-charge/calculate", requirePermission("payroll", "create"), async (req: Request, res: Response) => {
+  try {
+    const { propertyId, payrollPeriodId, totalServiceAmount, hotelSharePercent, notes } = req.body;
+    if (!propertyId || !payrollPeriodId || !totalServiceAmount) {
+      return res.status(400).json({ success: false, error: "propertyId, payrollPeriodId, and totalServiceAmount required" });
+    }
+
+    const totalAmt = Number(totalServiceAmount);
+    const hotelPct = Number(hotelSharePercent || 15.00); // 15% hotel breakage/admin share, 85% staff share per Egyptian Hotel custom
+    const staffShare = totalAmt * ((100 - hotelPct) / 100);
+
+    // Fetch active employees
+    const staff = await payrollDb
+      .select()
+      .from(employees)
+      .where(and(
+        eq(employees.propertyId, Number(propertyId)),
+        eq(employees.status, "active"),
+        eq(employees.isActive, true)
+      ));
+
+    if (staff.length === 0) {
+      return res.status(400).json({ success: false, error: "No active employees found to distribute service charge" });
+    }
+
+    // Default 1 point per employee, total points = staff.length
+    const totalPoints = staff.length;
+    const pointValue = staffShare / totalPoints;
+
+    const [pool] = await payrollDb.insert(serviceChargePools).values({
+      propertyId: Number(propertyId),
+      payrollPeriodId: Number(payrollPeriodId),
+      totalServiceAmount: String(totalAmt.toFixed(2)),
+      hotelSharePercent: String(hotelPct.toFixed(2)),
+      staffDistributableAmount: String(staffShare.toFixed(2)),
+      totalPoints: String(totalPoints.toFixed(2)),
+      pointValue: String(pointValue.toFixed(4)),
+      status: "approved",
+      notes: notes || "Distributed per Egyptian 12% Hospitality standard",
+    }).returning();
+
+    // Insert item for each employee
+    for (const emp of staff) {
+      await payrollDb.insert(serviceChargeItems).values({
+        poolId: pool.id,
+        employeeId: emp.id,
+        designationPoints: "1.00",
+        workedDaysRatio: "1.0000",
+        finalPoints: "1.0000",
+        amount: String(pointValue.toFixed(2)),
+      });
+    }
+
+    res.status(201).json({
+      success: true,
+      pool: {
+        id: pool.id,
+        totalServiceAmount: totalAmt,
+        staffDistributableAmount: staffShare,
+        totalEmployees: staff.length,
+        pointValue: pointValue.toFixed(2),
+      }
+    });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+router.get("/payroll/service-charge/:poolId/items", requirePermission("payroll", "view"), async (req: Request, res: Response) => {
+  try {
+    const poolId = Number(req.params.poolId);
+    const items = await payrollDb
+      .select({
+        item: serviceChargeItems,
+        employee: employees,
+      })
+      .from(serviceChargeItems)
+      .innerJoin(employees, eq(serviceChargeItems.employeeId, employees.id))
+      .where(eq(serviceChargeItems.poolId, poolId));
+
+    res.json({ success: true, items });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ─── 8. Egyptian Labor Law End-of-Service Indemnity Calculator ────────
+router.post("/payroll/end-of-service/calculate", requirePermission("payroll", "view"), async (req: Request, res: Response) => {
+  try {
+    const { employeeId, terminationDate, leaveBalanceDays = 0, terminationReason = "retirement" } = req.body;
+    
+    const [emp] = await payrollDb
+      .select({
+        employee: employees,
+        department: departments,
+        designation: designations,
+      })
+      .from(employees)
+      .leftJoin(departments, eq(employees.departmentId, departments.id))
+      .leftJoin(designations, eq(employees.designationId, designations.id))
+      .where(eq(employees.id, Number(employeeId)))
+      .limit(1);
+
+    if (!emp) {
+      return res.status(404).json({ success: false, error: "Employee not found" });
+    }
+
+    const joinDate = new Date(emp.employee.joiningDate);
+    const endDate = terminationDate ? new Date(terminationDate) : new Date();
+    
+    // Calculate total days and exact years of service
+    const diffTime = Math.max(0, endDate.getTime() - joinDate.getTime());
+    const totalDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    const totalYears = totalDays / 365.25;
+    const roundedYears = Math.floor(totalYears);
+    const remainingMonths = Math.floor((totalYears - roundedYears) * 12);
+
+    const baseSalary = Number(emp.employee.baseSalary) || 0;
+    const avgServiceCharge = 1850; // Average 12% Tronche for hospitality
+    const comprehensiveMonthlyWage = baseSalary + avgServiceCharge;
+    const dayRate = comprehensiveMonthlyWage / 30;
+
+    // Egyptian Labor Law Article 126:
+    // Half month wage for each of first 5 years, full month wage for each subsequent year
+    let gratuityAmount = 0;
+    if (totalYears <= 5) {
+      gratuityAmount = totalYears * (comprehensiveMonthlyWage * 0.5);
+    } else {
+      gratuityAmount = (5 * comprehensiveMonthlyWage * 0.5) + ((totalYears - 5) * comprehensiveMonthlyWage);
+    }
+
+    // Unused leave liquidation
+    const leaveCompensation = Number(leaveBalanceDays) * dayRate;
+
+    // Remaining loans check
+    const activeLoans = await payrollDb
+      .select()
+      .from(loansAndAdvances)
+      .where(and(
+        eq(loansAndAdvances.employeeId, emp.employee.id),
+        eq(loansAndAdvances.status, "active")
+      ));
+    const loanBalance = activeLoans.reduce((acc, l) => acc + Number(l.remainingAmount || 0), 0);
+
+    const grossSettlement = gratuityAmount + leaveCompensation;
+    const netSettlement = Math.max(0, grossSettlement - loanBalance);
+
+    res.json({
+      success: true,
+      settlement: {
+        employee: {
+          id: emp.employee.id,
+          name: emp.employee.fullName,
+          nameAr: emp.employee.fullNameAr,
+          code: emp.employee.employeeCode,
+          nationalId: emp.employee.nationalId,
+          department: emp.department?.nameAr || emp.department?.nameEn || "Hospitality",
+          designation: emp.designation?.titleAr || emp.designation?.titleEn || "Staff",
+          joiningDate: emp.employee.joiningDate,
+          terminationDate: endDate.toISOString().split("T")[0],
+          yearsOfService: roundedYears,
+          monthsOfService: remainingMonths,
+          totalYearsFormatted: `${roundedYears} سنة و ${remainingMonths} شهر`,
+        },
+        financials: {
+          baseSalary: baseSalary.toFixed(2),
+          avgServiceCharge: avgServiceCharge.toFixed(2),
+          comprehensiveMonthlyWage: comprehensiveMonthlyWage.toFixed(2),
+          gratuityAmount: gratuityAmount.toFixed(2),
+          leaveBalanceDays: Number(leaveBalanceDays),
+          leaveCompensation: leaveCompensation.toFixed(2),
+          loanDeductions: loanBalance.toFixed(2),
+          grossSettlement: grossSettlement.toFixed(2),
+          netSettlement: netSettlement.toFixed(2),
+          legalBasis: "قانون العمل المصري رقم 12 لسنة 2003 المادة 126 (نصف شهر عن أول 5 سنوات وشهر عن كل سنة تالية)",
+        }
+      }
+    });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ─── 9. Egyptian Tax Law 30/2023 & Insurance 148/2019 Simulator ───────
+router.post("/payroll/tax-simulator", async (req: Request, res: Response) => {
+  try {
+    const grossSalary = Number(req.body.grossSalary) || 10000;
+    const insuranceWage = Math.min(12600, Math.max(2000, Number(req.body.insuranceSalary) || grossSalary));
+
+    // 1. Social Insurance Law 148/2019
+    const empInsurance = Math.round(insuranceWage * 0.11 * 100) / 100;
+    const compInsurance = Math.round(insuranceWage * 0.1875 * 100) / 100;
+
+    // 2. Personal Exemption (24,000 EGP annually = 2,000 monthly)
+    const annualPersonalExemption = 24000;
+    const monthlyPersonalExemption = 2000;
+
+    // 3. Taxable Net Base
+    const monthlyTaxableBase = Math.max(0, grossSalary - empInsurance - monthlyPersonalExemption);
+    const annualTaxableBase = monthlyTaxableBase * 12;
+
+    // 4. Tax Brackets calculation (Law 30 of 2023)
+    let annualTax = 0;
+    const brackets = [
+      { limit: 21000, rate: 0.00, label: "الشريحة 1 (0 إلى 21,000 ج.م معفاة 0%)" },
+      { limit: 9000, rate: 0.025, label: "الشريحة 2 (21,001 إلى 30,000 ج.م بنسبة 2.5%)" },
+      { limit: 15000, rate: 0.10, label: "الشريحة 3 (30,001 إلى 45,000 ج.م بنسبة 10%)" },
+      { limit: 15000, rate: 0.15, label: "الشريحة 4 (45,001 إلى 60,000 ج.م بنسبة 15%)" },
+      { limit: 140000, rate: 0.20, label: "الشريحة 5 (60,001 إلى 200,000 ج.م بنسبة 20%)" },
+      { limit: 200000, rate: 0.225, label: "الشريحة 6 (200,001 إلى 400,000 ج.م بنسبة 22.5%)" },
+      { limit: Infinity, rate: 0.25, label: "الشريحة 7 (أكثر من 400,000 ج.م بنسبة 25%)" },
+    ];
+
+    let rem = annualTaxableBase;
+    const bracketDetails = [];
+
+    for (const b of brackets) {
+      if (rem <= 0) break;
+      const taxableInBracket = Math.min(rem, b.limit);
+      const taxForBracket = taxableInBracket * b.rate;
+      annualTax += taxForBracket;
+      bracketDetails.push({
+        label: b.label,
+        taxableAmount: taxableInBracket.toFixed(2),
+        rate: `${b.rate * 100}%`,
+        taxAmount: taxForBracket.toFixed(2),
+      });
+      rem -= taxableInBracket;
+    }
+
+    const monthlyIncomeTax = Math.round((annualTax / 12) * 100) / 100;
+    const martyrsFund = Math.round(grossSalary * 0.0005 * 100) / 100; // 0.05%
+    const totalDeductions = empInsurance + monthlyIncomeTax + martyrsFund;
+    const netSalary = Math.round((grossSalary - totalDeductions) * 100) / 100;
+
+    res.json({
+      success: true,
+      simulation: {
+        grossSalary: grossSalary.toFixed(2),
+        insuranceWage: insuranceWage.toFixed(2),
+        empInsurance: empInsurance.toFixed(2),
+        compInsurance: compInsurance.toFixed(2),
+        monthlyPersonalExemption: monthlyPersonalExemption.toFixed(2),
+        annualTaxableBase: annualTaxableBase.toFixed(2),
+        annualIncomeTax: annualTax.toFixed(2),
+        monthlyIncomeTax: monthlyIncomeTax.toFixed(2),
+        martyrsFund: martyrsFund.toFixed(2),
+        totalDeductions: totalDeductions.toFixed(2),
+        netSalary: netSalary.toFixed(2),
+        totalEmployerBurden: (grossSalary + compInsurance).toFixed(2),
+        bracketDetails,
+      }
+    });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ─── 10. Departmental Cost Center Analytics ───────────────────────────
+router.get("/payroll/analytics/cost-centers", requirePermission("payroll", "view"), async (req: Request, res: Response) => {
+  try {
+    const propertyId = req.query.propertyId ? Number(req.query.propertyId) : undefined;
+    
+    // Group staff and calculate departmental costs
+    const staff = await payrollDb
+      .select({
+        employee: employees,
+        department: departments,
+      })
+      .from(employees)
+      .leftJoin(departments, eq(employees.departmentId, departments.id))
+      .where(and(
+        propertyId ? eq(employees.propertyId, propertyId) : undefined,
+        eq(employees.status, "active"),
+        eq(employees.isActive, true)
+      ));
+
+    const deptsMap = new Map<string, any>();
+
+    for (const item of staff) {
+      const deptName = item.department?.nameAr || item.department?.nameEn || "إدارة عامة فندقية";
+      const baseSalary = Number(item.employee.baseSalary) || 0;
+      const insSalary = Number(item.employee.insuranceSalary) || baseSalary;
+      const employerIns = Math.round(insSalary * 0.1875 * 100) / 100;
+      const serviceChargeEst = 1850;
+
+      if (!deptsMap.has(deptName)) {
+        deptsMap.set(deptName, {
+          departmentName: deptName,
+          staffCount: 0,
+          totalBaseSalary: 0,
+          totalServiceCharge: 0,
+          totalEmployerInsurance: 0,
+          totalDepartmentBurden: 0,
+        });
+      }
+
+      const d = deptsMap.get(deptName);
+      d.staffCount += 1;
+      d.totalBaseSalary += baseSalary;
+      d.totalServiceCharge += serviceChargeEst;
+      d.totalEmployerInsurance += employerIns;
+      d.totalDepartmentBurden += (baseSalary + serviceChargeEst + employerIns);
+    }
+
+    const costCenters = Array.from(deptsMap.values()).map(d => ({
+      ...d,
+      totalBaseSalaryFormatted: `${d.totalBaseSalary.toLocaleString()} EGP`,
+      totalDepartmentBurdenFormatted: `${d.totalDepartmentBurden.toLocaleString()} EGP`,
+    }));
+
+    res.json({ success: true, costCenters });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }

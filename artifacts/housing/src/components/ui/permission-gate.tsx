@@ -1,5 +1,6 @@
-﻿import type { ReactNode } from "react";
+import type { ReactNode } from "react";
 import { usePermission } from "@/hooks/use-permission";
+import { useHrAuth } from "@/context/HrAuthContext";
 import type { Module, Action } from "@/lib/permissions";
 
 interface PermissionGateProps {
@@ -11,20 +12,6 @@ interface PermissionGateProps {
   children: ReactNode;
 }
 
-/**
- * Renders `children` only when the current user has `module.action` permission
- * or any permission listed in `anyPermission`.
- * Use `fallback` to show a disabled state or nothing.
- *
- * @example
- * <PermissionGate module="users" action="create">
- *   <Button>Add User</Button>
- * </PermissionGate>
- * 
- * <PermissionGate anyPermission={[["maintenance", "delete"], ["housekeeping", "delete"]]}>
- *   <Button>Delete</Button>
- * </PermissionGate>
- */
 export function PermissionGate({
   module,
   action,
@@ -32,13 +19,23 @@ export function PermissionGate({
   fallback = null,
   children,
 }: PermissionGateProps) {
-  const { can } = usePermission();
+  const { can: housingCan } = usePermission();
+  const { can: hrCan } = useHrAuth();
+
+  const check = (m?: Module, a?: Action) => {
+    if (!m || !a) return true;
+    if (m === "payroll" || m === "attendance") {
+      return hrCan(m, a) || housingCan(m, a);
+    }
+    return housingCan(m, a);
+  };
+
   if (anyPermission && anyPermission.length > 0) {
-    if (!anyPermission.some(([m, a]) => can(m, a))) return <>{fallback}</>;
+    if (!anyPermission.some(([m, a]) => check(m, a))) return <>{fallback}</>;
     return <>{children}</>;
   }
   if (module && action) {
-    if (!can(module, action)) return <>{fallback}</>;
+    if (!check(module, action)) return <>{fallback}</>;
   }
   return <>{children}</>;
 }

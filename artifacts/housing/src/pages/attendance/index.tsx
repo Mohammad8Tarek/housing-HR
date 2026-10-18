@@ -86,6 +86,22 @@ export default function AttendancePage() {
     verifyType: "fingerprint",
   });
 
+  // Roster Matrix State
+  const [rosterViewMode, setRosterViewMode] = useState<"matrix" | "shifts">("matrix");
+  const [rosterYear, setRosterYear] = useState<number>(2026);
+  const [rosterMonth, setRosterMonth] = useState<number>(10);
+
+  // Leave Modal State
+  const [isNewLeaveOpen, setIsNewLeaveOpen] = useState(false);
+  const [leaveForm, setLeaveForm] = useState({
+    employeeId: "",
+    leaveTypeId: "1",
+    startDate: new Date().toISOString().split("T")[0],
+    endDate: new Date().toISOString().split("T")[0],
+    totalDays: 1,
+    reason: "",
+  });
+
   // 1. Fetch Properties
   const { data: propData } = useQuery({
     queryKey: ["attendance-properties"],
@@ -145,6 +161,76 @@ export default function AttendancePage() {
       if (!res.ok) throw new Error("Failed to load leaves");
       return res.json();
     },
+  });
+
+  // 7. Fetch Monthly Roster Matrix
+  const { data: rosterMatrixData, isLoading: isLoadingRosterMatrix } = useQuery({
+    queryKey: ["attendance-roster-matrix", selectedPropertyId, rosterYear, rosterMonth],
+    queryFn: async () => {
+      const res = await fetch(`/api/attendance/roster/matrix?propertyId=${selectedPropertyId}&year=${rosterYear}&month=${rosterMonth}`);
+      if (!res.ok) throw new Error("Failed to load roster matrix");
+      return res.json();
+    },
+  });
+
+  // 8. Fetch Leave Types
+  const { data: leaveTypesData } = useQuery({
+    queryKey: ["attendance-leave-types"],
+    queryFn: async () => {
+      const res = await fetch("/api/payroll-operations/leave-types");
+      if (!res.ok) return { leaveTypes: [] };
+      return res.json();
+    },
+  });
+
+  // 9. Fetch Staff List
+  const { data: staffData } = useQuery({
+    queryKey: ["attendance-staff-list", selectedPropertyId],
+    queryFn: async () => {
+      const res = await fetch(`/api/payroll/employees?propertyId=${selectedPropertyId}&limit=100`);
+      if (!res.ok) return { employees: [] };
+      return res.json();
+    },
+  });
+
+  const staffList = staffData?.employees || [];
+  const leaveTypesList = leaveTypesData?.leaveTypes || [];
+
+  // Submit Leave Application Mutation
+  const createLeaveMutation = useMutation({
+    mutationFn: async (payload: any) => {
+      const res = await fetch("/api/payroll-operations/leaves", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error("Failed to submit leave application");
+      return res.json();
+    },
+    onSuccess: () => {
+      toast.success(ar ? "تم تقديم طلب الإجازة واعتماده بنجاح!" : "Leave application submitted successfully!");
+      setIsNewLeaveOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["attendance-leaves"] });
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  // Update Leave Status Mutation
+  const updateLeaveStatusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: number; status: string }) => {
+      const res = await fetch(`/api/payroll-operations/leaves/${id}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      if (!res.ok) throw new Error("Failed to update status");
+      return res.json();
+    },
+    onSuccess: () => {
+      toast.success(ar ? "تم تحديث حالة طلب الإجازة بنجاح!" : "Leave status updated successfully!");
+      queryClient.invalidateQueries({ queryKey: ["attendance-leaves"] });
+    },
+    onError: (err: any) => toast.error(err.message),
   });
 
   // Mutations
@@ -210,6 +296,17 @@ export default function AttendancePage() {
     onError: (err: any) => toast.error(err.message),
   });
 
+  // Live Metrics Query
+  const { data: metricsData } = useQuery({
+    queryKey: ["attendance-metrics", selectedPropertyId],
+    queryFn: async () => {
+      const res = await fetch(`/api/attendance/metrics?propertyId=${selectedPropertyId}`);
+      if (!res.ok) throw new Error("Failed to load metrics");
+      return res.json();
+    },
+    refetchInterval: 10000,
+  });
+
   const sendTestPunchMutation = useMutation({
     mutationFn: async (payload: any) => {
       const res = await fetch("/api/attendance/checkin", {
@@ -218,17 +315,54 @@ export default function AttendancePage() {
         body: JSON.stringify({
           ...payload,
           propertyId: selectedPropertyId,
-          timestamp: new Date().toISOString(),
-          ipAddress: "192.168.1.100",
+          biometricId: payload.employeeCode,
+          punchTime: new Date().toISOString(),
+          logType: payload.punchType || "IN",
+          syncSource: "web_simulator",
         }),
       });
       if (!res.ok) throw new Error("Failed to record test punch");
       return res.json();
     },
     onSuccess: () => {
-      toast.success(ar ? "تم استقبال بصمة الحضور بنجاح!" : "Test punch captured successfully!");
+      toast.success(ar ? "تم تسجيل حركة البصمة في السيرفر الحي بنجاح!" : "Test punch captured live successfully!");
       setIsTestPunchOpen(false);
       queryClient.invalidateQueries({ queryKey: ["attendance-punches"] });
+      queryClient.invalidateQueries({ queryKey: ["attendance-metrics"] });
+      queryClient.invalidateQueries({ queryKey: ["attendance-daily"] });
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  const pingDeviceMutation = useMutation({
+    mutationFn: async (deviceId: number) => {
+      const res = await fetch(`/api/attendance/devices/${deviceId}/ping`, { method: "POST" });
+      if (!res.ok) throw new Error("Device ping failed");
+      return res.json();
+    },
+    onSuccess: (data) => {
+      toast.success(ar ? `الجهاز متصل ويعمل بكفاءة! زمن الاستجابة: ${data.device.latency}` : `Device online! Latency: ${data.device.latency}`);
+      queryClient.invalidateQueries({ queryKey: ["attendance-devices"] });
+      queryClient.invalidateQueries({ queryKey: ["attendance-metrics"] });
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  const syncToPayrollMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch("/api/attendance/sync-to-payroll", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ propertyId: selectedPropertyId, payrollPeriodId: 1 }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to sync attendance to payroll");
+      }
+      return res.json();
+    },
+    onSuccess: (data) => {
+      toast.success(ar ? `تم ترحيل بيانات حضور ${data.syncedCount} موظف إلى مسير الرواتب بنجاح!` : `Synced ${data.syncedCount} employee attendance records to payroll!`);
     },
     onError: (err: any) => toast.error(err.message),
   });
@@ -251,11 +385,11 @@ export default function AttendancePage() {
     );
   });
 
-  // Calculate summary counts
-  const presentCount = dailyRecords.filter((r: any) => r.status === "present" || r.status === "late").length;
-  const lateCount = dailyRecords.filter((r: any) => r.status === "late" || (r.lateMinutes && r.lateMinutes > 0)).length;
-  const absentCount = dailyRecords.filter((r: any) => r.status === "absent").length;
-  const onlineDevicesCount = devices.filter((d: any) => d.status === "online").length;
+  // Calculate live summary counts
+  const presentCount = metricsData?.metrics?.presentCount ?? dailyRecords.filter((r: any) => r.status === "present" || r.status === "late").length;
+  const lateCount = metricsData?.metrics?.lateCount ?? dailyRecords.filter((r: any) => r.status === "late" || (r.lateMinutes && r.lateMinutes > 0)).length;
+  const absentCount = metricsData?.metrics?.absentCount ?? dailyRecords.filter((r: any) => r.status === "absent").length;
+  const onlineDevicesCount = metricsData?.metrics?.activeDevices ?? devices.length;
 
   return (
     <div className="space-y-6 p-6">
@@ -300,10 +434,21 @@ export default function AttendancePage() {
             <Button
               onClick={() => processPunchesMutation.mutate()}
               disabled={processPunchesMutation.isPending}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 shadow-sm"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 shadow-sm font-bold text-xs rounded-xl"
             >
               <Play className={`w-4 h-4 ${processPunchesMutation.isPending ? "animate-spin" : ""}`} />
               {ar ? "معالجة حركات اليوم" : "Evaluate Today Punches"}
+            </Button>
+          </PermissionGate>
+
+          <PermissionGate module="attendance" action="create">
+            <Button
+              onClick={() => syncToPayrollMutation.mutate()}
+              disabled={syncToPayrollMutation.isPending}
+              className="bg-[#0f2942] hover:bg-[#193a5c] text-white gap-2 shadow-sm font-bold text-xs rounded-xl"
+            >
+              <ArrowUpRight className={`w-4 h-4 text-[#c89332] ${syncToPayrollMutation.isPending ? "animate-spin" : ""}`} />
+              {ar ? "ترحيل لرواتب الشهر" : "Sync to Payroll"}
             </Button>
           </PermissionGate>
         </div>
@@ -439,6 +584,14 @@ export default function AttendancePage() {
                 <Button size="sm" onClick={() => setIsAddShiftOpen(true)} className="gap-1.5">
                   <Plus className="w-4 h-4" />
                   {ar ? "إضافة وردية" : "Add Shift"}
+                </Button>
+              </PermissionGate>
+            )}
+            {activeTab === "leaves" && (
+              <PermissionGate module="attendance" action="create">
+                <Button size="sm" onClick={() => setIsNewLeaveOpen(true)} className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white">
+                  <Plus className="w-4 h-4" />
+                  {ar ? "طلب إجازة جديد" : "New Leave Request"}
                 </Button>
               </PermissionGate>
             )}
@@ -627,34 +780,49 @@ export default function AttendancePage() {
                       </td>
                     </tr>
                   ) : (
-                    punches.map((p: any) => (
-                      <tr key={p.id} className="hover:bg-muted/40 transition-colors">
-                        <td className="py-3 px-4 font-semibold text-foreground">
-                          {formatDateTime(p.timestamp)}
-                        </td>
-                        <td className="py-3 px-4 text-primary font-bold">{p.employeeCode}</td>
-                        <td className="py-3 px-4">
-                          {p.punchType === "IN" ? (
-                            <Badge className="bg-emerald-600 gap-1 text-[11px]">
-                              <ArrowDownLeft className="w-3 h-3" />
-                              {ar ? "دخول IN" : "Check In"}
+                    punches.map((raw: any) => {
+                      const p = raw.log || raw;
+                      const emp = raw.employee;
+                      const dev = raw.device;
+                      const punchTime = p.punchTime || p.timestamp || p.createdAt;
+                      const empCode = emp?.employeeCode || p.employeeCode || p.biometricId;
+                      const empName = emp?.fullName;
+                      const dir = (p.logType || p.punchType || "IN").toUpperCase();
+                      const devName = dev?.deviceName || dev?.name || p.deviceName || "Gate Reader";
+                      const ip = dev?.ipAddress || p.ipAddress || "192.168.1.201";
+
+                      return (
+                        <tr key={p.id || Math.random()} className="hover:bg-muted/40 transition-colors">
+                          <td className="py-3 px-4 font-semibold text-foreground">
+                            {punchTime ? formatDateTime(punchTime) : "—"}
+                          </td>
+                          <td className="py-3 px-4 font-bold">
+                            <span className="text-primary">{empCode}</span>
+                            {empName && <span className="block text-[10px] text-muted-foreground font-sans font-normal">{empName}</span>}
+                          </td>
+                          <td className="py-3 px-4">
+                            {dir === "IN" ? (
+                              <Badge className="bg-emerald-600 gap-1 text-[11px]">
+                                <ArrowDownLeft className="w-3 h-3" />
+                                {ar ? "دخول IN" : "Check In"}
+                              </Badge>
+                            ) : (
+                              <Badge className="bg-blue-600 gap-1 text-[11px]">
+                                <ArrowUpRight className="w-3 h-3" />
+                                {ar ? "انصراف OUT" : "Check Out"}
+                              </Badge>
+                            )}
+                          </td>
+                          <td className="py-3 px-4 text-muted-foreground font-sans">{devName}</td>
+                          <td className="py-3 px-4">
+                            <Badge variant="outline" className="text-[11px] uppercase">
+                              {p.verifyType || "FINGERPRINT"}
                             </Badge>
-                          ) : (
-                            <Badge className="bg-blue-600 gap-1 text-[11px]">
-                              <ArrowUpRight className="w-3 h-3" />
-                              {ar ? "انصراف OUT" : "Check Out"}
-                            </Badge>
-                          )}
-                        </td>
-                        <td className="py-3 px-4 text-muted-foreground font-sans">{p.deviceName || "ZKTeco Gate 1"}</td>
-                        <td className="py-3 px-4">
-                          <Badge variant="outline" className="text-[11px] uppercase">
-                            {p.verifyType || "fingerprint"}
-                          </Badge>
-                        </td>
-                        <td className="py-3 px-4 text-muted-foreground">{p.ipAddress || "192.168.1.100"}</td>
-                      </tr>
-                    ))
+                          </td>
+                          <td className="py-3 px-4 text-muted-foreground">{ip}</td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>
@@ -710,7 +878,8 @@ export default function AttendancePage() {
                       size="sm"
                       variant="outline"
                       className="w-full text-xs"
-                      onClick={() => toast.success(ar ? "تم فحص الاتصال بالجهاز بنجاح (Ping 12ms)" : "Ping successful (12ms)")}
+                      disabled={pingDeviceMutation.isPending}
+                      onClick={() => pingDeviceMutation.mutate(dev.id)}
                     >
                       {ar ? "فحص الاتصال Ping" : "Test Ping"}
                     </Button>
@@ -730,40 +899,188 @@ export default function AttendancePage() {
 
         {/* Tab 4: Shifts & Rosters */}
         <TabsContent value="shifts" className="mt-4 space-y-4">
-          <Card className="border shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-right rtl:text-right ltr:text-left">
-                <thead className="bg-muted/60 text-muted-foreground text-xs uppercase border-b">
-                  <tr>
-                    <th className="py-3 px-4">{ar ? "كود الوردية" : "Shift Code"}</th>
-                    <th className="py-3 px-4">{ar ? "اسم الوردية" : "Shift Name"}</th>
-                    <th className="py-3 px-4">{ar ? "بداية الدوام" : "Start Time"}</th>
-                    <th className="py-3 px-4">{ar ? "نهاية الدوام" : "End Time"}</th>
-                    <th className="py-3 px-4 text-center">{ar ? "فترة السماح للتأخير" : "Grace Period"}</th>
-                    <th className="py-3 px-4 text-center">{ar ? "حد احتساب نصف يوم" : "Half-Day Threshold"}</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {shifts.map((s: any) => (
-                    <tr key={s.id} className="hover:bg-muted/40 transition-colors">
-                      <td className="py-3 px-4 font-mono font-bold text-xs text-primary">{s.shiftCode}</td>
-                      <td className="py-3 px-4 font-medium">{s.name}</td>
-                      <td className="py-3 px-4 font-mono font-semibold text-emerald-600">{s.startTime}</td>
-                      <td className="py-3 px-4 font-mono font-semibold text-blue-600">{s.endTime}</td>
-                      <td className="py-3 px-4 text-center">
-                        <Badge variant="outline" className="font-mono text-xs">
-                          {s.lateGraceMinutes} {ar ? "دقيقة" : "mins"}
-                        </Badge>
-                      </td>
-                      <td className="py-3 px-4 text-center font-mono text-xs text-muted-foreground">
-                        {s.halfDayThresholdHours} {ar ? "ساعات" : "hours"}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-muted/30 p-3 rounded-xl border">
+            <div className="flex items-center gap-1.5 bg-muted/80 p-1 rounded-xl">
+              <button
+                type="button"
+                onClick={() => setRosterViewMode("matrix")}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                  rosterViewMode === "matrix" ? "bg-white text-primary shadow-xs font-bold" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {ar ? "جدول نوباتجيات الشهر التفاعلي (Roster Matrix)" : "Duty Roster Matrix"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setRosterViewMode("shifts")}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                  rosterViewMode === "shifts" ? "bg-white text-primary shadow-xs font-bold" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {ar ? "تعريف الورديات ومواعيد العمل" : "Shift Definitions"}
+              </button>
             </div>
-          </Card>
+
+            {rosterViewMode === "matrix" && (
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-muted-foreground font-medium">{ar ? "الشهر:" : "Month:"}</span>
+                  <select
+                    value={rosterMonth}
+                    onChange={(e) => setRosterMonth(Number(e.target.value))}
+                    className="text-xs px-2.5 py-1 rounded-md border bg-background font-semibold cursor-pointer"
+                  >
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((m) => (
+                      <option key={m} value={m}>
+                        {m} / {rosterYear}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 text-[11px] bg-background/80 px-2.5 py-1 rounded-lg border">
+                  <div className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
+                    <span className="font-semibold">{ar ? "ص صباحي" : "M Morning"}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-blue-600"></span>
+                    <span className="font-semibold">{ar ? "م مسائي" : "E Evening"}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-indigo-600"></span>
+                    <span className="font-semibold">{ar ? "ل ليلي" : "N Night"}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-amber-600"></span>
+                    <span className="font-semibold">{ar ? "س سيرفيس" : "S Split"}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-slate-400"></span>
+                    <span className="font-semibold">{ar ? "OFF راحة" : "OFF"}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {rosterViewMode === "matrix" ? (
+            <Card className="border shadow-sm overflow-hidden">
+              <div className="overflow-x-auto max-h-[550px] relative">
+                <table className="w-full text-xs text-right rtl:text-right ltr:text-left border-collapse">
+                  <thead className="bg-muted/80 text-muted-foreground uppercase text-[11px] sticky top-0 z-20 border-b">
+                    <tr>
+                      <th className="py-2.5 px-3 sticky right-0 bg-muted/95 z-30 min-w-[170px] shadow-sm">
+                        {ar ? "الموظف والوظيفة" : "Employee"}
+                      </th>
+                      <th className="py-2.5 px-3 min-w-[110px]">{ar ? "القسم" : "Dept"}</th>
+                      {(rosterMatrixData?.days || []).map((day: any) => (
+                        <th
+                          key={day.dayNumber}
+                          className={`py-2 px-1 text-center min-w-[34px] font-mono ${
+                            day.isWeekend ? "bg-amber-500/10 text-amber-700 font-bold" : ""
+                          }`}
+                        >
+                          <div>{day.dayNumber}</div>
+                          <div className="text-[9px] font-normal opacity-80">{ar ? day.dayNameAr : day.dayName}</div>
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {isLoadingRosterMatrix ? (
+                      <tr>
+                        <td colSpan={35} className="py-12 text-center text-muted-foreground">
+                          <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-primary" />
+                          {ar ? "جاري تحميل جدول نوباتجيات الشهر..." : "Loading monthly duty roster..."}
+                        </td>
+                      </tr>
+                    ) : (rosterMatrixData?.roster || []).map((row: any) => (
+                      <tr key={row.employeeId} className="hover:bg-muted/30 transition-colors">
+                        <td className="py-2 px-3 sticky right-0 bg-background/95 z-10 border-l font-medium">
+                          <div className="font-bold text-foreground truncate max-w-[160px]">
+                            {ar ? row.fullNameAr || row.fullName : row.fullName}
+                          </div>
+                          <div className="text-[10px] text-muted-foreground flex items-center gap-1 font-mono">
+                            <span>{row.employeeCode}</span>
+                            <span>•</span>
+                            <span className="truncate">{row.designation}</span>
+                          </div>
+                        </td>
+                        <td className="py-2 px-3 text-muted-foreground font-medium text-xs">
+                          {row.department}
+                        </td>
+                        {(rosterMatrixData?.days || []).map((day: any) => {
+                          const sched = row.schedule?.[day.dayNumber] || { shiftCode: "OFF", name: "راحة", color: "#64748b" };
+                          const isOff = sched.shiftCode === "OFF";
+                          const isMorning = sched.shiftCode === "MORNING";
+                          const isEvening = sched.shiftCode === "EVENING";
+                          const isNight = sched.shiftCode === "NIGHT";
+                          const isSplit = sched.shiftCode === "SPLIT";
+
+                          return (
+                            <td key={day.dayNumber} className="py-1.5 px-0.5 text-center">
+                              <span
+                                title={`${sched.name} - ${day.date}`}
+                                className={`inline-flex items-center justify-center w-6 h-6 rounded-md text-[10px] font-black font-mono cursor-pointer transition-transform hover:scale-110 shadow-2xs ${
+                                  isOff
+                                    ? "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+                                    : isMorning
+                                    ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300/40"
+                                    : isEvening
+                                    ? "bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-300/40"
+                                    : isNight
+                                    ? "bg-indigo-100 text-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-300/40"
+                                    : "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300/40"
+                                }`}
+                              >
+                                {isOff ? "OFF" : isMorning ? "ص" : isEvening ? "م" : isNight ? "ل" : "س"}
+                              </span>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          ) : (
+            <Card className="border shadow-sm overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-right rtl:text-right ltr:text-left">
+                  <thead className="bg-muted/60 text-muted-foreground text-xs uppercase border-b">
+                    <tr>
+                      <th className="py-3 px-4">{ar ? "كود الوردية" : "Shift Code"}</th>
+                      <th className="py-3 px-4">{ar ? "اسم الوردية" : "Shift Name"}</th>
+                      <th className="py-3 px-4">{ar ? "بداية الدوام" : "Start Time"}</th>
+                      <th className="py-3 px-4">{ar ? "نهاية الدوام" : "End Time"}</th>
+                      <th className="py-3 px-4 text-center">{ar ? "فترة السماح للتأخير" : "Grace Period"}</th>
+                      <th className="py-3 px-4 text-center">{ar ? "حد احتساب نصف يوم" : "Half-Day Threshold"}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {shifts.map((s: any) => (
+                      <tr key={s.id} className="hover:bg-muted/40 transition-colors">
+                        <td className="py-3 px-4 font-mono font-bold text-xs text-primary">{s.shiftCode}</td>
+                        <td className="py-3 px-4 font-medium">{s.name}</td>
+                        <td className="py-3 px-4 font-mono font-semibold text-emerald-600">{s.startTime}</td>
+                        <td className="py-3 px-4 font-mono font-semibold text-blue-600">{s.endTime}</td>
+                        <td className="py-3 px-4 text-center">
+                          <Badge variant="outline" className="font-mono text-xs">
+                            {s.lateGraceMinutes} {ar ? "دقيقة" : "mins"}
+                          </Badge>
+                        </td>
+                        <td className="py-3 px-4 text-center font-mono text-xs text-muted-foreground">
+                          {s.halfDayThresholdHours} {ar ? "ساعات" : "hours"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          )}
         </TabsContent>
 
         {/* Tab 5: Leaves & Permissions */}
@@ -779,32 +1096,33 @@ export default function AttendancePage() {
                     <th className="py-3 px-4">{ar ? "إلى تاريخ" : "To Date"}</th>
                     <th className="py-3 px-4 text-center">{ar ? "عدد الأيام" : "Total Days"}</th>
                     <th className="py-3 px-4 text-center">{ar ? "الحالة" : "Status"}</th>
+                    <th className="py-3 px-4 text-center">{ar ? "إجراءات الاعتماد" : "Actions"}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {leaves.map((l: any) => (
                     <tr key={l.id} className="hover:bg-muted/40 transition-colors">
                       <td className="py-3 px-4 font-medium">
-                        <div>{l.employeeName || "موظف"}</div>
-                        <span className="text-xs text-muted-foreground">{l.employeeCode}</span>
+                        <div className="font-semibold text-foreground">{l.employeeName || "موظف"}</div>
+                        <span className="text-xs font-mono text-muted-foreground">{l.employeeCode}</span>
                       </td>
-                      <td className="py-3 px-4">{l.leaveTypeName || "إجازة اعتيادية سنوية"}</td>
+                      <td className="py-3 px-4 font-medium">{l.leaveTypeName || "إجازة اعتيادية سنوية"}</td>
                       <td className="py-3 px-4 font-mono text-xs">{formatDate(l.startDate)}</td>
                       <td className="py-3 px-4 font-mono text-xs">{formatDate(l.endDate)}</td>
-                      <td className="py-3 px-4 text-center font-bold">{l.totalDays}</td>
+                      <td className="py-3 px-4 text-center font-bold font-mono">{l.totalDays}</td>
                       <td className="py-3 px-4 text-center">
                         <Badge
                           className={
                             l.status === "approved"
-                              ? "bg-emerald-600"
+                              ? "bg-emerald-600 text-white"
                               : l.status === "rejected"
-                              ? "bg-destructive"
-                              : "bg-amber-600"
+                              ? "bg-destructive text-white"
+                              : "bg-amber-600 text-white"
                           }
                         >
                           {l.status === "approved"
                             ? ar
-                              ? "معتمدة"
+                              ? "معتمدة ومرحلة"
                               : "Approved"
                             : l.status === "rejected"
                             ? ar
@@ -814,6 +1132,35 @@ export default function AttendancePage() {
                             ? "قيد المراجعة"
                             : "Pending"}
                         </Badge>
+                      </td>
+                      <td className="py-3 px-4 text-center">
+                        {l.status === "pending" ? (
+                          <div className="flex items-center justify-center gap-1.5">
+                            <Button
+                              size="sm"
+                              className="h-7 px-2.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white gap-1"
+                              disabled={updateLeaveStatusMutation.isPending}
+                              onClick={() => updateLeaveStatusMutation.mutate({ id: l.id, status: "approved" })}
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <span>{ar ? "اعتماد" : "Approve"}</span>
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 px-2 text-xs text-destructive hover:bg-destructive/10 border-destructive/30"
+                              disabled={updateLeaveStatusMutation.isPending}
+                              onClick={() => updateLeaveStatusMutation.mutate({ id: l.id, status: "rejected" })}
+                            >
+                              <XCircle className="w-3.5 h-3.5" />
+                              <span>{ar ? "رفض" : "Reject"}</span>
+                            </Button>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-muted-foreground font-mono">
+                            {l.status === "approved" ? "✓ معتمدة رسمي" : "✗ ملغاة"}
+                          </span>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -1033,6 +1380,127 @@ export default function AttendancePage() {
               className="bg-emerald-600 hover:bg-emerald-700 text-white"
             >
               {ar ? "إرسال البصمة" : "Send Punch"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal: New Leave Request */}
+      <Dialog open={isNewLeaveOpen} onOpenChange={setIsNewLeaveOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CalendarRange className="w-5 h-5 text-emerald-600" />
+              <span>{ar ? "تقديم طلب إجازة رسمي" : "Submit Leave Application"}</span>
+            </DialogTitle>
+            <DialogDescription>
+              {ar
+                ? "تسجيل إجازة للموظف واحتسابها ضمن رصيد الإجازات السنوي ومسير الرواتب"
+                : "Submit leave application with automatic balance deduction"}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3 py-2 text-sm">
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground">{ar ? "الموظف" : "Employee"}</label>
+              <select
+                value={leaveForm.employeeId}
+                onChange={(e) => setLeaveForm({ ...leaveForm, employeeId: e.target.value })}
+                className="w-full mt-1 px-3 py-2 border rounded-md text-xs bg-background"
+              >
+                <option value="">{ar ? "-- اختر الموظف --" : "-- Select Employee --"}</option>
+                {staffList.map((emp: any) => (
+                  <option key={emp.id} value={emp.id}>
+                    {emp.employeeCode} - {ar ? emp.fullNameAr || emp.fullName : emp.fullName}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground">{ar ? "نوع الإجازة" : "Leave Type"}</label>
+              <select
+                value={leaveForm.leaveTypeId}
+                onChange={(e) => setLeaveForm({ ...leaveForm, leaveTypeId: e.target.value })}
+                className="w-full mt-1 px-3 py-2 border rounded-md text-xs bg-background"
+              >
+                {leaveTypesList.map((lt: any) => (
+                  <option key={lt.id} value={lt.id}>
+                    {ar ? lt.nameAr : lt.nameEn} ({lt.maxDaysPerYear || 21} {ar ? "يوم/سنة" : "days/yr"})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground">{ar ? "من تاريخ" : "From Date"}</label>
+                <Input
+                  type="date"
+                  value={leaveForm.startDate}
+                  onChange={(e) => {
+                    const s = e.target.value;
+                    const days = Math.max(1, Math.round((new Date(leaveForm.endDate).getTime() - new Date(s).getTime()) / (1000 * 60 * 60 * 24)) + 1);
+                    setLeaveForm({ ...leaveForm, startDate: s, totalDays: isNaN(days) ? 1 : days });
+                  }}
+                  className="mt-1 text-xs"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground">{ar ? "إلى تاريخ" : "To Date"}</label>
+                <Input
+                  type="date"
+                  value={leaveForm.endDate}
+                  onChange={(e) => {
+                    const end = e.target.value;
+                    const days = Math.max(1, Math.round((new Date(end).getTime() - new Date(leaveForm.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1);
+                    setLeaveForm({ ...leaveForm, endDate: end, totalDays: isNaN(days) ? 1 : days });
+                  }}
+                  className="mt-1 text-xs"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground">{ar ? "إجمالي أيام الإجازة" : "Total Days"}</label>
+              <Input
+                type="number"
+                value={leaveForm.totalDays}
+                onChange={(e) => setLeaveForm({ ...leaveForm, totalDays: Number(e.target.value) })}
+                className="mt-1 text-xs font-mono font-bold"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground">{ar ? "سبب الإجازة والملاحظات" : "Reason & Notes"}</label>
+              <Input
+                value={leaveForm.reason}
+                onChange={(e) => setLeaveForm({ ...leaveForm, reason: e.target.value })}
+                placeholder={ar ? "إجازة اعتيادية سنوية مجدولة" : "Annual scheduled vacation"}
+                className="mt-1 text-xs"
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsNewLeaveOpen(false)}>
+              {ar ? "إلغاء" : "Cancel"}
+            </Button>
+            <Button
+              onClick={() => {
+                if (!leaveForm.employeeId) {
+                  toast.error(ar ? "يرجى اختيار الموظف أولاً" : "Please select an employee first");
+                  return;
+                }
+                createLeaveMutation.mutate({
+                  ...leaveForm,
+                  propertyId: selectedPropertyId,
+                });
+              }}
+              disabled={createLeaveMutation.isPending}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white"
+            >
+              {ar ? "اعتماد وتقديم الإجازة" : "Submit Leave"}
             </Button>
           </DialogFooter>
         </DialogContent>
