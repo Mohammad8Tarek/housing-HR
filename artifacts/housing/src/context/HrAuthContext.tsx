@@ -36,7 +36,7 @@ export function HrAuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error("Failed to load HR session");
       }
       const json = await res.json();
-      return json.user as HrUser;
+      return (json.user || null) as HrUser | null;
     },
     retry: false,
     staleTime: 60_000,
@@ -46,6 +46,7 @@ export function HrAuthProvider({ children }: { children: React.ReactNode }) {
   const isAuthenticated = !!hrUser;
 
   const loginMutation = useMutation({
+    mutationKey: ["hr-login"],
     mutationFn: async ({ username, password, system }: { username: string; password: string; system?: "payroll" | "attendance" | "both" }) => {
       const res = await fetch("/api/hr-auth/login", {
         method: "POST",
@@ -64,6 +65,7 @@ export function HrAuthProvider({ children }: { children: React.ReactNode }) {
   });
 
   const logoutMutation = useMutation({
+    mutationKey: ["hr-logout"],
     mutationFn: async () => {
       await fetch("/api/hr-auth/logout", { method: "POST" });
     },

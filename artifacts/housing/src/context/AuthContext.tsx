@@ -139,8 +139,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       queryKey: getGetMeQueryKey(),
       enabled: true,
       staleTime: 60 * 1000,
-      retry: 1,
-      refetchInterval: SESSION_CHECK_MS,
+      retry: false,
+      refetchInterval: (query: any) => {
+        return query.state.data ? SESSION_CHECK_MS : false;
+      },
       refetchOnWindowFocus: false,
     },
   });

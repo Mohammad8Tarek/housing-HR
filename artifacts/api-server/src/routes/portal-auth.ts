@@ -696,8 +696,13 @@ router.post("/logout", async (req, res): Promise<void> => {
     }
   }
   req.session.destroy(() => {
-    // Clear the correct session cookie name (app.ts:308 sets `name: "sunrise.sid"`)
-    res.clearCookie("sunrise.sid");
+    // Clear the correct session cookie name (app.ts sets `name: "sunrise.sid"`)
+    res.clearCookie("sunrise.sid", {
+      path: "/",
+      httpOnly: true,
+      secure: process.env["COOKIE_SECURE"] === "true",
+      sameSite: "lax",
+    });
     res.json({ success: true, message: "Logged out" });
   });
 });

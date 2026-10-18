@@ -182,7 +182,8 @@ router.get("/hr-auth/me", async (req: Request, res: Response) => {
       }
     }
 
-    res.status(401).json({ success: false, error: "Not authenticated in HR system" });
+    // Return 200 with user: null when not authenticated to allow SPAs silent probe without console red error
+    res.json({ success: true, authenticated: false, user: null });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }

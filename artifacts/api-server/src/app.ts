@@ -210,6 +210,19 @@ const sessionMiddleware = session({
 });
 
 app.use((req, res, next) => {
+  if (req.headers.cookie && req.headers.cookie.includes("sunrise.sid=")) {
+    const rawCookies = req.headers.cookie.split(";").map((c) => c.trim());
+    const sidCookies = rawCookies.filter((c) => c.startsWith("sunrise.sid="));
+    if (sidCookies.length > 1) {
+      const otherCookies = rawCookies.filter((c) => !c.startsWith("sunrise.sid="));
+      const selectedSid = sidCookies[sidCookies.length - 1];
+      req.headers.cookie = [...otherCookies, selectedSid].join("; ");
+    }
+  }
+  next();
+});
+
+app.use((req, res, next) => {
   if (
     req.path === "/api/ping" ||
     req.path === "/api/healthz" ||
@@ -229,7 +242,7 @@ app.use((req, res, next) => {
     }
 
     // If session already restored by cookie, proceed
-    if ((req.session as any)?.userId || (req.session as any)?.portal) {
+    if ((req.session as any)?.userId || (req.session as any)?.portal || (req.session as any)?.hrUserId) {
       return next();
     }
 

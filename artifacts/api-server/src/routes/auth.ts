@@ -326,9 +326,10 @@ router.post("/auth/logout", async (req, res): Promise<void> => {
 
   // ✅ Clear cookie BEFORE sending response so the browser removes it
   res.clearCookie("sunrise.sid", {
+    path: "/",
     httpOnly: true,
-    secure: process.env["NODE_ENV"] === "production",
-    sameSite: process.env["NODE_ENV"] === "production" ? "none" : "lax",
+    secure: process.env["COOKIE_SECURE"] === "true",
+    sameSite: "lax",
   });
 
   req.session.destroy((err) => {

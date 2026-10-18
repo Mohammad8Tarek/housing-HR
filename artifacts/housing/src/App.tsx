@@ -80,11 +80,11 @@ let mutationRefreshTimer: ReturnType<typeof setTimeout> | null = null;
 const queryClient = new QueryClient({
   mutationCache: new MutationCache({
     onSuccess: (_data, _variables, _context, mutation) => {
-      // Don't auto-invalidate all queries on auth mutations (login/logout)
+      // Don't auto-invalidate all queries on auth mutations (login/logout/hr-login/etc.)
       const mutationKey = mutation.options.mutationKey;
       if (
         Array.isArray(mutationKey) &&
-        (mutationKey.includes("login") || mutationKey.includes("logout"))
+        mutationKey.some((k: any) => typeof k === "string" && (k.includes("login") || k.includes("logout") || k.includes("auth")))
       ) {
         return;
       }
@@ -103,7 +103,10 @@ const queryClient = new QueryClient({
       gcTime: 5 * 60_000,
       refetchOnWindowFocus: false,
       refetchOnReconnect: true,
-      retry: 1,
+      retry: (failureCount, error: any) => {
+        if (error?.status === 401 || error?.status === 403) return false;
+        return failureCount < 1;
+      },
     },
   },
 });
