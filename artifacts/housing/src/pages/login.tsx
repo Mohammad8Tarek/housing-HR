@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -76,7 +76,9 @@ export default function Login() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      setLocation("/dashboard");
+      const params = new URLSearchParams(window.location.search);
+      const redirectUrl = params.get("redirect") || "/dashboard";
+      setLocation(redirectUrl);
     }
   }, [isAuthenticated, setLocation]);
 
@@ -141,7 +143,9 @@ export default function Login() {
           queryClient.setQueryData(getGetMeQueryKey(), data.user);
         }
         toast.success(isAr ? "تم تسجيل الدخول بنجاح" : "Logged in successfully");
-        setLocation("/dashboard");
+        const params = new URLSearchParams(window.location.search);
+        const redirectUrl = params.get("redirect") || "/dashboard";
+        setLocation(redirectUrl);
       },
       onError: (error: any) => {
         // ApiError stores parsed body in error.data, not error.response.data

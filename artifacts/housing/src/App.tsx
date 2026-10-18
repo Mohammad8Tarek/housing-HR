@@ -371,10 +371,10 @@ function Router() {
 
         {/* 2. Unified System Launcher (App Switcher) */}
         <Route path="/">
-          <ProtectedLauncher />
+          <SystemLauncher />
         </Route>
         <Route path="/apps">
-          <ProtectedLauncher />
+          <SystemLauncher />
         </Route>
 
         {/* 2b. Standalone Systems (Isolated from Housing AppLayout) */}
