@@ -48,7 +48,33 @@ export default function HrmsSuitePage() {
   const ar = language === "ar";
   const queryClient = useQueryClient();
 
-  const [activeTab, setActiveTab] = useState("employees");
+  const getInitialTab = () => {
+    if (typeof window !== "undefined") {
+      const p = new URLSearchParams(window.location.search).get("tab");
+      if (p && ["employees", "org", "recruitment", "learning", "services"].includes(p)) return p;
+    }
+    return "employees";
+  };
+  const [activeTab, setActiveTab] = useState(getInitialTab);
+
+  React.useEffect(() => {
+    const handlePopState = () => {
+      const p = new URLSearchParams(window.location.search).get("tab");
+      if (p && ["employees", "org", "recruitment", "learning", "services"].includes(p)) {
+        setActiveTab(p);
+      }
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  const handleTabChange = (val: string) => {
+    setActiveTab(val);
+    const params = new URLSearchParams(window.location.search);
+    params.set("tab", val);
+    window.history.replaceState(null, "", `${window.location.pathname}?${params.toString()}`);
+  };
+
   const [selectedPropertyId, setSelectedPropertyId] = useState<number>(2); // Meraki Sharm Default
   const [page, setPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(15);
@@ -233,7 +259,7 @@ export default function HrmsSuitePage() {
       </div>
 
       {/* 2. Top Navigation Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <TabsList className="grid grid-cols-2 md:grid-cols-5 bg-slate-100 p-1 rounded-xl h-auto gap-1">
           <TabsTrigger value="employees" className="flex items-center gap-2 py-2.5 text-xs font-bold">
             <Users className="w-4 h-4 text-[#0f2942]" />

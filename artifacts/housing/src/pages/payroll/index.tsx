@@ -52,7 +52,34 @@ export default function PayrollPage() {
   const [selectedPropertyId, setSelectedPropertyId] = useState<number>(2); // Default to Meraki Sharm
   const [employmentType, setEmploymentType] = useState<"regular" | "casual">("regular");
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState("runs");
+  const getInitialTab = () => {
+    if (typeof window !== "undefined") {
+      const p = new URLSearchParams(window.location.search).get("tab");
+      if (p === "loans") return "operations";
+      if (p && ["runs", "employees", "service-charge", "operations", "reports", "wps"].includes(p)) return p;
+    }
+    return "runs";
+  };
+  const [activeTab, setActiveTab] = useState(getInitialTab);
+
+  React.useEffect(() => {
+    const handlePopState = () => {
+      const p = new URLSearchParams(window.location.search).get("tab");
+      if (p === "loans") setActiveTab("operations");
+      else if (p && ["runs", "employees", "service-charge", "operations", "reports", "wps"].includes(p)) {
+        setActiveTab(p);
+      }
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  const handleTabChange = (val: string) => {
+    setActiveTab(val);
+    const params = new URLSearchParams(window.location.search);
+    params.set("tab", val);
+    window.history.replaceState(null, "", `${window.location.pathname}?${params.toString()}`);
+  };
 
   // Modals state
   const [isSlipModalOpen, setIsSlipModalOpen] = useState(false);
@@ -500,7 +527,7 @@ export default function PayrollPage() {
       </div>
 
       {/* Main Tabs Navigation */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
         <TabsList className="flex flex-wrap items-center gap-1.5 w-full h-auto p-1.5 bg-slate-100/80 rounded-2xl border border-slate-200/80">
           <TabsTrigger value="runs" className="py-2.5 px-4 gap-2 rounded-xl text-xs font-semibold data-[state=active]:bg-white data-[state=active]:text-[#0f2942] data-[state=active]:shadow-xs">
             <Calculator className="w-4 h-4 text-[#c89332]" />

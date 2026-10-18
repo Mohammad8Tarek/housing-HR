@@ -47,7 +47,35 @@ export default function AttendancePage() {
   const queryClient = useQueryClient();
 
   const [selectedPropertyId, setSelectedPropertyId] = useState<number>(2); // Default Meraki Sharm
-  const [activeTab, setActiveTab] = useState("daily");
+  const getInitialTab = () => {
+    if (typeof window !== "undefined") {
+      const p = new URLSearchParams(window.location.search).get("tab");
+      if (p === "roster") return "shifts";
+      if (p && ["daily", "punches", "devices", "shifts", "leaves"].includes(p)) return p;
+    }
+    return "daily";
+  };
+  const [activeTab, setActiveTab] = useState(getInitialTab);
+
+  React.useEffect(() => {
+    const handlePopState = () => {
+      const p = new URLSearchParams(window.location.search).get("tab");
+      if (p === "roster") setActiveTab("shifts");
+      else if (p && ["daily", "punches", "devices", "shifts", "leaves"].includes(p)) {
+        setActiveTab(p);
+      }
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  const handleTabChange = (val: string) => {
+    setActiveTab(val);
+    const params = new URLSearchParams(window.location.search);
+    params.set("tab", val);
+    window.history.replaceState(null, "", `${window.location.pathname}?${params.toString()}`);
+  };
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDate, setSelectedDate] = useState<string>(() => {
     const d = new Date();
@@ -667,7 +695,7 @@ export default function AttendancePage() {
       </div>
 
       {/* Main Tabs Navigation */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-2">
           <TabsList className="bg-muted/70 p-1">
             <TabsTrigger value="daily" className="gap-2">
