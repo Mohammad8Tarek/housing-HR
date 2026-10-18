@@ -8,10 +8,12 @@ import {
   loanInstallments,
   employees,
 } from "@workspace/db-payroll";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and, sql } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { requirePermission } from "../middlewares/permissions.js";
 
 const router = Router();
+const replacementEmp = alias(employees, "replacement_employee");
 
 // ─── 1. Leaves Management ───────────────────────────────────────────
 router.get(["/payroll-ops/leave-types", "/payroll-operations/leave-types"], requirePermission("payroll", "view"), async (_req: Request, res: Response) => {
@@ -31,10 +33,17 @@ router.get(["/payroll-ops/leaves", "/payroll-operations/leaves"], requirePermiss
         application: leaveApplications,
         employee: employees,
         leaveType: leaveTypes,
+        replacement: {
+          id: replacementEmp.id,
+          fullName: replacementEmp.fullName,
+          fullNameAr: replacementEmp.fullNameAr,
+          employeeCode: replacementEmp.employeeCode,
+        },
       })
       .from(leaveApplications)
       .innerJoin(employees, eq(leaveApplications.employeeId, employees.id))
       .innerJoin(leaveTypes, eq(leaveApplications.leaveTypeId, leaveTypes.id))
+      .leftJoin(replacementEmp, eq(leaveApplications.replacementEmployeeId, replacementEmp.id))
       .where(propertyId ? eq(leaveApplications.propertyId, propertyId) : undefined)
       .orderBy(desc(leaveApplications.id))
       .limit(100);
@@ -48,7 +57,7 @@ router.get(["/payroll-ops/leaves", "/payroll-operations/leaves"], requirePermiss
 
 router.post(["/payroll-ops/leaves", "/payroll-operations/leaves"], requirePermission("payroll", "create"), async (req: Request, res: Response) => {
   try {
-    const { propertyId, employeeId, leaveTypeId, startDate, endDate, totalDays, reason } = req.body;
+    const { propertyId, employeeId, leaveTypeId, startDate, endDate, totalDays, reason, replacementEmployeeId } = req.body;
     const [leave] = await payrollDb.insert(leaveApplications).values({
       propertyId: Number(propertyId),
       employeeId: Number(employeeId),
@@ -57,7 +66,10 @@ router.post(["/payroll-ops/leaves", "/payroll-operations/leaves"], requirePermis
       endDate,
       totalDays: String(totalDays || 1),
       reason,
-      status: "approved",
+      replacementEmployeeId: replacementEmployeeId ? Number(replacementEmployeeId) : null,
+      deptApprovalStatus: "pending",
+      hrApprovalStatus: "pending",
+      status: "pending",
     }).returning();
     res.status(201).json({ success: true, leave });
   } catch (err: any) {
@@ -65,17 +77,46 @@ router.post(["/payroll-ops/leaves", "/payroll-operations/leaves"], requirePermis
   }
 });
 
-router.patch(["/payroll-ops/leaves/:id/status", "/payroll-operations/leaves/:id/status"], requirePermission("payroll", "edit"), async (req: Request, res: Response) => {
+router.patch(["/payroll-ops/leaves/:id/approve", "/payroll-operations/leaves/:id/approve", "/payroll-ops/leaves/:id/status", "/payroll-operations/leaves/:id/status"], requirePermission("payroll", "edit"), async (req: Request, res: Response) => {
   try {
     const leaveId = Number(req.params.id);
-    const { status, approvedBy } = req.body;
+    const { level, status, approverName, comment } = req.body;
+    const updateData: any = {};
+    const now = new Date();
+    const actor = approverName || (req as any).user?.fullName || (req as any).user?.username || "Admin";
+
+    if (level === "dept") {
+      updateData.deptApprovalStatus = status; // 'approved' or 'rejected'
+      updateData.deptApprovedBy = actor;
+      updateData.deptApprovedAt = now;
+      if (comment) updateData.deptComment = comment;
+      if (status === "rejected") {
+        updateData.status = "rejected";
+      }
+    } else if (level === "hr") {
+      updateData.hrApprovalStatus = status; // 'approved' or 'rejected'
+      updateData.hrApprovedBy = actor;
+      updateData.hrApprovedAt = now;
+      if (comment) updateData.hrComment = comment;
+      updateData.status = status;
+      updateData.approvedBy = actor;
+      updateData.approvedAt = now;
+    } else {
+      updateData.status = status;
+      updateData.approvedBy = actor;
+      updateData.approvedAt = now;
+      if (status === "approved") {
+        updateData.deptApprovalStatus = "approved";
+        updateData.hrApprovalStatus = "approved";
+      } else if (status === "rejected") {
+        updateData.deptApprovalStatus = "rejected";
+        updateData.hrApprovalStatus = "rejected";
+      }
+    }
+
     const [updated] = await payrollDb
       .update(leaveApplications)
-      .set({
-        status,
-        approvedBy: approvedBy || "HR Admin",
-        approvedAt: new Date(),
-      })
+      .set(updateData)
       .where(eq(leaveApplications.id, leaveId))
       .returning();
 

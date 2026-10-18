@@ -54,7 +54,7 @@ export default function HrLoginPage({ system }: HrLoginPageProps) {
           ? `تم تسجيل الدخول بنجاح إلى ${isPayroll ? "منظومة الرواتب" : "منظومة الحضور والبصمة"}` 
           : `Successfully logged into ${isPayroll ? "Payroll" : "Attendance"} workspace`
       );
-      setLocation(isPayroll ? "/payroll" : "/attendance");
+      window.location.href = isPayroll ? "/payroll" : "/attendance";
     } catch (err: any) {
       toast.error(err.message || (ar ? "فشل تسجيل الدخول، تأكد من صحة البيانات والصلاحيات" : "Login failed"));
     } finally {

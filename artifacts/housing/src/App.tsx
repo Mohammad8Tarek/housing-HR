@@ -22,7 +22,7 @@ import { PageLoader } from "@/components/ui/loader";
 import { useWebSocket } from "@/hooks/use-websocket";
 import { usePermission } from "@/hooks/use-permission";
 import type { Module, Action } from "@/lib/permissions";
-import { Layers, LogOut, Sun, Moon, Languages, ShieldAlert } from "lucide-react";
+import { Layers, LogOut, Sun, Moon, Languages, ShieldAlert, Fingerprint, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { Link } from "wouter";
@@ -136,48 +136,38 @@ function ProtectedLauncher() {
 
 function ProtectedPayrollLayout({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading, hrUser, logout } = useHrAuth();
+  const auth = useAuth();
   const { language, setLanguage } = useLanguage();
   const ar = language === "ar";
 
-  if (isLoading) return <PageLoader />;
-  if (!isAuthenticated) return <Redirect to="/payroll/login" />;
+  if (isLoading && auth.isLoading) return <PageLoader />;
+  if (!isAuthenticated && !auth.isAuthenticated) return <Redirect to="/payroll/login" />;
 
-  // Verify payroll scope
-  if (hrUser && hrUser.systemAccess !== "both" && hrUser.systemAccess !== "payroll") {
-    return (
-      <div className="min-h-screen bg-[#f8fafc] flex flex-col justify-center items-center p-6 text-center" dir={ar ? "rtl" : "ltr"}>
-        <div className="w-16 h-16 rounded-2xl bg-rose-50 text-rose-600 border border-rose-200 flex items-center justify-center mb-4">
-          <ShieldAlert className="w-8 h-8" />
-        </div>
-        <h2 className="text-xl font-bold text-slate-800">
-          {ar ? "غير مصرح بالدخول لمنظومة المرتبات" : "Access Denied to Payroll System"}
-        </h2>
-        <p className="text-sm text-slate-500 max-w-md mt-2">
-          {ar 
-            ? "حسابك مخصص لمنظومة أخرى ولا يملك صلاحية الاطلاع أو إدارة المرتبات والأجور." 
-            : "Your account is not provisioned for Payroll & Compensation workspace."}
-        </p>
-        <div className="mt-6 flex gap-3">
-          <Link href="/">
-            <Button variant="outline" className="text-xs">{ar ? "العودة للبوابة الرئيسية" : "Back to Portal"}</Button>
-          </Link>
-          <Button variant="destructive" onClick={() => logout()} className="text-xs">{ar ? "تسجيل الخروج" : "Logout"}</Button>
-        </div>
-      </div>
-    );
-  }
+  const displayUser = hrUser || (auth.user ? {
+    username: auth.user.username,
+    fullName: auth.user.fullName || auth.user.username,
+    role: auth.user.isSystemAdmin ? "super_admin" : "admin",
+  } : null);
 
   return (
     <div className="min-h-screen bg-[#f8fafc] flex flex-col" dir={ar ? "rtl" : "ltr"}>
       {/* Top Header */}
       <header className="border-b bg-white sticky top-0 z-50 px-6 py-2.5 flex items-center justify-between shadow-xs">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <Link href="/">
             <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-[#0f2942] text-xs font-semibold transition-all cursor-pointer">
               <Layers className="w-4 h-4 text-[#c89332]" />
               <span>{ar ? "بوابة الأنظمة (App Switcher)" : "All Systems"}</span>
             </button>
           </Link>
+
+          <Link href="/attendance">
+            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold transition-all cursor-pointer border border-blue-200">
+              <Fingerprint className="w-4 h-4 text-blue-600" />
+              <span>{ar ? "منظومة الحضور والبصمة" : "Attendance & Shifts"}</span>
+            </button>
+          </Link>
+
           <div className="h-5 w-px bg-slate-200"></div>
           <div className="text-sm font-bold text-[#0f2942] tracking-tight flex items-center gap-2">
             <span>SUNRISE</span>
@@ -202,11 +192,11 @@ function ProtectedPayrollLayout({ children }: { children: React.ReactNode }) {
 
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-lg bg-[#0f2942] text-[#c89332] font-bold flex items-center justify-center text-xs">
-              {hrUser?.username?.substring(0, 2).toUpperCase() || "HR"}
+              {displayUser?.username?.substring(0, 2).toUpperCase() || "HR"}
             </div>
             <div className="hidden sm:block text-right rtl:text-right ltr:text-left">
-              <div className="text-xs font-bold text-slate-800">{hrUser?.fullName || hrUser?.username}</div>
-              <div className="text-[10px] text-slate-400 capitalize">{hrUser?.role}</div>
+              <div className="text-xs font-bold text-slate-800">{displayUser?.fullName || displayUser?.username}</div>
+              <div className="text-[10px] text-slate-400 capitalize">{displayUser?.role}</div>
             </div>
           </div>
 
@@ -231,48 +221,38 @@ function ProtectedPayrollLayout({ children }: { children: React.ReactNode }) {
 
 function ProtectedAttendanceLayout({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading, hrUser, logout } = useHrAuth();
+  const auth = useAuth();
   const { language, setLanguage } = useLanguage();
   const ar = language === "ar";
 
-  if (isLoading) return <PageLoader />;
-  if (!isAuthenticated) return <Redirect to="/attendance/login" />;
+  if (isLoading && auth.isLoading) return <PageLoader />;
+  if (!isAuthenticated && !auth.isAuthenticated) return <Redirect to="/attendance/login" />;
 
-  // Verify attendance scope
-  if (hrUser && hrUser.systemAccess !== "both" && hrUser.systemAccess !== "attendance") {
-    return (
-      <div className="min-h-screen bg-[#f8fafc] flex flex-col justify-center items-center p-6 text-center" dir={ar ? "rtl" : "ltr"}>
-        <div className="w-16 h-16 rounded-2xl bg-rose-50 text-rose-600 border border-rose-200 flex items-center justify-center mb-4">
-          <ShieldAlert className="w-8 h-8" />
-        </div>
-        <h2 className="text-xl font-bold text-slate-800">
-          {ar ? "غير مصرح بالدخول لمنظومة البصمة والحضور" : "Access Denied to Attendance System"}
-        </h2>
-        <p className="text-sm text-slate-500 max-w-md mt-2">
-          {ar 
-            ? "حسابك مخصص لمنظومة أخرى ولا يملك صلاحية الاطلاع أو إدارة الحضور وأجهزة البصمة." 
-            : "Your account is not provisioned for Attendance & Biometrics workspace."}
-        </p>
-        <div className="mt-6 flex gap-3">
-          <Link href="/">
-            <Button variant="outline" className="text-xs">{ar ? "العودة للبوابة الرئيسية" : "Back to Portal"}</Button>
-          </Link>
-          <Button variant="destructive" onClick={() => logout()} className="text-xs">{ar ? "تسجيل الخروج" : "Logout"}</Button>
-        </div>
-      </div>
-    );
-  }
+  const displayUser = hrUser || (auth.user ? {
+    username: auth.user.username,
+    fullName: auth.user.fullName || auth.user.username,
+    role: auth.user.isSystemAdmin ? "super_admin" : "admin",
+  } : null);
 
   return (
     <div className="min-h-screen bg-[#f8fafc] flex flex-col" dir={ar ? "rtl" : "ltr"}>
       {/* Top Header */}
       <header className="border-b bg-white sticky top-0 z-50 px-6 py-2.5 flex items-center justify-between shadow-xs">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <Link href="/">
             <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-[#0f2942] text-xs font-semibold transition-all cursor-pointer">
               <Layers className="w-4 h-4 text-[#c89332]" />
               <span>{ar ? "بوابة الأنظمة (App Switcher)" : "All Systems"}</span>
             </button>
           </Link>
+
+          <Link href="/payroll">
+            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-[#c89332] text-xs font-bold transition-all cursor-pointer border border-amber-200">
+              <DollarSign className="w-4 h-4 text-[#c89332]" />
+              <span>{ar ? "منظومة الرواتب والأجور" : "Payroll & Salaries"}</span>
+            </button>
+          </Link>
+
           <div className="h-5 w-px bg-slate-200"></div>
           <div className="text-sm font-bold text-[#0f2942] tracking-tight flex items-center gap-2">
             <span>SUNRISE</span>
@@ -297,11 +277,11 @@ function ProtectedAttendanceLayout({ children }: { children: React.ReactNode }) 
 
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-lg bg-[#0f2942] text-[#c89332] font-bold flex items-center justify-center text-xs">
-              {hrUser?.username?.substring(0, 2).toUpperCase() || "ATT"}
+              {displayUser?.username?.substring(0, 2).toUpperCase() || "ATT"}
             </div>
             <div className="hidden sm:block text-right rtl:text-right ltr:text-left">
-              <div className="text-xs font-bold text-slate-800">{hrUser?.fullName || hrUser?.username}</div>
-              <div className="text-[10px] text-slate-400 capitalize">{hrUser?.role}</div>
+              <div className="text-xs font-bold text-slate-800">{displayUser?.fullName || displayUser?.username}</div>
+              <div className="text-[10px] text-slate-400 capitalize">{displayUser?.role}</div>
             </div>
           </div>
 

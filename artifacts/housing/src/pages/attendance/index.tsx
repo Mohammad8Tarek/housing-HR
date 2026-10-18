@@ -90,6 +90,7 @@ export default function AttendancePage() {
   const [rosterViewMode, setRosterViewMode] = useState<"matrix" | "shifts">("matrix");
   const [rosterYear, setRosterYear] = useState<number>(2026);
   const [rosterMonth, setRosterMonth] = useState<number>(10);
+  const [activeShiftStamp, setActiveShiftStamp] = useState<string | null>(null);
 
   // Leave Modal State
   const [isNewLeaveOpen, setIsNewLeaveOpen] = useState(false);
@@ -100,6 +101,23 @@ export default function AttendancePage() {
     endDate: new Date().toISOString().split("T")[0],
     totalDays: 1,
     reason: "",
+    replacementEmployeeId: "",
+  });
+
+  // Approval Dialog State
+  const [approvalModal, setApprovalModal] = useState<{
+    isOpen: boolean;
+    leaveId: number | null;
+    level: "dept" | "hr";
+    status: "approved" | "rejected";
+    employeeName?: string;
+    comment: string;
+  }>({
+    isOpen: false,
+    leaveId: null,
+    level: "dept",
+    status: "approved",
+    comment: "",
   });
 
   // 1. Fetch Properties
@@ -228,12 +246,26 @@ export default function AttendancePage() {
     },
   });
 
+  const SST_SHIFT_PALETTE = [
+    { code: "MORNING", label: ar ? "صباحي" : "Morning", sstCode: "M", title: "Morning (08:00 - 16:00)", dotColor: "bg-emerald-500", activeBg: "bg-emerald-600 text-white" },
+    { code: "EVENING", label: ar ? "مسائي" : "Evening", sstCode: "E", title: "Evening (16:00 - 00:00)", dotColor: "bg-blue-500", activeBg: "bg-blue-600 text-white" },
+    { code: "NIGHT", label: ar ? "ليلي" : "Night", sstCode: "N", title: "Night (00:00 - 08:00)", dotColor: "bg-indigo-500", activeBg: "bg-indigo-600 text-white" },
+    { code: "SPLIT", label: ar ? "سيرفيس" : "Split", sstCode: "S", title: "Split Shift (ورديتين)", dotColor: "bg-amber-500", activeBg: "bg-amber-600 text-white" },
+    { code: "OFF", label: ar ? "راحة" : "Off", sstCode: "O", title: "Day Off (راحة أسبوعية)", dotColor: "bg-slate-500", activeBg: "bg-slate-700 text-white" },
+    { code: "VACATION", label: ar ? "إجازة" : "Vacation", sstCode: "V", title: "Vacation (إجازة سنوية)", dotColor: "bg-purple-500", activeBg: "bg-purple-600 text-white" },
+    { code: "HOLIDAY", label: ar ? "عطلة" : "Holiday", sstCode: "H", title: "Official Holiday (عطلة رسمية)", dotColor: "bg-rose-500", activeBg: "bg-rose-600 text-white" },
+    { code: "WORK_HALF", label: ar ? "نصف يوم" : "Half Day", sstCode: "WH", title: "Work Half (نصف يوم عمل)", dotColor: "bg-teal-500", activeBg: "bg-teal-600 text-white" },
+  ];
+
   const nextShiftMap: Record<string, string> = {
     OFF: "MORNING",
     MORNING: "EVENING",
     EVENING: "NIGHT",
     NIGHT: "SPLIT",
     SPLIT: "OFF",
+    VACATION: "OFF",
+    HOLIDAY: "OFF",
+    WORK_HALF: "OFF",
   };
 
   const handleCycleShift = (employeeId: number, date: string, currentCode: string) => {
@@ -243,6 +275,18 @@ export default function AttendancePage() {
       date,
       shiftCode: nextCode,
     });
+  };
+
+  const handleCellClick = (employeeId: number, date: string, currentCode: string) => {
+    if (activeShiftStamp) {
+      assignRosterDayMutation.mutate({
+        employeeId,
+        date,
+        shiftCode: activeShiftStamp,
+      });
+    } else {
+      handleCycleShift(employeeId, date, currentCode);
+    }
   };
 
   const staffList = staffData?.employees || [];
@@ -260,26 +304,36 @@ export default function AttendancePage() {
       return res.json();
     },
     onSuccess: () => {
-      toast.success(ar ? "تم تقديم طلب الإجازة واعتماده بنجاح!" : "Leave application submitted successfully!");
+      toast.success(ar ? "تم تقديم طلب الإجازة بنجاح وهو الآن قيد الاعتمادات!" : "Leave application submitted successfully, now pending approvals!");
       setIsNewLeaveOpen(false);
+      setLeaveForm({
+        employeeId: "",
+        leaveTypeId: "1",
+        startDate: new Date().toISOString().split("T")[0],
+        endDate: new Date().toISOString().split("T")[0],
+        totalDays: 1,
+        reason: "",
+        replacementEmployeeId: "",
+      });
       queryClient.invalidateQueries({ queryKey: ["attendance-leaves"] });
     },
     onError: (err: any) => toast.error(err.message),
   });
 
-  // Update Leave Status Mutation
+  // Update Leave Status Mutation (Dual-Level Dept & HR)
   const updateLeaveStatusMutation = useMutation({
-    mutationFn: async ({ id, status }: { id: number; status: string }) => {
-      const res = await fetch(`/api/payroll-operations/leaves/${id}/status`, {
+    mutationFn: async ({ id, level, status, comment }: { id: number; level: "dept" | "hr" | "all"; status: string; comment?: string }) => {
+      const res = await fetch(`/api/payroll-operations/leaves/${id}/approve`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({ level, status, comment }),
       });
       if (!res.ok) throw new Error("Failed to update status");
       return res.json();
     },
     onSuccess: () => {
-      toast.success(ar ? "تم تحديث حالة طلب الإجازة بنجاح!" : "Leave status updated successfully!");
+      toast.success(ar ? "تم تحديث واعتماد طلب الإجازة بنجاح!" : "Leave approval status updated successfully!");
+      setApprovalModal((prev) => ({ ...prev, isOpen: false, comment: "", leaveId: null }));
       queryClient.invalidateQueries({ queryKey: ["attendance-leaves"] });
     },
     onError: (err: any) => toast.error(err.message),
@@ -423,8 +477,34 @@ export default function AttendancePage() {
   const devices = devicesData?.devices || devicesData?.data || [];
   const dailyRecords = dailyRecordsData?.records || dailyRecordsData?.data || [];
   const punches = punchesData?.logs || punchesData?.punches || punchesData?.data || [];
-  const shifts = shiftsData?.shifts || shiftsData?.data || [];
-  const leaves = leavesData?.leaves || leavesData?.data || [];
+  const rawLeaves = leavesData?.leaves || leavesData?.data || [];
+  const leaves = rawLeaves.map((item: any) => {
+    if (item.application) {
+      return {
+        id: item.application.id,
+        employeeId: item.application.employeeId,
+        employeeName: ar ? item.employee?.fullNameAr || item.employee?.fullName : item.employee?.fullName,
+        employeeCode: item.employee?.employeeCode,
+        leaveTypeName: ar ? item.leaveType?.nameAr : item.leaveType?.nameEn,
+        startDate: item.application.startDate,
+        endDate: item.application.endDate,
+        totalDays: item.application.totalDays,
+        reason: item.application.reason,
+        status: item.application.status,
+        deptApprovalStatus: item.application.deptApprovalStatus || "pending",
+        deptApprovedBy: item.application.deptApprovedBy,
+        deptApprovedAt: item.application.deptApprovedAt,
+        deptComment: item.application.deptComment,
+        hrApprovalStatus: item.application.hrApprovalStatus || "pending",
+        hrApprovedBy: item.application.hrApprovedBy,
+        hrApprovedAt: item.application.hrApprovedAt,
+        hrComment: item.application.hrComment,
+        replacementName: item.replacement ? (ar ? item.replacement.fullNameAr || item.replacement.fullName : item.replacement.fullName) : null,
+        replacementCode: item.replacement?.employeeCode,
+      };
+    }
+    return item;
+  });
 
   // Filter daily records by search
   const filteredDaily = dailyRecords.filter((rec: any) => {
@@ -989,38 +1069,71 @@ export default function AttendancePage() {
                     ))}
                   </select>
                 </div>
-
-                <div className="flex flex-wrap items-center gap-2 text-[11px] bg-background/80 px-2.5 py-1 rounded-lg border">
-                  <div className="flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
-                    <span className="font-semibold">{ar ? "ص صباحي" : "M Morning"}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-blue-600"></span>
-                    <span className="font-semibold">{ar ? "م مسائي" : "E Evening"}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-indigo-600"></span>
-                    <span className="font-semibold">{ar ? "ل ليلي" : "N Night"}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-amber-600"></span>
-                    <span className="font-semibold">{ar ? "س سيرفيس" : "S Split"}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-slate-400"></span>
-                    <span className="font-semibold">{ar ? "OFF راحة" : "OFF"}</span>
-                  </div>
-                </div>
               </div>
             )}
           </div>
 
+          {/* SST Shift Palette Bar (Fast-Painting Toolbar) */}
+          {rosterViewMode === "matrix" && (
+            <div className="flex flex-wrap items-center justify-between gap-3 p-2.5 bg-muted/40 border rounded-xl shadow-xs">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="text-xs font-bold text-foreground flex items-center gap-1.5 ml-2">
+                  <Activity className="w-4 h-4 text-emerald-600" />
+                  {ar ? "لوحة أختام الورديات (SST Shift Palette):" : "Shift Stamp Palette:"}
+                </span>
+
+                {SST_SHIFT_PALETTE.map((stamp) => {
+                  const isActive = activeShiftStamp === stamp.code;
+                  return (
+                    <button
+                      key={stamp.code}
+                      type="button"
+                      onClick={() => setActiveShiftStamp(isActive ? null : stamp.code)}
+                      title={stamp.title}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer border ${
+                        isActive
+                          ? "ring-2 ring-emerald-500 ring-offset-1 scale-105 shadow-sm " + stamp.activeBg
+                          : "bg-background text-foreground hover:bg-muted border-border"
+                      }`}
+                    >
+                      <span className={`w-2 h-2 rounded-full ${stamp.dotColor}`}></span>
+                      <span className="font-mono font-black">{stamp.sstCode}</span>
+                      <span className="text-[11px] font-medium hidden sm:inline">{stamp.label}</span>
+                    </button>
+                  );
+                })}
+
+                <button
+                  type="button"
+                  onClick={() => setActiveShiftStamp(null)}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all border cursor-pointer ${
+                    activeShiftStamp === null
+                      ? "bg-slate-800 text-white font-bold shadow-xs"
+                      : "bg-background text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {ar ? "وضع النقر التبادلي (Cycle)" : "Cycle Mode"}
+                </button>
+              </div>
+
+              {activeShiftStamp && (
+                <div className="text-xs bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 px-3 py-1 rounded-lg flex items-center gap-1.5 animate-pulse font-medium">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                  <span>
+                    {ar
+                      ? `الختم النشط: ${activeShiftStamp} (انقر فوق أي خلية لتسكينها فوراً)`
+                      : `Active Stamp: ${activeShiftStamp} (Click any cell to paint)`}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+
           {rosterViewMode === "matrix" ? (
             <Card className="border shadow-sm overflow-hidden">
-              <div className="overflow-x-auto max-h-[550px] relative">
+              <div className="overflow-x-auto max-h-[580px] relative">
                 <table className="w-full text-xs text-right rtl:text-right ltr:text-left border-collapse">
-                  <thead className="bg-muted/80 text-muted-foreground uppercase text-[11px] sticky top-0 z-20 border-b">
+                  <thead className="bg-muted/90 text-muted-foreground uppercase text-[11px] sticky top-0 z-20 border-b">
                     <tr>
                       <th className="py-2.5 px-3 sticky right-0 bg-muted/95 z-30 min-w-[170px] shadow-sm">
                         {ar ? "الموظف والوظيفة" : "Employee"}
@@ -1030,13 +1143,79 @@ export default function AttendancePage() {
                         <th
                           key={day.dayNumber}
                           className={`py-2 px-1 text-center min-w-[34px] font-mono ${
-                            day.isWeekend ? "bg-amber-500/10 text-amber-700 font-bold" : ""
+                            day.isWeekend ? "bg-amber-500/15 text-amber-800 dark:text-amber-300 font-bold" : ""
                           }`}
                         >
                           <div>{day.dayNumber}</div>
                           <div className="text-[9px] font-normal opacity-80">{ar ? day.dayNameAr : day.dayName}</div>
                         </th>
                       ))}
+                    </tr>
+
+                    {/* Operational Forecast Row 1: Hotel Occupancy % */}
+                    <tr className="bg-amber-500/10 border-b border-amber-300/30 text-[10px] font-sans normal-case">
+                      <th className="py-1 px-3 sticky right-0 bg-muted/95 z-30 font-bold text-amber-900 dark:text-amber-200">
+                        {ar ? "🏨 نسبة الإشغال (Occupancy %)" : "🏨 Occupancy %"}
+                      </th>
+                      <th className="py-1 px-3 text-muted-foreground font-mono">Meraki</th>
+                      {(rosterMatrixData?.days || []).map((day: any) => {
+                        const occ = day.occupancyPercent || 85;
+                        return (
+                          <th
+                            key={`occ-${day.dayNumber}`}
+                            className={`py-1 px-0.5 text-center font-mono font-bold ${
+                              occ >= 90
+                                ? "text-rose-600 bg-rose-500/15"
+                                : occ >= 80
+                                ? "text-amber-700 bg-amber-500/10"
+                                : "text-emerald-700 bg-emerald-500/10"
+                            }`}
+                            title={`${day.date}: ${occ}%`}
+                          >
+                            {occ}%
+                          </th>
+                        );
+                      })}
+                    </tr>
+
+                    {/* Operational Forecast Row 2: In-House Guest Count */}
+                    <tr className="bg-blue-500/10 border-b border-blue-300/30 text-[10px] font-sans normal-case">
+                      <th className="py-1 px-3 sticky right-0 bg-muted/95 z-30 font-bold text-blue-900 dark:text-blue-200">
+                        {ar ? "👥 عدد النزلاء (Guests Count)" : "👥 Guests Count"}
+                      </th>
+                      <th className="py-1 px-3 text-muted-foreground font-mono">Forecast</th>
+                      {(rosterMatrixData?.days || []).map((day: any) => (
+                        <th
+                          key={`guests-${day.dayNumber}`}
+                          className="py-1 px-0.5 text-center font-mono font-semibold text-blue-700 dark:text-blue-300"
+                          title={`${day.date}: ${day.guestCount || 520}`}
+                        >
+                          {day.guestCount || 520}
+                        </th>
+                      ))}
+                    </tr>
+
+                    {/* Operational Forecast Row 3: Staff on Duty */}
+                    <tr className="bg-emerald-500/10 border-b-2 border-emerald-400/40 text-[10px] font-sans normal-case">
+                      <th className="py-1 px-3 sticky right-0 bg-muted/95 z-30 font-bold text-emerald-900 dark:text-emerald-200">
+                        {ar ? "🛡️ قوة العمل بالخدمة (Duty Staff)" : "🛡️ Staff On Duty"}
+                      </th>
+                      <th className="py-1 px-3 text-muted-foreground font-mono">Actual</th>
+                      {(rosterMatrixData?.days || []).map((day: any) => {
+                        const dutyCount = (rosterMatrixData?.roster || []).filter((r: any) => {
+                          const code = r.schedule?.[day.dayNumber]?.shiftCode;
+                          return code && code !== "OFF" && code !== "VACATION" && code !== "HOLIDAY";
+                        }).length;
+                        return (
+                          <th
+                            key={`duty-${day.dayNumber}`}
+                            className="py-1 px-0.5 text-center font-mono font-bold text-emerald-800 dark:text-emerald-300"
+                            title={`${day.date}: ${dutyCount}`}
+                          >
+                            {dutyCount}
+                          </th>
+                        );
+                      })}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
@@ -1069,14 +1248,17 @@ export default function AttendancePage() {
                           const isEvening = sched.shiftCode === "EVENING";
                           const isNight = sched.shiftCode === "NIGHT";
                           const isSplit = sched.shiftCode === "SPLIT";
+                          const isVacation = sched.shiftCode === "VACATION" || sched.shiftCode === "V";
+                          const isHoliday = sched.shiftCode === "HOLIDAY" || sched.shiftCode === "H";
+                          const isWorkHalf = sched.shiftCode === "WORK_HALF" || sched.shiftCode === "WH";
 
                           return (
                             <td key={day.dayNumber} className="py-1.5 px-0.5 text-center">
                               <button
                                 type="button"
                                 disabled={assignRosterDayMutation.isPending}
-                                onClick={() => handleCycleShift(row.employeeId, day.date, sched.shiftCode)}
-                                title={`${sched.name} - ${day.date} (${ar ? "انقر للتبديل: ص -> م -> ل -> س -> OFF" : "Click to cycle: M -> E -> N -> S -> OFF"})`}
+                                onClick={() => handleCellClick(row.employeeId, day.date, sched.shiftCode)}
+                                title={`${sched.name} - ${day.date} (${activeShiftStamp ? `ختم سريع: ${activeShiftStamp}` : "انقر للتبديل الدوري"})`}
                                 className={`inline-flex items-center justify-center w-6 h-6 rounded-md text-[10px] font-black font-mono cursor-pointer transition-all hover:scale-115 active:scale-95 shadow-2xs ${
                                   isOff
                                     ? "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 hover:bg-slate-200"
@@ -1086,10 +1268,16 @@ export default function AttendancePage() {
                                     ? "bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-300/40 hover:bg-blue-200"
                                     : isNight
                                     ? "bg-indigo-100 text-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-300/40 hover:bg-indigo-200"
-                                    : "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300/40 hover:bg-amber-200"
+                                    : isSplit
+                                    ? "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300/40 hover:bg-amber-200"
+                                    : isVacation
+                                    ? "bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-300/40 hover:bg-purple-200"
+                                    : isHoliday
+                                    ? "bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-300/40 hover:bg-rose-200"
+                                    : "bg-teal-100 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300 border border-teal-300/40 hover:bg-teal-200"
                                 }`}
                               >
-                                {isOff ? "OFF" : isMorning ? "ص" : isEvening ? "م" : isNight ? "ل" : "س"}
+                                {isOff ? "OFF" : isMorning ? "ص" : isEvening ? "م" : isNight ? "ل" : isSplit ? "س" : isVacation ? "V" : isHoliday ? "H" : "WH"}
                               </button>
                             </td>
                           );
@@ -1209,38 +1397,99 @@ export default function AttendancePage() {
                 <thead className="bg-muted/60 text-muted-foreground text-xs uppercase border-b">
                   <tr>
                     <th className="py-3 px-4">{ar ? "الموظف" : "Employee"}</th>
+                    <th className="py-3 px-4">{ar ? "الموظف البديل" : "Replacement"}</th>
                     <th className="py-3 px-4">{ar ? "نوع الإجازة" : "Leave Type"}</th>
-                    <th className="py-3 px-4">{ar ? "من تاريخ" : "From Date"}</th>
-                    <th className="py-3 px-4">{ar ? "إلى تاريخ" : "To Date"}</th>
-                    <th className="py-3 px-4 text-center">{ar ? "عدد الأيام" : "Total Days"}</th>
-                    <th className="py-3 px-4 text-center">{ar ? "الحالة" : "Status"}</th>
+                    <th className="py-3 px-4">{ar ? "الفترة والمدة" : "Period & Days"}</th>
+                    <th className="py-3 px-4 text-center">{ar ? "موافقة رئيس القسم" : "Dept Approval"}</th>
+                    <th className="py-3 px-4 text-center">{ar ? "اعتماد HR والمرتبات" : "HR Approval"}</th>
+                    <th className="py-3 px-4 text-center">{ar ? "الحالة النهائية" : "Final Status"}</th>
                     <th className="py-3 px-4 text-center">{ar ? "إجراءات الاعتماد" : "Actions"}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {leaves.map((l: any) => (
+                  {leaves.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="py-8 text-center text-muted-foreground text-xs">
+                        {ar ? "لا توجد طلبات إجازة مسجلة حالياً" : "No leave applications recorded"}
+                      </td>
+                    </tr>
+                  ) : leaves.map((l: any) => (
                     <tr key={l.id} className="hover:bg-muted/40 transition-colors">
                       <td className="py-3 px-4 font-medium">
                         <div className="font-semibold text-foreground">{l.employeeName || "موظف"}</div>
                         <span className="text-xs font-mono text-muted-foreground">{l.employeeCode}</span>
                       </td>
-                      <td className="py-3 px-4 font-medium">{l.leaveTypeName || "إجازة اعتيادية سنوية"}</td>
-                      <td className="py-3 px-4 font-mono text-xs">{formatDate(l.startDate)}</td>
-                      <td className="py-3 px-4 font-mono text-xs">{formatDate(l.endDate)}</td>
-                      <td className="py-3 px-4 text-center font-bold font-mono">{l.totalDays}</td>
+                      <td className="py-3 px-4">
+                        {l.replacementName ? (
+                          <div>
+                            <span className="font-medium text-foreground text-xs">{l.replacementName}</span>
+                            <span className="block text-[10px] font-mono text-muted-foreground">{l.replacementCode}</span>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-muted-foreground italic">{ar ? "لا يوجد بديل" : "None"}</span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4 font-medium text-xs">{l.leaveTypeName || "إجازة اعتيادية سنوية"}</td>
+                      <td className="py-3 px-4 font-mono text-xs">
+                        <div>{formatDate(l.startDate)} ← {formatDate(l.endDate)}</div>
+                        <span className="text-[11px] font-bold text-primary font-mono">{l.totalDays} {ar ? "أيام" : "days"}</span>
+                      </td>
+                      {/* Dept Approval */}
+                      <td className="py-3 px-4 text-center">
+                        {l.deptApprovalStatus === "approved" ? (
+                          <div>
+                            <Badge className="bg-emerald-600 text-white text-[11px]">
+                              ✓ {ar ? "معتمد من القسم" : "Dept Approved"}
+                            </Badge>
+                            {l.deptApprovedBy && (
+                              <span className="block text-[10px] text-muted-foreground mt-0.5">{l.deptApprovedBy}</span>
+                            )}
+                          </div>
+                        ) : l.deptApprovalStatus === "rejected" ? (
+                          <Badge className="bg-destructive text-white text-[11px]">
+                            ✗ {ar ? "مرفوض من القسم" : "Dept Rejected"}
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-amber-600 border-amber-300 text-[11px]">
+                            {ar ? "قيد موافقة القسم" : "Pending Dept"}
+                          </Badge>
+                        )}
+                      </td>
+                      {/* HR Approval */}
+                      <td className="py-3 px-4 text-center">
+                        {l.hrApprovalStatus === "approved" ? (
+                          <div>
+                            <Badge className="bg-emerald-600 text-white text-[11px]">
+                              ✓ {ar ? "معتمد ومرحل" : "HR Approved"}
+                            </Badge>
+                            {l.hrApprovedBy && (
+                              <span className="block text-[10px] text-muted-foreground mt-0.5">{l.hrApprovedBy}</span>
+                            )}
+                          </div>
+                        ) : l.hrApprovalStatus === "rejected" ? (
+                          <Badge className="bg-destructive text-white text-[11px]">
+                            ✗ {ar ? "مرفوض من HR" : "HR Rejected"}
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-blue-600 border-blue-300 text-[11px]">
+                            {ar ? "قيد مراجعة HR" : "Pending HR"}
+                          </Badge>
+                        )}
+                      </td>
+                      {/* Overall Status */}
                       <td className="py-3 px-4 text-center">
                         <Badge
                           className={
                             l.status === "approved"
-                              ? "bg-emerald-600 text-white"
+                              ? "bg-emerald-600 text-white text-[11px]"
                               : l.status === "rejected"
-                              ? "bg-destructive text-white"
-                              : "bg-amber-600 text-white"
+                              ? "bg-destructive text-white text-[11px]"
+                              : "bg-amber-600 text-white text-[11px]"
                           }
                         >
                           {l.status === "approved"
                             ? ar
-                              ? "معتمدة ومرحلة"
+                              ? "معتمدة نهائياً"
                               : "Approved"
                             : l.status === "rejected"
                             ? ar
@@ -1251,34 +1500,83 @@ export default function AttendancePage() {
                             : "Pending"}
                         </Badge>
                       </td>
+                      {/* Approval Actions */}
                       <td className="py-3 px-4 text-center">
-                        {l.status === "pending" ? (
-                          <div className="flex items-center justify-center gap-1.5">
-                            <Button
-                              size="sm"
-                              className="h-7 px-2.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white gap-1"
-                              disabled={updateLeaveStatusMutation.isPending}
-                              onClick={() => updateLeaveStatusMutation.mutate({ id: l.id, status: "approved" })}
-                            >
-                              <CheckCircle2 className="w-3.5 h-3.5" />
-                              <span>{ar ? "اعتماد" : "Approve"}</span>
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="h-7 px-2 text-xs text-destructive hover:bg-destructive/10 border-destructive/30"
-                              disabled={updateLeaveStatusMutation.isPending}
-                              onClick={() => updateLeaveStatusMutation.mutate({ id: l.id, status: "rejected" })}
-                            >
-                              <XCircle className="w-3.5 h-3.5" />
-                              <span>{ar ? "رفض" : "Reject"}</span>
-                            </Button>
-                          </div>
-                        ) : (
-                          <span className="text-xs text-muted-foreground font-mono">
-                            {l.status === "approved" ? "✓ معتمدة رسمي" : "✗ ملغاة"}
-                          </span>
-                        )}
+                        <div className="flex flex-col items-center gap-1">
+                          {l.deptApprovalStatus === "pending" && (
+                            <div className="flex items-center gap-1">
+                              <Button
+                                size="sm"
+                                className="h-6 px-2 text-[10px] bg-emerald-600 hover:bg-emerald-700 text-white"
+                                onClick={() => setApprovalModal({
+                                  isOpen: true,
+                                  leaveId: l.id,
+                                  level: "dept",
+                                  status: "approved",
+                                  employeeName: l.employeeName,
+                                  comment: "",
+                                })}
+                              >
+                                {ar ? "موافقة القسم" : "Dept OK"}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-6 px-1.5 text-[10px] text-destructive border-destructive/30 hover:bg-destructive/10"
+                                onClick={() => setApprovalModal({
+                                  isOpen: true,
+                                  leaveId: l.id,
+                                  level: "dept",
+                                  status: "rejected",
+                                  employeeName: l.employeeName,
+                                  comment: "",
+                                })}
+                              >
+                                {ar ? "رفض" : "Reject"}
+                              </Button>
+                            </div>
+                          )}
+
+                          {l.hrApprovalStatus === "pending" && (
+                            <div className="flex items-center gap-1">
+                              <Button
+                                size="sm"
+                                className="h-6 px-2 text-[10px] bg-[#0f2942] hover:bg-[#193a5c] text-white"
+                                onClick={() => setApprovalModal({
+                                  isOpen: true,
+                                  leaveId: l.id,
+                                  level: "hr",
+                                  status: "approved",
+                                  employeeName: l.employeeName,
+                                  comment: "",
+                                })}
+                              >
+                                {ar ? "اعتماد HR وترحيل" : "HR Approve"}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-6 px-1.5 text-[10px] text-destructive border-destructive/30 hover:bg-destructive/10"
+                                onClick={() => setApprovalModal({
+                                  isOpen: true,
+                                  leaveId: l.id,
+                                  level: "hr",
+                                  status: "rejected",
+                                  employeeName: l.employeeName,
+                                  comment: "",
+                                })}
+                              >
+                                {ar ? "رفض HR" : "HR Reject"}
+                              </Button>
+                            </div>
+                          )}
+
+                          {l.status === "approved" && (
+                            <span className="text-[11px] text-emerald-600 font-bold">
+                              ✓ {ar ? "مرحل للمرتبات" : "Posted to Payroll"}
+                            </span>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -1535,6 +1833,42 @@ export default function AttendancePage() {
               </select>
             </div>
 
+            {/* SST Live Leave Balance Display (Matching SST Frame 5 & 7) */}
+            {(() => {
+              const selectedEmpBalance = (leaveBalancesData?.balances || []).find(
+                (b: any) => String(b.employeeId) === String(leaveForm.employeeId)
+              );
+              if (!selectedEmpBalance) return null;
+              const hasExceeded = Number(leaveForm.totalDays) > Number(selectedEmpBalance.remainingDays);
+
+              return (
+                <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl space-y-2">
+                  <div className="flex items-center justify-between text-xs font-semibold text-emerald-950 dark:text-emerald-200">
+                    <span>{ar ? "رصيد الإجازات المتاح حتى نهاية الشهر:" : "Total Balance Until End of Month:"}</span>
+                    <span className="font-mono font-bold text-base text-emerald-600 dark:text-emerald-400">
+                      {selectedEmpBalance.remainingDays} {ar ? "يوم" : "Days"}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 pt-1.5 border-t border-emerald-500/20 text-[11px] text-muted-foreground">
+                    <div>
+                      <span>{ar ? "المستهلك هذا العام:" : "Used This Year:"} </span>
+                      <span className="font-bold text-foreground font-mono">{selectedEmpBalance.usedDays} {ar ? "يوم" : "d"}</span>
+                    </div>
+                    <div>
+                      <span>{ar ? "الرصيد القانوني السنوي:" : "Statutory Pool:"} </span>
+                      <span className="font-bold text-foreground font-mono">{selectedEmpBalance.totalEntitlement} {ar ? "يوم" : "d"}</span>
+                    </div>
+                  </div>
+                  {hasExceeded && (
+                    <div className="text-[11px] text-amber-700 dark:text-amber-300 font-medium bg-amber-500/15 p-1.5 rounded-lg flex items-center gap-1.5">
+                      <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                      <span>{ar ? "تنبيه: الأيام المطلوبة تتجاوز الرصيد المتاح (قد تخصم إجازة بدون راتب)" : "Warning: Requested days exceed remaining balance"}</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
             <div>
               <label className="text-xs font-semibold text-muted-foreground">{ar ? "نوع الإجازة" : "Leave Type"}</label>
               <select
@@ -1547,6 +1881,27 @@ export default function AttendancePage() {
                     {ar ? lt.nameAr : lt.nameEn} ({lt.maxDaysPerYear || 21} {ar ? "يوم/سنة" : "days/yr"})
                   </option>
                 ))}
+              </select>
+            </div>
+
+            {/* Replacement Employee Selection (الموظف البديل) */}
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground">
+                {ar ? "الموظف البديل (لتغطية مهام العمل)" : "Replacement Colleague (Coverage)"}
+              </label>
+              <select
+                value={leaveForm.replacementEmployeeId}
+                onChange={(e) => setLeaveForm({ ...leaveForm, replacementEmployeeId: e.target.value })}
+                className="w-full mt-1 px-3 py-2 border rounded-md text-xs bg-background"
+              >
+                <option value="">{ar ? "-- اختر الموظف البديل (اختياري) --" : "-- Select Replacement (Optional) --"}</option>
+                {staffList
+                  .filter((emp: any) => String(emp.id) !== String(leaveForm.employeeId))
+                  .map((emp: any) => (
+                    <option key={emp.id} value={emp.id}>
+                      {emp.employeeCode} - {ar ? emp.fullNameAr || emp.fullName : emp.fullName}
+                    </option>
+                  ))}
               </select>
             </div>
 
@@ -1618,7 +1973,90 @@ export default function AttendancePage() {
               disabled={createLeaveMutation.isPending}
               className="bg-emerald-600 hover:bg-emerald-700 text-white"
             >
-              {ar ? "اعتماد وتقديم الإجازة" : "Submit Leave"}
+              {ar ? "تقديم طلب الإجازة" : "Submit Leave Application"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal: Leave Approval / Rejection with Signer Comment */}
+      <Dialog open={approvalModal.isOpen} onOpenChange={(open) => !open && setApprovalModal((prev) => ({ ...prev, isOpen: false }))}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {approvalModal.status === "approved" ? (
+                <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+              ) : (
+                <XCircle className="w-5 h-5 text-destructive" />
+              )}
+              <span>
+                {approvalModal.level === "dept"
+                  ? approvalModal.status === "approved"
+                    ? ar
+                      ? "موافقة رئيس القسم على الإجازة"
+                      : "Dept Head Approval"
+                    : ar
+                    ? "رفض رئيس القسم للطلب"
+                    : "Dept Head Rejection"
+                  : approvalModal.status === "approved"
+                  ? ar
+                    ? "اعتماد وترحيل الإجازة (HR & Payroll)"
+                    : "HR Final Approval & Posting"
+                  : ar
+                  ? "رفض إدارة الموارد البشرية"
+                  : "HR Rejection"}
+              </span>
+            </DialogTitle>
+            <DialogDescription>
+              {ar
+                ? `الموظف صاحب الطلب: ${approvalModal.employeeName || "الموظف"}`
+                : `Applicant: ${approvalModal.employeeName || "Employee"}`}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3 py-2 text-sm">
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground">
+                {ar ? "ملاحظات وتأشيرة الاعتماد / سبب الرفض" : "Approval Remarks / Rejection Reason"}
+              </label>
+              <textarea
+                rows={3}
+                value={approvalModal.comment}
+                onChange={(e) => setApprovalModal({ ...approvalModal, comment: e.target.value })}
+                placeholder={ar ? "اكتب أي ملاحظات أو تعليمات تخص هذا الطلب..." : "Enter any approval notes or instructions..."}
+                className="w-full mt-1.5 px-3 py-2 border rounded-md text-xs bg-background text-foreground"
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setApprovalModal((prev) => ({ ...prev, isOpen: false }))}>
+              {ar ? "إلغاء" : "Cancel"}
+            </Button>
+            <Button
+              onClick={() => {
+                if (!approvalModal.leaveId) return;
+                updateLeaveStatusMutation.mutate({
+                  id: approvalModal.leaveId,
+                  level: approvalModal.level,
+                  status: approvalModal.status,
+                  comment: approvalModal.comment,
+                });
+              }}
+              disabled={updateLeaveStatusMutation.isPending}
+              className={
+                approvalModal.status === "approved"
+                  ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                  : "bg-destructive text-white hover:bg-destructive/90"
+              }
+            >
+              {approvalModal.status === "approved"
+                ? ar
+                  ? "تأكيد الاعتماد والموافقة"
+                  : "Confirm Approval"
+                : ar
+                ? "تأكيد الرفض"
+                : "Confirm Rejection"}
             </Button>
           </DialogFooter>
         </DialogContent>
