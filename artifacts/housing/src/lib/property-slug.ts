@@ -28,6 +28,9 @@ export const RESERVED_FIRST_SEGMENTS = new Set([
   "api",
   "assets",
   "favicon.ico",
+  "payroll",
+  "attendance",
+  "apps",
 ]);
 
 const KNOWN_SLUG_MAP: Record<string, number> = {

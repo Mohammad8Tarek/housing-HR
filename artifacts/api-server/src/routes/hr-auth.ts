@@ -1,6 +1,7 @@
 import { Router, type Request, type Response } from "express";
 import bcrypt from "bcryptjs";
 import { payrollDb, hrUsers, properties } from "@workspace/db-payroll";
+import { db, usersTable } from "@workspace/db";
 import { eq, desc, sql } from "drizzle-orm";
 
 const router = Router();
@@ -14,62 +15,97 @@ router.post("/hr-auth/login", async (req: Request, res: Response) => {
       return;
     }
 
+    const trimmedUser = username.trim();
+
+    // 1. First check dedicated hr_users table
     const [user] = await payrollDb
       .select()
       .from(hrUsers)
-      .where(sql`lower(${hrUsers.username}) = lower(${username.trim()})`)
+      .where(sql`lower(${hrUsers.username}) = lower(${trimmedUser})`)
       .limit(1);
 
-    if (!user || !user.isActive) {
-      res.status(401).json({ success: false, error: "Invalid username or account is inactive" });
-      return;
-    }
+    if (user && user.isActive) {
+      const isMatch = await bcrypt.compare(password, user.passwordHash);
+      if (isMatch) {
+        // Check system scope isolation
+        if (system && system !== "both") {
+          if (user.systemAccess !== "both" && user.systemAccess !== system) {
+            res.status(403).json({
+              success: false,
+              error: system === "payroll" 
+                ? "غير مصرح لحسابك بالدخول لنظام المرتبات (Access Denied to Payroll)"
+                : "غير مصرح لحسابك بالدخول لنظام البصمة والحضور (Access Denied to Attendance)",
+            });
+            return;
+          }
+        }
 
-    // Verify Password
-    const isMatch = await bcrypt.compare(password, user.passwordHash);
-    if (!isMatch) {
-      res.status(401).json({ success: false, error: "Invalid password credentials" });
-      return;
-    }
+        const session = req.session as any;
+        session.hrUserId = user.id;
+        session.hrUser = {
+          id: user.id,
+          username: user.username,
+          fullName: user.fullName,
+          email: user.email,
+          role: user.role,
+          systemAccess: user.systemAccess,
+          propertyId: user.propertyId,
+          permissions: user.permissions,
+        };
 
-    // Check system scope isolation
-    if (system && system !== "both") {
-      if (user.systemAccess !== "both" && user.systemAccess !== system) {
-        res.status(403).json({
-          success: false,
-          error: system === "payroll" 
-            ? "غير مصرح لحسابك بالدخول لنظام المرتبات (Access Denied to Payroll)"
-            : "غير مصرح لحسابك بالدخول لنظام البصمة والحضور (Access Denied to Attendance)",
+        await payrollDb
+          .update(hrUsers)
+          .set({ lastLoginAt: new Date() })
+          .where(eq(hrUsers.id, user.id));
+
+        res.json({
+          success: true,
+          user: session.hrUser,
+          message: "Authenticated successfully to HR Operations Suite",
         });
         return;
       }
     }
 
-    // Store in Session
-    const session = req.session as any;
-    session.hrUserId = user.id;
-    session.hrUser = {
-      id: user.id,
-      username: user.username,
-      fullName: user.fullName,
-      email: user.email,
-      role: user.role,
-      systemAccess: user.systemAccess,
-      propertyId: user.propertyId,
-      permissions: user.permissions,
-    };
+    // 2. Fallback: Check Housing usersTable (allowing admin, super_admin, etc.)
+    const [housingUser] = await db
+      .select()
+      .from(usersTable)
+      .where(sql`lower(${usersTable.username}) = lower(${trimmedUser})`)
+      .limit(1);
 
-    // Update last login
-    await payrollDb
-      .update(hrUsers)
-      .set({ lastLoginAt: new Date() })
-      .where(eq(hrUsers.id, user.id));
+    if (housingUser && housingUser.status?.toLowerCase() === "active") {
+      const isMatch = await bcrypt.compare(password, housingUser.passwordHash);
+      if (isMatch) {
+        const roles = (housingUser.roles || []).map(r => String(r).toLowerCase());
+        const isSysAdmin = roles.includes("super_admin") || roles.includes("system_admin") || roles.includes("admin");
 
-    res.json({
-      success: true,
-      user: session.hrUser,
-      message: "Authenticated successfully to HR Operations Suite",
-    });
+        const session = req.session as any;
+        session.hrUserId = housingUser.id;
+        session.hrUser = {
+          id: housingUser.id,
+          username: housingUser.username,
+          fullName: housingUser.fullName || housingUser.username,
+          email: housingUser.email,
+          role: isSysAdmin ? "super_admin" : (roles[0] || "officer"),
+          systemAccess: "both",
+          propertyId: housingUser.propertyId,
+          permissions: {
+            payroll: { view: true, create: true, edit: true, delete: isSysAdmin, approve: isSysAdmin, wps_export: true },
+            attendance: { view: true, create: true, edit: true, delete: isSysAdmin, approve: isSysAdmin, sync_payroll: true },
+          },
+        };
+
+        res.json({
+          success: true,
+          user: session.hrUser,
+          message: "Authenticated successfully to HR Operations Suite",
+        });
+        return;
+      }
+    }
+
+    res.status(401).json({ success: false, error: "بيانات الدخول غير صحيحة أو الحساب غير مفعّل (Invalid credentials)" });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -79,54 +115,74 @@ router.post("/hr-auth/login", async (req: Request, res: Response) => {
 router.get("/hr-auth/me", async (req: Request, res: Response) => {
   try {
     const session = req.session as any;
-    if (!session?.hrUserId) {
-      // Fallback: If user is logged into Housing as super_admin, grant temporary elevated HR context
-      if (session?.userId && session?.isSystemAdmin) {
+    
+    // Check if session has hrUser cached
+    if (session?.hrUser) {
+      res.json({ success: true, user: session.hrUser });
+      return;
+    }
+
+    // Check hrUserId in payrollDb
+    if (session?.hrUserId) {
+      const [user] = await payrollDb
+        .select()
+        .from(hrUsers)
+        .where(eq(hrUsers.id, session.hrUserId))
+        .limit(1);
+
+      if (user && user.isActive) {
         res.json({
           success: true,
           user: {
-            id: 0,
-            username: "super_admin",
-            fullName: "System Super Administrator",
-            role: "super_admin",
-            systemAccess: "both",
-            permissions: {
-              payroll: { view: true, create: true, edit: true, delete: true, approve: true, wps_export: true },
-              attendance: { view: true, create: true, edit: true, delete: true, approve: true, sync_payroll: true },
-            },
+            id: user.id,
+            username: user.username,
+            fullName: user.fullName,
+            email: user.email,
+            role: user.role,
+            systemAccess: user.systemAccess,
+            propertyId: user.propertyId,
+            permissions: user.permissions,
           },
         });
         return;
       }
-
-      res.status(401).json({ success: false, error: "Not authenticated in HR system" });
-      return;
     }
 
-    const [user] = await payrollDb
-      .select({
-        id: hrUsers.id,
-        username: hrUsers.username,
-        fullName: hrUsers.fullName,
-        email: hrUsers.email,
-        role: hrUsers.role,
-        systemAccess: hrUsers.systemAccess,
-        propertyId: hrUsers.propertyId,
-        permissions: hrUsers.permissions,
-        isActive: hrUsers.isActive,
-      })
-      .from(hrUsers)
-      .where(eq(hrUsers.id, session.hrUserId))
-      .limit(1);
+    // Check Housing session fallback (userId from usersTable)
+    if (session?.userId) {
+      const [userRow] = await db
+        .select()
+        .from(usersTable)
+        .where(eq(usersTable.id, session.userId))
+        .limit(1);
 
-    if (!user || !user.isActive) {
-      session.hrUserId = null;
-      session.hrUser = null;
-      res.status(401).json({ success: false, error: "Session invalid or account deactivated" });
-      return;
+      if (userRow && userRow.status?.toLowerCase() === "active") {
+        const roles = (userRow.roles || []).map(r => String(r).toLowerCase());
+        const isSysAdmin = roles.includes("super_admin") || roles.includes("system_admin") || roles.includes("admin");
+
+        const hrUser = {
+          id: userRow.id,
+          username: userRow.username,
+          fullName: userRow.fullName || userRow.username,
+          email: userRow.email,
+          role: isSysAdmin ? "super_admin" : (roles[0] || "officer"),
+          systemAccess: "both" as const,
+          propertyId: userRow.propertyId,
+          permissions: {
+            payroll: { view: true, create: true, edit: true, delete: isSysAdmin, approve: isSysAdmin, wps_export: true },
+            attendance: { view: true, create: true, edit: true, delete: isSysAdmin, approve: isSysAdmin, sync_payroll: true },
+          },
+        };
+
+        session.hrUserId = userRow.id;
+        session.hrUser = hrUser;
+
+        res.json({ success: true, user: hrUser });
+        return;
+      }
     }
 
-    res.json({ success: true, user });
+    res.status(401).json({ success: false, error: "Not authenticated in HR system" });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }
