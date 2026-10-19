@@ -28,7 +28,8 @@ import {
   CreditCard,
   FileSpreadsheet,
   Clock,
-  Sparkles
+  Sparkles,
+  Lock
 } from "lucide-react";
 
 interface HrSuiteLayoutProps {
