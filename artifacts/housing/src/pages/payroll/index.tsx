@@ -43,15 +43,43 @@ import {
 import { toast } from "sonner";
 import { PermissionGate } from "@/components/ui/permission-gate";
 import { formatDate } from "@/lib/date-utils";
+import { useHrAuth } from "@/context/HrAuthContext";
+import { DualKeyAuthModal } from "@/components/modals/DualKeyAuthModal";
 
 export default function PayrollPage() {
   const { language } = useLanguage();
   const ar = language === "ar";
   const queryClient = useQueryClient();
+  const { propertyScope } = useHrAuth();
 
-  const [selectedPropertyId, setSelectedPropertyId] = useState<number>(2); // Default to Meraki Sharm
-  const [employmentType, setEmploymentType] = useState<"regular" | "casual">("regular");
+  const [selectedPropertyId, setSelectedPropertyId] = useState<number>(() => {
+    return propertyScope?.id ? Number(propertyScope.id) : 2;
+  });
+  const [employmentType, setEmploymentType] = useState<"regular" | "casual">(() => {
+    return propertyScope?.category === "casuals" ? "casual" : "regular";
+  });
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Dual-Key Authorization State
+  const [isDualKeyOpen, setIsDualKeyOpen] = useState(false);
+  const [pendingDualKeyAction, setPendingDualKeyAction] = useState<{
+    code: string;
+    titleAr: string;
+    titleEn: string;
+    descriptionAr?: string;
+    descriptionEn?: string;
+    execute: (auditStamp: string) => void | Promise<void>;
+  } | null>(null);
+
+  // Sync state if propertyScope changes
+  React.useEffect(() => {
+    if (propertyScope) {
+      if (propertyScope.id) setSelectedPropertyId(Number(propertyScope.id));
+      if (propertyScope.category === "casuals") setEmploymentType("casual");
+      else if (propertyScope.category === "permanent") setEmploymentType("regular");
+    }
+  }, [propertyScope]);
+
   const getInitialTab = () => {
     if (typeof window !== "undefined") {
       const p = new URLSearchParams(window.location.search).get("tab");
@@ -610,11 +638,21 @@ export default function PayrollPage() {
                       toast.error(ar ? "يرجى إنشاء فترة مالية أولاً بالضغط على 'فترة مالية جديدة'" : "Please create a payroll period first using 'New Period'");
                       return;
                     }
-                    calculateMutation.mutate({
-                      propertyId: selectedPropertyId,
-                      payrollPeriodId: periodsList[0].id,
-                      employmentType,
+                    setPendingDualKeyAction({
+                      code: "PAYROLL_CALCULATE",
+                      titleAr: "تفويض احتساب مسير الأجور الفندقية",
+                      titleEn: "Authorize Hotel Payroll Calculation",
+                      descriptionAr: `سيتم احتساب مسير الأجور لكافة العاملين (${employmentType === "casual" ? "العمالة اليومية والكاجوال" : "العمالة الدائمة"}) لنطاق: ${propertyScope?.nameAr || "الفندق المختار"}. يتطلب هذا الإجراء إدخال رمز الأمان المالي.`,
+                      descriptionEn: `Calculating payroll batch for ${propertyScope?.nameEn || "selected hotel"}. Requires financial supervisor authorization PIN.`,
+                      execute: () => {
+                        calculateMutation.mutate({
+                          propertyId: selectedPropertyId,
+                          payrollPeriodId: periodsList[0].id,
+                          employmentType,
+                        });
+                      },
                     });
+                    setIsDualKeyOpen(true);
                   }}
                   disabled={calculateMutation.isPending}
                   className="gap-2 bg-[#0f2942] hover:bg-[#193a5c] text-white rounded-xl shadow-xs text-xs font-bold h-10 px-4"
@@ -2135,6 +2173,27 @@ export default function PayrollPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Dual-Key Supervisor Authorization Modal */}
+      {pendingDualKeyAction && (
+        <DualKeyAuthModal
+          isOpen={isDualKeyOpen}
+          onClose={() => {
+            setIsDualKeyOpen(false);
+            setPendingDualKeyAction(null);
+          }}
+          onSuccess={async (auditStamp) => {
+            if (pendingDualKeyAction) {
+              await pendingDualKeyAction.execute(auditStamp);
+            }
+          }}
+          actionCode={pendingDualKeyAction.code}
+          titleAr={pendingDualKeyAction.titleAr}
+          titleEn={pendingDualKeyAction.titleEn}
+          descriptionAr={pendingDualKeyAction.descriptionAr}
+          descriptionEn={pendingDualKeyAction.descriptionEn}
+        />
+      )}
 
     </div>
   );

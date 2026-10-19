@@ -1,6 +1,16 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
+export interface PropertyScope {
+  id?: number | string;
+  code: string;
+  nameEn: string;
+  nameAr: string;
+  category: "permanent" | "casuals";
+  ledgerCode?: string;
+  badge?: string;
+}
+
 export interface HrUser {
   id: number;
   username: string;
@@ -9,15 +19,18 @@ export interface HrUser {
   role: string;
   systemAccess: "payroll" | "attendance" | "both";
   propertyId?: number | null;
+  propertyScope?: PropertyScope | null;
   permissions?: any;
 }
 
 interface HrAuthContextType {
   hrUser: HrUser | null;
+  propertyScope: PropertyScope | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (username: string, password: string, system?: "payroll" | "attendance" | "both") => Promise<void>;
+  login: (username: string, password: string, system?: "payroll" | "attendance" | "both", propertyScope?: PropertyScope) => Promise<void>;
   logout: () => Promise<void>;
+  verifyPin: (pin: string, action?: string, reason?: string) => Promise<{ success: boolean; auditStamp: string }>;
   can: (module: "payroll" | "attendance", action: string) => boolean;
 }
 
@@ -45,13 +58,42 @@ export function HrAuthProvider({ children }: { children: React.ReactNode }) {
   const hrUser = data ?? null;
   const isAuthenticated = !!hrUser;
 
+  const [activePropertyScope, setActivePropertyScope] = useState<PropertyScope | null>(() => {
+    try {
+      const saved = sessionStorage.getItem("hr_property_vault_scope");
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const propertyScope = hrUser?.propertyScope || activePropertyScope || {
+    id: 1,
+    code: "MRK-01",
+    nameEn: "Meraki Resort (Permanent Staff)",
+    nameAr: "منتجع ميراكي شرم الشيخ (العمالة الدائمة)",
+    category: "permanent" as const,
+    ledgerCode: "PERM-EXEC-FY2025",
+    badge: "MRK-01 • Sharm El Sheikh",
+  };
+
   const loginMutation = useMutation({
     mutationKey: ["hr-login"],
-    mutationFn: async ({ username, password, system }: { username: string; password: string; system?: "payroll" | "attendance" | "both" }) => {
+    mutationFn: async ({
+      username,
+      password,
+      system,
+      propertyScope,
+    }: {
+      username: string;
+      password: string;
+      system?: "payroll" | "attendance" | "both";
+      propertyScope?: PropertyScope;
+    }) => {
       const res = await fetch("/api/hr-auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password, system }),
+        body: JSON.stringify({ username, password, system, propertyScope }),
       });
       const json = await res.json();
       if (!res.ok || !json.success) {
@@ -60,6 +102,10 @@ export function HrAuthProvider({ children }: { children: React.ReactNode }) {
       return json.user as HrUser;
     },
     onSuccess: (user) => {
+      if (user.propertyScope) {
+        setActivePropertyScope(user.propertyScope);
+        sessionStorage.setItem("hr_property_vault_scope", JSON.stringify(user.propertyScope));
+      }
       queryClient.setQueryData(["hr-auth-me"], user);
     },
   });
@@ -70,17 +116,45 @@ export function HrAuthProvider({ children }: { children: React.ReactNode }) {
       await fetch("/api/hr-auth/logout", { method: "POST" });
     },
     onSuccess: () => {
+      sessionStorage.removeItem("hr_property_vault_scope");
+      setActivePropertyScope(null);
       queryClient.setQueryData(["hr-auth-me"], null);
       queryClient.invalidateQueries({ queryKey: ["hr-auth-me"] });
     },
   });
 
-  const login = async (username: string, password: string, system?: "payroll" | "attendance" | "both") => {
-    await loginMutation.mutateAsync({ username, password, system });
+  const login = async (
+    username: string,
+    password: string,
+    system?: "payroll" | "attendance" | "both",
+    scope?: PropertyScope
+  ) => {
+    if (scope) {
+      setActivePropertyScope(scope);
+      sessionStorage.setItem("hr_property_vault_scope", JSON.stringify(scope));
+    }
+    await loginMutation.mutateAsync({ username, password, system, propertyScope: scope });
   };
 
   const logout = async () => {
     await logoutMutation.mutateAsync();
+  };
+
+  const verifyPin = async (
+    pin: string,
+    action: string = "approval",
+    reason?: string
+  ): Promise<{ success: boolean; auditStamp: string }> => {
+    const res = await fetch("/api/hr-auth/verify-pin", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pin, action, reason }),
+    });
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+      throw new Error(json.error || "رمز التأكيد الأمني المزدوج غير صحيح");
+    }
+    return { success: true, auditStamp: json.auditStamp };
   };
 
   const can = (module: "payroll" | "attendance", action: string): boolean => {
@@ -101,10 +175,12 @@ export function HrAuthProvider({ children }: { children: React.ReactNode }) {
     <HrAuthContext.Provider
       value={{
         hrUser,
+        propertyScope,
         isAuthenticated,
         isLoading,
         login,
         logout,
+        verifyPin,
         can,
       }}
     >

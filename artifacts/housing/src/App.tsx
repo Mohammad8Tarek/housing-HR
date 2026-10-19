@@ -58,6 +58,7 @@ const SystemLauncher = lazy(() => import("@/pages/launcher"));
 const PayrollPage = lazy(() => import("@/pages/payroll"));
 const AttendancePage = lazy(() => import("@/pages/attendance"));
 const HrmsSuitePage = lazy(() => import("@/pages/hrms"));
+const HrPropertyGatePage = lazy(() => import("@/pages/auth/HrPropertyGatePage"));
 const HrLoginPage = lazy(() => import("@/pages/hr-login"));
 const EditHostingRequest = lazy(
   () => import("@/pages/hosting-requests/EditHostingRequest"),
@@ -147,7 +148,7 @@ function ProtectedHrSuiteLayout({
   const auth = useAuth();
 
   if (isLoading && auth.isLoading) return <PageLoader />;
-  if (!isAuthenticated && !auth.isAuthenticated) return <Redirect to="/payroll/login" />;
+  if (!isAuthenticated && !auth.isAuthenticated) return <Redirect to="/hr-portal" />;
 
   return (
     <HrSuiteLayout activeModule={activeModule}>
@@ -327,12 +328,15 @@ function Router() {
           <SystemLauncher />
         </Route>
 
-        {/* Dedicated Login for Payroll and Attendance */}
+        {/* Dedicated Pre-Entry Property Gate & Database Vault Selector */}
+        <Route path="/hr-portal">
+          <HrPropertyGatePage />
+        </Route>
         <Route path="/payroll/login">
-          <HrLoginPage system="payroll" />
+          <HrPropertyGatePage />
         </Route>
         <Route path="/attendance/login">
-          <HrLoginPage system="attendance" />
+          <HrPropertyGatePage />
         </Route>
 
         {/* 2b. Unified HR Operations Suite (HRMS, Payroll, Attendance with persistent Sidebar) */}

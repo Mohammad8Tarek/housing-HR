@@ -41,7 +41,7 @@ export function HrSuiteLayout({ children, activeModule }: HrSuiteLayoutProps) {
   const { language, setLanguage } = useLanguage();
   const ar = language === "ar";
   const { propertySlug, properties, activePropertyId, setActivePropertyId } = useProperty();
-  const { hrUser, logout: hrLogout } = useHrAuth();
+  const { hrUser, propertyScope, logout: hrLogout } = useHrAuth();
   const auth = useAuth();
 
   const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
@@ -225,24 +225,33 @@ export function HrSuiteLayout({ children, activeModule }: HrSuiteLayoutProps) {
 
         {/* Right Action Icons: Property Picker, Language Toggle, User Profile */}
         <div className="flex items-center gap-2.5">
-          {/* Hotel Property Selector */}
-          {properties.length > 0 && (
-            <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-lg text-xs">
-              <Hotel className="w-3.5 h-3.5 text-[#c89332]" />
-              <select
-                value={activePropertyId || ""}
-                onChange={(e) => setActivePropertyId(Number(e.target.value))}
-                className="bg-transparent font-bold text-slate-700 text-xs focus:outline-hidden cursor-pointer"
-                aria-label="Select Hotel"
+          {/* Property Scope Locked Vault Indicator */}
+          <div className="flex items-center gap-2 bg-[#0d1320] text-[#dde2f5] border border-[#dfba73]/40 px-3 py-1 rounded-xl text-xs shadow-xs">
+            <Lock className="w-3.5 h-3.5 text-[#dfba73]" />
+            <div className="flex items-center gap-1.5 font-bold">
+              <span className="text-white max-w-[140px] truncate sm:max-w-[200px]">
+                {ar ? propertyScope?.nameAr : propertyScope?.nameEn}
+              </span>
+              <Badge
+                variant="outline"
+                className={`text-[9px] px-1.5 py-0 h-4 ${
+                  propertyScope?.category === "casuals"
+                    ? "bg-amber-950/40 text-amber-300 border-amber-500/40"
+                    : "bg-blue-950/40 text-blue-300 border-blue-500/40"
+                }`}
               >
-                {properties.map((p: any) => (
-                  <option key={p.id} value={p.id}>
-                    {ar ? p.nameAr || p.name : p.nameEn || p.name}
-                  </option>
-                ))}
-              </select>
+                {propertyScope?.code}
+              </Badge>
             </div>
-          )}
+            <Link href="/hr-portal">
+              <button
+                className="text-[10px] text-slate-400 hover:text-amber-300 underline ms-1 cursor-pointer"
+                title={ar ? "العودة لبوابة اختيار فندق وقاعدة بيانات أخرى" : "Switch Hotel Vault via Portal"}
+              >
+                {ar ? "تبديل الفندق" : "Switch"}
+              </button>
+            </Link>
+          </div>
 
           {/* Language Toggle */}
           <Button

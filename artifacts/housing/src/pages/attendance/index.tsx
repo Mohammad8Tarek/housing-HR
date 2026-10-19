@@ -40,13 +40,36 @@ import {
 import { toast } from "sonner";
 import { PermissionGate } from "@/components/ui/permission-gate";
 import { formatDate, formatDateTime } from "@/lib/date-utils";
+import { useHrAuth } from "@/context/HrAuthContext";
+import { DualKeyAuthModal } from "@/components/modals/DualKeyAuthModal";
 
 export default function AttendancePage() {
   const { language } = useLanguage();
   const ar = language === "ar";
   const queryClient = useQueryClient();
+  const { propertyScope } = useHrAuth();
 
-  const [selectedPropertyId, setSelectedPropertyId] = useState<number>(2); // Default Meraki Sharm
+  const [selectedPropertyId, setSelectedPropertyId] = useState<number>(() => {
+    return propertyScope?.id ? Number(propertyScope.id) : 2;
+  });
+
+  // Dual-Key Authorization State
+  const [isDualKeyOpen, setIsDualKeyOpen] = useState(false);
+  const [pendingDualKeyAction, setPendingDualKeyAction] = useState<{
+    code: string;
+    titleAr: string;
+    titleEn: string;
+    descriptionAr?: string;
+    descriptionEn?: string;
+    execute: (auditStamp: string) => void | Promise<void>;
+  } | null>(null);
+
+  React.useEffect(() => {
+    if (propertyScope?.id) {
+      setSelectedPropertyId(Number(propertyScope.id));
+    }
+  }, [propertyScope]);
+
   const getInitialTab = () => {
     if (typeof window !== "undefined") {
       const p = new URLSearchParams(window.location.search).get("tab");
@@ -2089,6 +2112,28 @@ export default function AttendancePage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Dual-Key Supervisor Authorization Modal for Attendance Closing & Critical Overrides */}
+      {pendingDualKeyAction && (
+        <DualKeyAuthModal
+          isOpen={isDualKeyOpen}
+          onClose={() => {
+            setIsDualKeyOpen(false);
+            setPendingDualKeyAction(null);
+          }}
+          onSuccess={async (auditStamp) => {
+            if (pendingDualKeyAction) {
+              await pendingDualKeyAction.execute(auditStamp);
+            }
+          }}
+          actionCode={pendingDualKeyAction.code}
+          titleAr={pendingDualKeyAction.titleAr}
+          titleEn={pendingDualKeyAction.titleEn}
+          descriptionAr={pendingDualKeyAction.descriptionAr}
+          descriptionEn={pendingDualKeyAction.descriptionEn}
+        />
+      )}
+
     </div>
   );
 }

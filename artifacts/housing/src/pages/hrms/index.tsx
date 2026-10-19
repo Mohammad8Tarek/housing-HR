@@ -42,11 +42,13 @@ import {
 import { toast } from "sonner";
 import { formatDate } from "@/lib/date-utils";
 import { useDebounce } from "@/hooks/use-debounce";
+import { useHrAuth } from "@/context/HrAuthContext";
 
 export default function HrmsSuitePage() {
   const { language } = useLanguage();
   const ar = language === "ar";
   const queryClient = useQueryClient();
+  const { propertyScope } = useHrAuth();
 
   const getInitialTab = () => {
     if (typeof window !== "undefined") {
@@ -75,7 +77,16 @@ export default function HrmsSuitePage() {
     window.history.replaceState(null, "", `${window.location.pathname}?${params.toString()}`);
   };
 
-  const [selectedPropertyId, setSelectedPropertyId] = useState<number>(2); // Meraki Sharm Default
+  const [selectedPropertyId, setSelectedPropertyId] = useState<number>(() => {
+    return propertyScope?.id ? Number(propertyScope.id) : 2;
+  });
+
+  React.useEffect(() => {
+    if (propertyScope?.id) {
+      setSelectedPropertyId(Number(propertyScope.id));
+    }
+  }, [propertyScope]);
+
   const [page, setPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(15);
   const [searchInput, setSearchInput] = useState<string>("");
