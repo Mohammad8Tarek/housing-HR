@@ -283,10 +283,13 @@ async function runSuite() {
   assert(invalidPinRes.status === 403 || invalidPinRes.body?.success === false, "Reject Unauthorized Secondary PIN");
 
   const validPinRes = await request("POST", "/hr-auth/verify-pin", {
-    pin: "1234",
+    pin: "987654",
     action: "payroll_recalculation",
     reason: "Monthly attendance adjustment"
   });
+  if (validPinRes.status !== 200) {
+    console.log("verify-pin failure details:", validPinRes.status, validPinRes.body);
+  }
   assert(validPinRes.status === 200 && validPinRes.body?.success === true, "Approve Valid Supervisor PIN with Audit Stamp");
 
   // ─── Summary ─────────────────────────────────────────────────────────────

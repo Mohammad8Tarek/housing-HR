@@ -998,3 +998,31 @@ export const systemNotifications = pgTable("system_notifications", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
+// 29.5 Supervisor Dual-Key Authorizations (Single-use, short-lived tokens)
+export const supervisorAuthorizations = pgTable("supervisor_authorizations", {
+  id: serial("id").primaryKey(),
+  token: varchar("token", { length: 120 }).notNull().unique(),
+  userId: integer("user_id").notNull().references(() => hrUsers.id, { onDelete: "cascade" }),
+  username: varchar("username", { length: 100 }).notNull(),
+  action: varchar("action", { length: 100 }).notNull(),
+  propertyId: integer("property_id").references(() => properties.id, { onDelete: "cascade" }),
+  entityType: varchar("entity_type", { length: 50 }),
+  entityId: integer("entity_id"),
+  isConsumed: boolean("is_consumed").notNull().default(false),
+  consumedAt: timestamp("consumed_at", { withTimezone: true }),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  ipAddress: varchar("ip_address", { length: 50 }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// 29.6 Persistent PIN Brute-force Attempt Tracking
+export const hrPinAttempts = pgTable("hr_pin_attempts", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => hrUsers.id, { onDelete: "cascade" }).unique(),
+  username: varchar("username", { length: 100 }).notNull(),
+  ipAddress: varchar("ip_address", { length: 50 }).notNull(),
+  attempts: integer("attempts").notNull().default(1),
+  lockedUntil: timestamp("locked_until", { withTimezone: true }),
+  lastAttemptAt: timestamp("last_attempt_at", { withTimezone: true }).defaultNow(),
+});
+

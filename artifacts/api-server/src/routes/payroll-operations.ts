@@ -8,7 +8,7 @@ import {
   loanInstallments,
   employees,
 } from "@workspace/db-payroll";
-import { eq, desc, and, ne, sql } from "drizzle-orm";
+import { eq, desc, and, ne, sql, notInArray } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { requirePermission } from "../middlewares/permissions.js";
 
@@ -69,13 +69,55 @@ router.post(["/payroll-ops/leaves", "/payroll-operations/leaves"], requirePermis
       return res.status(400).json({ success: false, error: "تاريخ بداية الإجازة يجب أن يكون مساوياً أو سابقاً لتاريخ النهاية" });
     }
 
-    // Check for conflicting overlapping leave applications for this employee
+    const requestedDays = Number(totalDays) || Math.max(1, Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1);
+
+    // 1. Fetch leave type and check entitlement limits
+    const [typeRecord] = await payrollDb
+      .select()
+      .from(leaveTypes)
+      .where(eq(leaveTypes.id, Number(leaveTypeId)));
+
+    if (!typeRecord) {
+      return res.status(404).json({ success: false, error: "نوع الإجازة غير موجود" });
+    }
+
+    const year = start.getFullYear();
+    const yearStart = `${year}-01-01`;
+    const yearEnd = `${year}-12-31`;
+
+    const usedLeaves = await payrollDb
+      .select()
+      .from(leaveApplications)
+      .where(and(
+        eq(leaveApplications.employeeId, Number(employeeId)),
+        eq(leaveApplications.leaveTypeId, Number(leaveTypeId)),
+        notInArray(leaveApplications.status, ["rejected", "cancelled", "canceled"]),
+        sql`${leaveApplications.startDate} >= ${yearStart} AND ${leaveApplications.startDate} <= ${yearEnd}`
+      ));
+
+    const alreadyTakenDays = usedLeaves.reduce((acc, curr) => acc + (Number(curr.totalDays) || 0), 0);
+    const maxAllowed = Number(typeRecord.maxDaysPerYear) || 21;
+
+    if (alreadyTakenDays + requestedDays > maxAllowed) {
+      return res.status(400).json({
+        success: false,
+        error: `رصيد الإجازات غير كافٍ. المستحق سنوياً: ${maxAllowed} يوم، المستهلك: ${alreadyTakenDays} يوم، المتبقي: ${Math.max(0, maxAllowed - alreadyTakenDays)} يوم، والمطلوب: ${requestedDays} يوم`,
+        balance: {
+          maxAllowed,
+          alreadyTakenDays,
+          remainingDays: Math.max(0, maxAllowed - alreadyTakenDays),
+          requestedDays,
+        }
+      });
+    }
+
+    // 2. Check for conflicting overlapping leave applications for this employee (excluding cancelled and rejected)
     const [existingOverlap] = await payrollDb
       .select()
       .from(leaveApplications)
       .where(and(
         eq(leaveApplications.employeeId, Number(employeeId)),
-        ne(leaveApplications.status, "rejected"),
+        notInArray(leaveApplications.status, ["rejected", "cancelled", "canceled"]),
         sql`${leaveApplications.startDate} <= ${endDate} AND ${leaveApplications.endDate} >= ${startDate}`
       ))
       .limit(1);
@@ -93,7 +135,7 @@ router.post(["/payroll-ops/leaves", "/payroll-operations/leaves"], requirePermis
       leaveTypeId: Number(leaveTypeId),
       startDate,
       endDate,
-      totalDays: String(totalDays || 1),
+      totalDays: String(requestedDays),
       reason,
       replacementEmployeeId: replacementEmployeeId ? Number(replacementEmployeeId) : null,
       deptApprovalStatus: "pending",
@@ -152,6 +194,29 @@ router.patch(["/payroll-ops/leaves/:id/approve", "/payroll-operations/leaves/:id
     res.json({ success: true, leave: updated });
   } catch (err: any) {
     res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+router.post(["/payroll-ops/leaves/:id/cancel", "/payroll-operations/leaves/:id/cancel"], requirePermission("payroll", "edit"), async (req: Request, res: Response) => {
+  try {
+    const leaveId = Number(req.params.id);
+    const [updated] = await payrollDb
+      .update(leaveApplications)
+      .set({
+        status: "cancelled",
+        deptApprovalStatus: "cancelled",
+        hrApprovalStatus: "cancelled",
+      })
+      .where(eq(leaveApplications.id, leaveId))
+      .returning();
+
+    if (!updated) {
+      return res.status(404).json({ success: false, error: "طلب الإجازة غير موجود" });
+    }
+
+    res.json({ success: true, leave: updated, message: "تم إلغاء طلب الإجازة بنجاح" });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 

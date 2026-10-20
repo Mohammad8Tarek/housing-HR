@@ -17,8 +17,10 @@ import {
   serviceChargeItems,
   bankWpsConfigs,
   bankWpsBatches,
+  supervisorAuthorizations,
+  hrmsAuditLogs,
 } from "@workspace/db-payroll";
-import { eq, and, or, ilike, desc, sql, inArray } from "drizzle-orm";
+import { eq, and, or, ilike, desc, sql, inArray, gt, ne } from "drizzle-orm";
 import { requirePermission } from "../middlewares/permissions.js";
 
 const router = Router();
@@ -242,7 +244,7 @@ router.get("/payroll/runs", requirePermission("payroll", "view"), async (req: Re
 
 router.post("/payroll/calculate", requirePermission("payroll", "create"), async (req: Request, res: Response) => {
   try {
-    const { propertyId, payrollPeriodId, employmentType } = req.body;
+    const { propertyId, payrollPeriodId, employmentType, forceRecalculate } = req.body;
 
     const [period] = await payrollDb
       .select()
@@ -255,6 +257,34 @@ router.post("/payroll/calculate", requirePermission("payroll", "create"), async 
 
     if (period.status === "closed") {
       return res.status(400).json({ success: false, error: "لا يمكن إعادة احتساب مسير رواتب لفترة مغلقة ومقفلة محاسبياً" });
+    }
+
+    // Check for existing runs on the same period and property
+    const existingRuns = await payrollDb
+      .select()
+      .from(payrollRuns)
+      .where(and(
+        eq(payrollRuns.payrollPeriodId, period.id),
+        eq(payrollRuns.propertyId, Number(propertyId)),
+        ne(payrollRuns.status, "rejected")
+      ));
+
+    if (existingRuns.length > 0) {
+      const hasApprovedOrClosed = existingRuns.some(r => r.status === "approved" || r.status === "closed");
+      if (hasApprovedOrClosed) {
+        return res.status(400).json({
+          success: false,
+          error: "لا يمكن إعادة احتساب مسير رواتب تم اعتماده أو إقفاله نهائياً",
+        });
+      }
+
+      if (!forceRecalculate) {
+        return res.status(409).json({
+          success: false,
+          error: "يوجد مسير رواتب محسوب مسبقاً لهذه الفترة. يرجى تفعيل خيار إعادة الاحتساب الصريح (forceRecalculate: true) للاستبدال",
+          existingRunId: existingRuns[0].id,
+        });
+      }
     }
 
     // 1. Fetch eligible employees
@@ -272,149 +302,170 @@ router.post("/payroll/calculate", requirePermission("payroll", "create"), async 
       return res.status(400).json({ success: false, error: "No active employees found for calculation" });
     }
 
-    // 2. Create Payroll Run Batch Header
-    const [run] = await payrollDb.insert(payrollRuns).values({
-      payrollPeriodId: period.id,
-      propertyId: Number(propertyId),
-      employmentType: employmentType || "regular",
-      totalEmployees: staffList.length,
-      status: "calculated",
-    }).returning();
-
-    let grandGross = 0;
-    let grandDeductions = 0;
-    let grandNet = 0;
-
-    // 3. Process each employee (integrating Attendance + Penalties + Loans + Egyptian Statutory)
-    for (const emp of staffList) {
-      const basicSalary = Number(emp.baseSalary) || 0;
-      
-      // Attendance audit for this period
-      const attendance = await payrollDb
-        .select()
-        .from(attendanceRecords)
-        .where(and(
-          eq(attendanceRecords.employeeId, emp.id),
-          sql`${attendanceRecords.attendanceDate} >= ${period.startDate} AND ${attendanceRecords.attendanceDate} <= ${period.endDate}`
-        ));
-
-      const totalDays = Number(period.totalWorkingDays) || 30;
-      const presentCount = attendance.filter(a => a.status === 'present').length;
-      const absentCount = attendance.filter(a => a.status === 'absent').length;
-      const overtimeHours = attendance.reduce((acc, curr) => acc + (Number(curr.overtimeHours) || 0), 0);
-      const lateMins = attendance.reduce((acc, curr) => acc + (Number(curr.lateMinutes) || 0), 0);
-      const lateDays = lateMins > 60 ? Math.floor(lateMins / 60) * 0.25 : 0;
-
-      // Penalties deduction
-      const penaltiesList = await payrollDb
-        .select()
-        .from(penalties)
-        .where(and(
-          eq(penalties.employeeId, emp.id),
-          eq(penalties.status, "approved"),
-          sql`${penalties.incidentDate} >= ${period.startDate} AND ${penalties.incidentDate} <= ${period.endDate}`
-        ));
-      const penaltyAmount = penaltiesList.reduce((acc, p) => acc + (Number(p.deductionAmount) || 0), 0);
-
-      // Loans installments deduction
-      const loans = await payrollDb
-        .select()
-        .from(loansAndAdvances)
-        .where(and(
-          eq(loansAndAdvances.employeeId, emp.id),
-          eq(loansAndAdvances.status, "active"),
-          sql`${loansAndAdvances.remainingAmount} > 0`
-        ));
-      const loanDeduction = loans.reduce((acc, l) => acc + Math.min(Number(l.monthlyInstallment), Number(l.remainingAmount)), 0);
-
-      // Earnings calculation
-      const dayRate = basicSalary / 30;
-      const overtimeRate = dayRate / 8 * 1.5;
-      const overtimePay = overtimeHours * overtimeRate;
-      const totalEarnings = basicSalary + overtimePay;
-
-      // Egyptian Social Insurance calculation (11% employee, 18.75% company on insurance salary)
-      const insSalary = Number(emp.insuranceSalary) || basicSalary;
-      const socInsEmp = emp.isInsured ? Math.round(insSalary * 0.11 * 100) / 100 : 0;
-      const socInsComp = emp.isInsured ? Math.round(insSalary * 0.1875 * 100) / 100 : 0;
-
-      // Egyptian Income Tax (Law 30/2023) with personal exemption (24,000 EGP annual / 2,000 monthly)
-      const monthlyTaxable = Math.max(0, totalEarnings - socInsEmp - 2000);
-      const annualTaxable = monthlyTaxable * 12;
-      let annualTax = 0;
-      if (annualTaxable <= 40000) {
-        annualTax = 0;
-      } else if (annualTaxable <= 55000) {
-        annualTax = (annualTaxable - 40000) * 0.10;
-      } else if (annualTaxable <= 70000) {
-        annualTax = (15000 * 0.10) + (annualTaxable - 55000) * 0.15;
-      } else if (annualTaxable <= 200000) {
-        annualTax = (15000 * 0.10) + (15000 * 0.15) + (annualTaxable - 70000) * 0.20;
-      } else if (annualTaxable <= 400000) {
-        annualTax = (15000 * 0.10) + (15000 * 0.15) + (130000 * 0.20) + (annualTaxable - 200000) * 0.225;
-      } else {
-        annualTax = (15000 * 0.10) + (15000 * 0.15) + (130000 * 0.20) + (200000 * 0.225) + (annualTaxable - 400000) * 0.25;
+    // Execute atomic calculation in a single PostgreSQL transaction
+    const calculationResult = await payrollDb.transaction(async (tx) => {
+      // If force recalculating, clean up existing draft/calculated runs and slips
+      if (existingRuns.length > 0) {
+        for (const oldRun of existingRuns) {
+          if (oldRun.status === "calculated" || oldRun.status === "draft") {
+            await tx.delete(salarySlips).where(eq(salarySlips.payrollRunId, oldRun.id));
+            await tx.delete(payrollRuns).where(eq(payrollRuns.id, oldRun.id));
+          }
+        }
       }
-      const incomeTaxAmount = Math.round((annualTax / 12) * 100) / 100;
-      const martyrsFundAmount = Math.round(totalEarnings * 0.0005 * 100) / 100;
 
-      // Absence deduction
-      const absenceDeduction = (absentCount + lateDays) * dayRate;
-
-      // Total deductions (including social insurance, income tax, martyrs fund, loans, and penalties)
-      const totalDeductions = socInsEmp + incomeTaxAmount + martyrsFundAmount + absenceDeduction + penaltyAmount + loanDeduction;
-      const netSalary = Math.max(0, totalEarnings - totalDeductions);
-
-      grandGross += totalEarnings;
-      grandDeductions += totalDeductions;
-      grandNet += netSalary;
-
-      // Save Slip
-      await payrollDb.insert(salarySlips).values({
-        payrollRunId: run.id,
-        employeeId: emp.id,
-        propertyId: Number(propertyId),
+      // 2. Create Payroll Run Batch Header
+      const [run] = await tx.insert(payrollRuns).values({
         payrollPeriodId: period.id,
-        totalWorkingDays: String(totalDays),
-        presentDays: String(presentCount),
-        absentDays: String(absentCount),
-        leaveDays: "0",
-        lateDeductionDays: String(lateDays),
-        overtimeHours: String(overtimeHours),
-        basicSalary: String(basicSalary),
-        totalEarnings: String(totalEarnings),
-        totalDeductions: String(totalDeductions),
-        netSalary: String(netSalary),
-        socialInsuranceEmployee: String(socInsEmp),
-        socialInsuranceCompany: String(socInsComp),
-        incomeTax: String(incomeTaxAmount),
-        loanDeduction: String(loanDeduction),
-        penaltyDeduction: String(penaltyAmount),
-        absenceDeduction: String(absenceDeduction),
-        bankAccountNumber: emp.bankAccountNumber || null,
-        iban: emp.iban || null,
-        status: "draft",
-      });
-    }
+        propertyId: Number(propertyId),
+        employmentType: employmentType || "regular",
+        totalEmployees: staffList.length,
+        status: "calculated",
+      }).returning();
 
-    // Update run totals
-    await payrollDb
-      .update(payrollRuns)
-      .set({
-        totalGross: String(grandGross),
-        totalDeductions: String(grandDeductions),
-        totalNet: String(grandNet),
-      })
-      .where(eq(payrollRuns.id, run.id));
+      let grandGross = 0;
+      let grandDeductions = 0;
+      let grandNet = 0;
 
-    res.json({
-      success: true,
-      payrollRun: {
-        id: run.id,
+      // 3. Process each employee (integrating Attendance + Penalties + Loans + Egyptian Statutory)
+      for (const emp of staffList) {
+        const basicSalary = Number(emp.baseSalary) || 0;
+        
+        // Attendance audit for this period
+        const attendance = await tx
+          .select()
+          .from(attendanceRecords)
+          .where(and(
+            eq(attendanceRecords.employeeId, emp.id),
+            sql`${attendanceRecords.attendanceDate} >= ${period.startDate} AND ${attendanceRecords.attendanceDate} <= ${period.endDate}`
+          ));
+
+        const totalDays = Number(period.totalWorkingDays) || 30;
+        const presentCount = attendance.filter(a => a.status === 'present').length;
+        const absentCount = attendance.filter(a => a.status === 'absent').length;
+        const overtimeHours = attendance.reduce((acc, curr) => acc + (Number(curr.overtimeHours) || 0), 0);
+        const lateMins = attendance.reduce((acc, curr) => acc + (Number(curr.lateMinutes) || 0), 0);
+        const lateDays = lateMins > 60 ? Math.floor(lateMins / 60) * 0.25 : 0;
+
+        // Penalties deduction
+        const penaltiesList = await tx
+          .select()
+          .from(penalties)
+          .where(and(
+            eq(penalties.employeeId, emp.id),
+            eq(penalties.status, "approved"),
+            sql`${penalties.incidentDate} >= ${period.startDate} AND ${penalties.incidentDate} <= ${period.endDate}`
+          ));
+        const penaltyAmount = penaltiesList.reduce((acc, p) => acc + (Number(p.deductionAmount) || 0), 0);
+
+        // Loans installments deduction
+        const loans = await tx
+          .select()
+          .from(loansAndAdvances)
+          .where(and(
+            eq(loansAndAdvances.employeeId, emp.id),
+            eq(loansAndAdvances.status, "active"),
+            sql`${loansAndAdvances.remainingAmount} > 0`
+          ));
+        const loanDeduction = loans.reduce((acc, l) => acc + Math.min(Number(l.monthlyInstallment), Number(l.remainingAmount)), 0);
+
+        // Earnings calculation
+        const dayRate = basicSalary / 30;
+        const overtimeRate = dayRate / 8 * 1.5;
+        const overtimePay = overtimeHours * overtimeRate;
+        const totalEarnings = basicSalary + overtimePay;
+
+        // Egyptian Social Insurance calculation (11% employee, 18.75% company on insurance salary)
+        const insSalary = Number(emp.insuranceSalary) || basicSalary;
+        const socInsEmp = emp.isInsured ? Math.round(insSalary * 0.11 * 100) / 100 : 0;
+        const socInsComp = emp.isInsured ? Math.round(insSalary * 0.1875 * 100) / 100 : 0;
+
+        // Egyptian Income Tax (Law 30/2023) with personal exemption (24,000 EGP annual / 2,000 monthly)
+        const monthlyTaxable = Math.max(0, totalEarnings - socInsEmp - 2000);
+        const annualTaxable = monthlyTaxable * 12;
+        let annualTax = 0;
+        if (annualTaxable <= 40000) {
+          annualTax = 0;
+        } else if (annualTaxable <= 55000) {
+          annualTax = (annualTaxable - 40000) * 0.10;
+        } else if (annualTaxable <= 70000) {
+          annualTax = (15000 * 0.10) + (annualTaxable - 55000) * 0.15;
+        } else if (annualTaxable <= 200000) {
+          annualTax = (15000 * 0.10) + (15000 * 0.15) + (annualTaxable - 70000) * 0.20;
+        } else if (annualTaxable <= 400000) {
+          annualTax = (15000 * 0.10) + (15000 * 0.15) + (130000 * 0.20) + (annualTaxable - 200000) * 0.225;
+        } else {
+          annualTax = (15000 * 0.10) + (15000 * 0.15) + (130000 * 0.20) + (200000 * 0.225) + (annualTaxable - 400000) * 0.25;
+        }
+        const incomeTaxAmount = Math.round((annualTax / 12) * 100) / 100;
+        const martyrsFundAmount = Math.round(totalEarnings * 0.0005 * 100) / 100;
+
+        // Absence deduction
+        const absenceDeduction = (absentCount + lateDays) * dayRate;
+
+        // Total deductions (including social insurance, income tax, martyrs fund, loans, and penalties)
+        const totalDeductions = socInsEmp + incomeTaxAmount + martyrsFundAmount + absenceDeduction + penaltyAmount + loanDeduction;
+        const netSalary = Math.max(0, totalEarnings - totalDeductions);
+
+        grandGross += totalEarnings;
+        grandDeductions += totalDeductions;
+        grandNet += netSalary;
+
+        // Save Slip
+        await tx.insert(salarySlips).values({
+          payrollRunId: run.id,
+          employeeId: emp.id,
+          propertyId: Number(propertyId),
+          payrollPeriodId: period.id,
+          totalWorkingDays: String(totalDays),
+          presentDays: String(presentCount),
+          absentDays: String(absentCount),
+          leaveDays: "0",
+          lateDeductionDays: String(lateDays),
+          overtimeHours: String(overtimeHours),
+          basicSalary: String(basicSalary),
+          totalEarnings: String(totalEarnings),
+          totalDeductions: String(totalDeductions),
+          netSalary: String(netSalary),
+          socialInsuranceEmployee: String(socInsEmp),
+          socialInsuranceCompany: String(socInsComp),
+          incomeTax: String(incomeTaxAmount),
+          loanDeduction: String(loanDeduction),
+          penaltyDeduction: String(penaltyAmount),
+          absenceDeduction: String(absenceDeduction),
+          bankAccountNumber: emp.bankAccountNumber || null,
+          iban: emp.iban || null,
+          status: "draft",
+        });
+      }
+
+      // Update run totals
+      await tx
+        .update(payrollRuns)
+        .set({
+          totalGross: String(grandGross),
+          totalDeductions: String(grandDeductions),
+          totalNet: String(grandNet),
+        })
+        .where(eq(payrollRuns.id, run.id));
+
+      return {
+        runId: run.id,
         totalEmployees: staffList.length,
         totalGross: grandGross,
         totalDeductions: grandDeductions,
         totalNet: grandNet,
+      };
+    });
+
+    res.json({
+      success: true,
+      payrollRun: {
+        id: calculationResult.runId,
+        totalEmployees: calculationResult.totalEmployees,
+        totalGross: calculationResult.totalGross,
+        totalDeductions: calculationResult.totalDeductions,
+        totalNet: calculationResult.totalNet,
       }
     });
   } catch (err: any) {
@@ -427,27 +478,94 @@ router.post("/payroll/runs/:id/approve", requirePermission("payroll", "approve")
   try {
     const runId = Number(req.params.id);
     const session = req.session as any;
+    const currentUserId = session?.hrUserId || session?.user?.id || session?.userId;
+    const currentUsername = session?.hrUser?.username || session?.user?.username || session?.username || "authorized_supervisor";
+
+    // Supervisor financial PIN secondary authorization token is strictly required
+    const authToken = (req.headers["x-authorization-token"] as string) || req.body?.authorizationToken;
+    if (!authToken || typeof authToken !== "string") {
+      return res.status(403).json({
+        success: false,
+        error: "رمز التفويض المالي للمشرف مطلوب لإتمام الاعتماد (Missing supervisor authorization token)",
+      });
+    }
 
     const [run] = await payrollDb.select().from(payrollRuns).where(eq(payrollRuns.id, runId));
     if (!run) {
       return res.status(404).json({ success: false, error: "مسير الرواتب غير موجود" });
     }
 
-    const [updated] = await payrollDb
-      .update(payrollRuns)
-      .set({
-        status: "approved",
-        approvedBy: session?.user?.username || "supervisor",
-        approvedAt: new Date(),
-      })
-      .where(eq(payrollRuns.id, runId))
-      .returning();
+    if (run.status === "approved" || run.status === "closed") {
+      return res.status(400).json({ success: false, error: "مسير الرواتب معتمد بالفعل مسبقاً" });
+    }
 
-    // Also mark associated salary slips as approved
-    await payrollDb
-      .update(salarySlips)
-      .set({ status: "approved" })
-      .where(eq(salarySlips.payrollRunId, runId));
+    // Atomically validate and consume authorization token in transaction
+    const updated = await payrollDb.transaction(async (tx) => {
+      // Find valid token
+      const [authRecord] = await tx
+        .select()
+        .from(supervisorAuthorizations)
+        .where(and(
+          eq(supervisorAuthorizations.token, authToken),
+          eq(supervisorAuthorizations.isConsumed, false),
+          sql`${supervisorAuthorizations.expiresAt} > NOW()`,
+          eq(supervisorAuthorizations.action, "payroll_approve")
+        ))
+        .limit(1);
+
+      if (!authRecord) {
+        throw new Error("AUTH_TOKEN_INVALID_OR_EXPIRED");
+      }
+
+      // Check user binding if currentUserId exists
+      if (currentUserId && authRecord.userId !== currentUserId) {
+        throw new Error("AUTH_TOKEN_USER_MISMATCH");
+      }
+
+      // Check property binding if specified
+      if (authRecord.propertyId && authRecord.propertyId !== run.propertyId) {
+        throw new Error("AUTH_TOKEN_PROPERTY_MISMATCH");
+      }
+
+      // Atomically consume token
+      await tx
+        .update(supervisorAuthorizations)
+        .set({
+          isConsumed: true,
+          consumedAt: new Date(),
+          entityType: "payroll_runs",
+          entityId: runId,
+        })
+        .where(eq(supervisorAuthorizations.id, authRecord.id));
+
+      // Approve run
+      const [approvedRun] = await tx
+        .update(payrollRuns)
+        .set({
+          status: "approved",
+          approvedBy: currentUsername,
+          approvedAt: new Date(),
+        })
+        .where(eq(payrollRuns.id, runId))
+        .returning();
+
+      // Approve all slips
+      await tx
+        .update(salarySlips)
+        .set({ status: "approved" })
+        .where(eq(salarySlips.payrollRunId, runId));
+
+      // Write audit log
+      await tx.insert(hrmsAuditLogs).values({
+        userId: currentUserId || 1,
+        action: "PAYROLL_APPROVE",
+        entityType: "payroll_runs",
+        entityId: runId,
+        details: { approvedBy: currentUsername, runId, propertyId: run.propertyId },
+      });
+
+      return approvedRun;
+    });
 
     res.json({
       success: true,
@@ -455,6 +573,18 @@ router.post("/payroll/runs/:id/approve", requirePermission("payroll", "approve")
       message: "تم اعتماد مسير الرواتب رسمياً وتفويضه للتصدير البنكي ومطابقة قيود اليومية العامة",
     });
   } catch (err: any) {
+    if (err.message === "AUTH_TOKEN_INVALID_OR_EXPIRED") {
+      return res.status(403).json({
+        success: false,
+        error: "رمز التفويض المالي غير صالح، أو منتهي الصلاحية، أو تم استخدامه مسبقاً (Invalid or expired authorization token)",
+      });
+    }
+    if (err.message === "AUTH_TOKEN_USER_MISMATCH" || err.message === "AUTH_TOKEN_PROPERTY_MISMATCH") {
+      return res.status(403).json({
+        success: false,
+        error: "رمز التفويض غير مطابق للمستخدم المصرح له أو المنشأة المحددة",
+      });
+    }
     res.status(500).json({ success: false, error: err.message });
   }
 });
@@ -645,13 +775,6 @@ router.get("/payroll/runs/:id/wps", requirePermission("payroll", "export"), asyn
       return res.status(404).json({ success: false, error: "مسير الرواتب غير موجود" });
     }
 
-    if (!isPreview && run.status !== "approved" && run.status !== "closed") {
-      return res.status(400).json({
-        success: false,
-        error: "لا يمكن استخراج ملفات الرواتب المصرفية (WPS) إلا بعد الاعتماد المالي والنهائي للمسير (Approved / Closed)",
-      });
-    }
-
     const slips = await payrollDb
       .select({
         slip: salarySlips,
@@ -660,6 +783,43 @@ router.get("/payroll/runs/:id/wps", requirePermission("payroll", "export"), asyn
       .from(salarySlips)
       .innerJoin(employees, eq(salarySlips.employeeId, employees.id))
       .where(eq(salarySlips.payrollRunId, runId));
+
+    // PREVIEW MODE: Only return sanitized, redacted JSON preview with strict watermark.
+    // NEVER emit genuine bank transfer text/csv transmission files for unapproved runs!
+    if (isPreview) {
+      const maskedRecords = slips.map((s) => {
+        const rawAcc = s.slip.bankAccountNumber || "";
+        const maskedAcc = rawAcc.length > 4 ? `****${rawAcc.slice(-4)}` : (rawAcc ? "****" : "CASH");
+        return {
+          employeeCode: s.employee.employeeCode,
+          employeeName: s.employee.fullName,
+          bankName: s.employee.bankName || "Unknown",
+          bankAccountMasked: maskedAcc,
+          netSalary: Number(s.slip.netSalary),
+        };
+      });
+
+      return res.json({
+        success: true,
+        isPreview: true,
+        watermark: "UNAPPROVED DRAFT PREVIEW — STRICTLY NOT FOR BANK TRANSMISSION",
+        payrollRunId: run.id,
+        runStatus: run.status,
+        summary: {
+          totalEmployees: slips.length,
+          totalNet: slips.reduce((sum, s) => sum + (Number(s.slip.netSalary) || 0), 0),
+        },
+        records: maskedRecords,
+      });
+    }
+
+    // REAL BANK EXPORT MODE: Strict approval enforcement!
+    if (run.status !== "approved" && run.status !== "closed") {
+      return res.status(400).json({
+        success: false,
+        error: "لا يمكن استخراج ملفات الرواتب المصرفية (WPS) إلا بعد الاعتماد المالي والنهائي للمسير (Approved / Closed)",
+      });
+    }
 
     let output = "";
     let contentType = "text/csv; charset=utf-8";
