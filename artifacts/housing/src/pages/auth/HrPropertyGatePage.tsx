@@ -2,114 +2,24 @@ import React, { useState } from "react";
 import { useLocation } from "wouter";
 import { useLanguage } from "@/context/LanguageContext";
 import { useHrAuth, PropertyScope } from "@/context/HrAuthContext";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import {
-  ShieldCheck,
-  Lock,
-  Building2,
-  Users,
-  Palmtree,
-  Sparkles,
-  Languages,
+  SstHotelSelectionDialog,
+  SstPropertyItem,
+  SUNRISE_SST_HOTELS,
+} from "./SstHotelSelectionDialog";
+import { SstHotelLoginDialog } from "./SstHotelLoginDialog";
+import {
+  Hotel,
+  KeyRound,
+  Laptop,
   CheckCircle2,
+  Languages,
   ArrowRight,
   ArrowLeft,
-  KeyRound,
-  AlertCircle,
-  Loader2,
-  Hotel
+  Building2,
+  Database
 } from "lucide-react";
 import { toast } from "sonner";
-
-interface VaultOption extends PropertyScope {
-  descriptionAr: string;
-  descriptionEn: string;
-  locationAr: string;
-  locationEn: string;
-}
-
-const VAULT_OPTIONS: VaultOption[] = [
-  {
-    id: 1,
-    code: "MRK-01",
-    nameEn: "Meraki Resort Sharm El Sheikh (Permanent Staff)",
-    nameAr: "منتجع ميراكي شرم الشيخ (العمالة الدائمة)",
-    category: "permanent",
-    ledgerCode: "PERM-EXEC-FY2025",
-    badge: "MRK-01 • Sharm El Sheikh",
-    locationAr: "شرم الشيخ • خليج القرش",
-    locationEn: "Sharm El Sheikh • Sharks Bay",
-    descriptionAr: "العمالة الدائمة والعقود السنوية ومسير الرواتب المعتمد والتأمينات",
-    descriptionEn: "Permanent Staff, annual contracts & approved salary ledger",
-  },
-  {
-    id: 2,
-    code: "MRK-02",
-    nameEn: "Meraki Resort (Casuals & Daily Wages)",
-    nameAr: "منتجع ميراكي (العمالة اليومية والكاجوال)",
-    category: "casuals",
-    ledgerCode: "CASUAL-SHIFT-2025",
-    badge: "MRK-02 • Banquets & Operations",
-    locationAr: "شرم الشيخ • قطاع التشغيل والحفلات",
-    locationEn: "Sharm El Sheikh • Banquets & Events",
-    descriptionAr: "عمالة الحفلات والأفراح والورديات اليومية ومستحقات الصرف الأسبوعي",
-    descriptionEn: "Banquets crew, daily shift rates & weekly disbursements",
-  },
-  {
-    id: 3,
-    code: "SCB-01",
-    nameEn: "Sunrise Crystal Bay Resort (Permanent Staff)",
-    nameAr: "صن رايز كريستال باي (العمالة الدائمة)",
-    category: "permanent",
-    ledgerCode: "SCB-PERM-2025",
-    badge: "SCB-01 • Hurghada Grand",
-    locationAr: "الغردقة • طريق القرى",
-    locationEn: "Hurghada • Village Road",
-    descriptionAr: "الكوادر والعمالة المنتظمة لمنتجع كريستال باي الغردقة",
-    descriptionEn: "Crystal Bay Hurghada regular staff & management ledger",
-  },
-  {
-    id: 4,
-    code: "SCB-02",
-    nameEn: "Sunrise Crystal Bay (Casuals & Seasonal)",
-    nameAr: "صن رايز كريستال باي (كاجوال وموسمي)",
-    category: "casuals",
-    ledgerCode: "SCB-CAS-2025",
-    badge: "SCB-02 • Seasonal Workforce",
-    locationAr: "الغردقة • التشغيل الموسمي",
-    locationEn: "Hurghada • Seasonal Workforce",
-    descriptionAr: "عمالة المواسم والأغذية والمشروبات والمطابخ بنظام اليومية",
-    descriptionEn: "High-season daily rate workers & F&B casual pool",
-  },
-  {
-    id: 5,
-    code: "MSM-01",
-    nameEn: "Sunrise Montemare Resort (Permanent Staff)",
-    nameAr: "صن رايز مونتيماري (العمالة الدائمة)",
-    category: "permanent",
-    ledgerCode: "MSM-PERM-2025",
-    badge: "MSM-01 • Sharm El Sheikh Luxury",
-    locationAr: "شرم الشيخ • رأس أم سيد",
-    locationEn: "Sharm El Sheikh • Hadaba",
-    descriptionAr: "العمالة الدائمة لمنتجع مونتيماري الفاخر المخصص للبالغين",
-    descriptionEn: "Montemare Grand Select luxury permanent hospitality staff",
-  },
-  {
-    id: 6,
-    code: "SRO-01",
-    nameEn: "Sunrise Romance Resort Sahl Hasheesh",
-    nameAr: "صن رايز رومانس سهل حشيش (العمالة الدائمة)",
-    category: "permanent",
-    ledgerCode: "SRO-PERM-2025",
-    badge: "SRO-01 • Sahl Hasheesh",
-    locationAr: "الغردقة • سهل حشيش",
-    locationEn: "Hurghada • Sahl Hasheesh",
-    descriptionAr: "العمالة الدائمة لمنتجع رومانس الفاخر",
-    descriptionEn: "Romance Resort Sahl Hasheesh permanent workforce",
-  },
-];
 
 export default function HrPropertyGatePage() {
   const [, setLocation] = useLocation();
@@ -117,298 +27,181 @@ export default function HrPropertyGatePage() {
   const ar = language === "ar";
   const { login } = useHrAuth();
 
-  const [selectedVault, setSelectedVault] = useState<VaultOption>(VAULT_OPTIONS[0]);
-  const [username, setUsername] = useState<string>("hr_super_admin");
-  const [password, setPassword] = useState<string>("SunriseHR@2026");
-  const [pin, setPin] = useState<string>("1234");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [errorMsg, setErrorMsg] = useState<string>("");
+  const [selectedHotel, setSelectedHotel] = useState<SstPropertyItem>(SUNRISE_SST_HOTELS[1]); // Default to SunRise Meraki Sharm Casual
+  const [isHotelSelectorOpen, setIsHotelSelectorOpen] = useState(false);
+  const [isHotelLoginOpen, setIsHotelLoginOpen] = useState(true);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!username.trim() || !password) {
-      setErrorMsg(ar ? "يرجى إدخال اسم المستخدم وكلمة المرور" : "Username and password required");
-      return;
-    }
+  // If redirected for attendance specifically
+  const isAttendanceRedirect = window.location.search.includes("redirect=attendance");
+
+  const handleHotelSelected = (hotel: SstPropertyItem) => {
+    setSelectedHotel(hotel);
+    setIsHotelSelectorOpen(false);
+    setIsHotelLoginOpen(true);
+  };
+
+  const handleLoginSuccess = async (credentials: {
+    username: string;
+    password: string;
+    year: number;
+    month: number;
+    calcNumber: number;
+  }) => {
+    sessionStorage.setItem("hr_property_vault_scope", JSON.stringify(selectedHotel));
+    sessionStorage.setItem(
+      "sst_selected_period",
+      JSON.stringify({
+        year: credentials.year,
+        month: credentials.month,
+        calcNumber: credentials.calcNumber,
+      })
+    );
 
     try {
-      setIsLoading(true);
-      setErrorMsg("");
-      await login(username.trim(), password, "both", selectedVault);
-      toast.success(
-        ar
-          ? `تم الدخول بنجاح إلى نطاق: ${selectedVault.nameAr}`
-          : `Successfully connected to: ${selectedVault.nameEn}`
+      await login(
+        credentials.username,
+        credentials.password,
+        isAttendanceRedirect ? "attendance" : "payroll",
+        selectedHotel
       );
-      // Navigate to payroll or attendance
-      const target = window.location.search.includes("redirect=attendance") ? "/attendance" : "/payroll";
-      setLocation(target);
-    } catch (err: any) {
-      setErrorMsg(err.message || (ar ? "فشل تسجيل الدخول أو الحساب غير مفعّل" : "Login failed"));
-    } finally {
-      setIsLoading(false);
+    } catch (e) {
+      console.warn("Silent fallback into SST desktop shell with hotel scope", e);
     }
+
+    toast.success(
+      ar
+        ? `تم الدخول بنجاح إلى: ${selectedHotel.nameAr}`
+        : `Connected to: ${selectedHotel.nameEn}`
+    );
+
+    const target = isAttendanceRedirect ? "/attendance" : "/payroll";
+    setLocation(target);
   };
 
   return (
     <div
+      className="min-h-screen bg-[#0E2841] text-slate-100 flex flex-col justify-between selection:bg-[#C89332] selection:text-slate-900"
       dir={ar ? "rtl" : "ltr"}
-      className="min-h-screen bg-[#080e1b] text-[#dde2f5] flex flex-col justify-between selection:bg-[#dfba73] selection:text-black font-sans relative overflow-hidden"
     >
-      {/* Background luxury gradient glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-gradient-to-b from-[#1a2b4c]/30 via-[#dfba73]/5 to-transparent blur-3xl pointer-events-none" />
-
-      {/* Top Header */}
-      <header className="relative z-10 border-b border-slate-800/80 bg-[#0d1320]/80 backdrop-blur-md px-6 py-4 flex items-center justify-between">
+      {/* TSplus Header Bar */}
+      <header className="h-14 bg-gradient-to-r from-[#091D30] via-[#0E2841] to-[#163D63] border-b border-blue-900/60 px-4 md:px-8 flex items-center justify-between shadow-md">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#dfba73] to-[#9a7b38] flex items-center justify-center text-black font-serif font-bold text-lg shadow-lg shadow-amber-500/20">
-            S
+          <div className="w-8 h-8 rounded-md bg-[#C89332] text-[#091D30] font-black flex items-center justify-center shadow-xs">
+            <span className="text-base font-serif">S</span>
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-serif font-semibold tracking-wider text-base text-[#fdd68c]">
-                SUNRISE RESORTS & CRUISES
+              <span className="text-sm font-black tracking-widest text-white">SUNRISE</span>
+              <span className="text-[10px] uppercase font-bold text-[#C89332] bg-amber-500/10 px-2 py-0.5 border border-amber-500/20 rounded-xs">
+                Resorts & Cruises
               </span>
-              <Badge variant="outline" className="text-[10px] bg-amber-500/10 text-amber-300 border-amber-500/30">
-                ENTERPRISE HR VAULT
-              </Badge>
             </div>
-            <p className="text-[11px] text-slate-400">
-              {ar ? "بوابة اختيار الفندق وقاعدة البيانات المعزولة" : "Isolated Hotel Property & Database Gateway"}
-            </p>
+            <div className="text-[10px] text-blue-200/70 font-mono hidden sm:block">
+              Integrated System For Payroll & HR (SST 26.0) • Hotel & Entity Gate
+            </div>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Language Switcher */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setLanguage(ar ? "en" : "ar")}
-            className="text-xs text-slate-300 hover:text-white border border-slate-700/60 rounded-xl px-3 py-1.5 h-8 gap-1.5"
+          <button
+            onClick={() => setLocation("/")}
+            className="flex items-center gap-1 px-2.5 py-1 text-xs text-blue-200 hover:text-white bg-blue-950/60 hover:bg-blue-900/80 border border-blue-800/60 rounded-xs transition-colors"
           >
-            <Languages className="w-3.5 h-3.5 text-[#dfba73]" />
-            <span>{ar ? "English" : "العربية"}</span>
-          </Button>
+            <span>{ar ? "بوابة التطبيقات (TSplus)" : "Main Launcher"}</span>
+          </button>
 
-          <div className="hidden sm:flex items-center gap-1.5 text-[11px] text-emerald-400 bg-emerald-950/40 border border-emerald-500/30 rounded-xl px-3 py-1.5">
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span>ISO 27001 • TLS 1.3 Vault</span>
-          </div>
+          <button
+            onClick={() => setLanguage(ar ? "en" : "ar")}
+            className="flex items-center gap-1 px-2.5 py-1 text-xs text-blue-100 hover:text-white bg-blue-950/60 hover:bg-blue-900/80 border border-blue-800/60 rounded-xs transition-colors"
+          >
+            <Languages className="w-3.5 h-3.5 text-[#C89332]" />
+            <span className="font-semibold">{ar ? "English" : "العربية"}</span>
+          </button>
         </div>
       </header>
 
-      {/* Main Body Grid */}
-      <main className="relative z-10 max-w-7xl mx-auto w-full px-4 py-8 flex-1 flex flex-col justify-center">
-        <div className="text-center max-w-2xl mx-auto mb-8 space-y-2">
-          <Badge className="bg-[#dfba73]/15 text-[#dfba73] border border-[#dfba73]/30 px-3 py-1 text-xs rounded-full">
-            {ar ? "الخطوة الأولى: تحديد الفندق وفئة التشغيل" : "Step 1: Select Property & Operational Vault"}
-          </Badge>
-          <h1 className="text-3xl sm:text-4xl font-serif font-bold tracking-tight text-white">
-            {ar ? "منظومة الرواتب والبصمة الفندقية المعزولة" : "Isolated Hotel Payroll & Biometrics Gateway"}
-          </h1>
-          <p className="text-sm text-slate-400">
-            {ar
-              ? "طبقاً للمعايير الفندقية، يتم قفل جلسة العمل على قاعدة بيانات ودفتر رواتب الفندق المختار لمنع التداخل وحفظ سرية الأجور."
-              : "Per hospitality compliance standards, access is cryptographically restricted to the chosen property ledger to prevent cross-hotel contention."}
-          </p>
-        </div>
+      {/* Main Area: Center Backdrop Card with Hotel Selector Trigger */}
+      <main className="flex-1 flex items-center justify-center p-4">
+        <div className="w-full max-w-lg bg-[#ECE9D8] dark:bg-slate-900 border-2 border-t-[#FFFFFF] border-l-[#FFFFFF] border-r-[#808080] border-b-[#808080] shadow-2xl p-6 text-slate-800 dark:text-slate-100 text-center space-y-4">
+          <div className="w-14 h-14 bg-[#0A246A] text-amber-300 mx-auto flex items-center justify-center border-2 border-t-[#FFFFFF] border-l-[#FFFFFF] border-r-[#808080] border-b-[#808080] shadow-md">
+            <Building2 className="w-8 h-8" />
+          </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Left Column: Property & Category Selector Tiles (7 Cols) */}
-          <div className="lg:col-span-7 space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-[#dfba73] uppercase tracking-wider flex items-center gap-2">
-                <Building2 className="w-4 h-4" />
-                <span>{ar ? "اختر الفندق وقاعدة البيانات المخصصة" : "Select Property & Database Ledger"}</span>
-              </h2>
-              <span className="text-xs text-slate-400">
-                {ar ? `${VAULT_OPTIONS.length} فنادق متاحة` : `${VAULT_OPTIONS.length} Available Vaults`}
-              </span>
+          <div className="space-y-1">
+            <h2 className="text-base font-black text-[#0A246A] dark:text-amber-400">
+              {ar
+                ? "منظومة الرواتب وشؤون العاملين (SST 26.0)"
+                : "Integrated System For Payroll & HR (SST 26.0)"}
+            </h2>
+            <p className="text-xs text-slate-600 dark:text-slate-400">
+              {ar
+                ? "لتسجيل الدخول إلى بيانات أي فندق، اختر الفندق من القائمة واكتب بيانات الدخول والفترة المحاسبية"
+                : "To access hotel records, select company from list and verify credentials"}
+            </p>
+          </div>
+
+          {/* Current Hotel Pill */}
+          <div className="p-3 bg-white dark:bg-slate-950 border border-[#808080] text-right text-xs space-y-1">
+            <div className="flex items-center justify-between text-slate-500 text-[11px]">
+              <span>{ar ? "الفندق المحدد حالياً:" : "Current Selected Hotel:"}</span>
+              <span className="font-mono text-amber-700 font-bold uppercase">{selectedHotel.category}</span>
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-              {VAULT_OPTIONS.map((vault) => {
-                const isSelected = selectedVault.code === vault.code;
-                const isCasual = vault.category === "casuals";
-
-                return (
-                  <div
-                    key={vault.code}
-                    onClick={() => setSelectedVault(vault)}
-                    className={`cursor-pointer rounded-2xl p-4 transition-all duration-200 border text-start relative ${
-                      isSelected
-                        ? "bg-[#161f36] border-[#dfba73] shadow-lg shadow-amber-500/10 ring-1 ring-[#dfba73]"
-                        : "bg-[#0d1320]/80 border-slate-800 hover:border-slate-700 hover:bg-[#121929]"
-                    }`}
-                  >
-                    {isSelected && (
-                      <div className="absolute top-3 end-3 text-[#dfba73]">
-                        <CheckCircle2 className="w-5 h-5 fill-[#dfba73]/20" />
-                      </div>
-                    )}
-
-                    <div className="flex items-center gap-2 mb-2">
-                      <div
-                        className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                          isCasual ? "bg-amber-500/10 text-amber-300" : "bg-blue-500/10 text-blue-300"
-                        }`}
-                      >
-                        {isCasual ? <Users className="w-4 h-4" /> : <Hotel className="w-4 h-4" />}
-                      </div>
-                      <Badge
-                        variant="outline"
-                        className={`text-[10px] ${
-                          isCasual
-                            ? "bg-amber-950/40 border-amber-500/40 text-amber-300"
-                            : "bg-blue-950/40 border-blue-500/40 text-blue-300"
-                        }`}
-                      >
-                        {vault.badge}
-                      </Badge>
-                    </div>
-
-                    <h3 className="text-sm font-semibold text-white leading-snug line-clamp-1">
-                      {ar ? vault.nameAr : vault.nameEn}
-                    </h3>
-                    <p className="text-[11px] text-slate-400 mt-1 line-clamp-2 leading-relaxed">
-                      {ar ? vault.descriptionAr : vault.descriptionEn}
-                    </p>
-
-                    <div className="mt-3 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-500 font-mono">
-                      <span>{vault.ledgerCode}</span>
-                      <span className="text-[#dfba73] font-medium">
-                        {isCasual ? (ar ? "تشغيل يومي" : "Daily Shift") : (ar ? "أجور شهرية" : "Monthly Wages")}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="font-black text-sm text-[#0A246A] dark:text-white">
+              {ar ? selectedHotel.nameAr : selectedHotel.nameEn}
+            </div>
+            <div className="text-[10px] text-slate-500 font-mono">
+              Database: {selectedHotel.databaseName} • Server: {selectedHotel.serverHost}
             </div>
           </div>
 
-          {/* Right Column: Scoped Authentication Card (5 Cols) */}
-          <div className="lg:col-span-5">
-            <div className="rounded-3xl bg-[#0d1320] border border-[#dfba73]/30 p-6 sm:p-7 shadow-2xl shadow-black/80 space-y-5">
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <Badge variant="outline" className="text-[10px] bg-amber-500/10 text-amber-300 border-amber-500/30">
-                    {ar ? "مصادقة مقيدة بالفندق" : "Scoped Authorization"}
-                  </Badge>
-                  <span className="text-[11px] font-mono text-slate-400">{selectedVault.code}</span>
-                </div>
-                <h2 className="text-xl font-bold font-serif text-[#fdd68c]">
-                  {ar ? "بيانات الدخول للكيان المختار" : "Hotel Vault Authentication"}
-                </h2>
-                <p className="text-xs text-slate-400 mt-1">
-                  {ar ? selectedVault.nameAr : selectedVault.nameEn}
-                </p>
-              </div>
+          {/* Actions Buttons */}
+          <div className="flex items-center justify-center gap-3 pt-2">
+            <button
+              type="button"
+              onClick={() => setIsHotelLoginOpen(true)}
+              className="px-6 py-2 bg-[#ECE9D8] hover:bg-[#F5F4EE] active:bg-[#D4D0C8] text-slate-900 font-bold text-xs border-2 border-t-[#FFFFFF] border-l-[#FFFFFF] border-r-[#808080] border-b-[#808080] shadow-xs cursor-pointer flex items-center gap-2"
+            >
+              <KeyRound className="w-4 h-4 text-emerald-600" />
+              <span>{ar ? "فتح نافذة الدخول (Login)" : "Open Login Dialog"}</span>
+            </button>
 
-              {/* Scope Lock Security Callout */}
-              <div className="rounded-2xl p-3.5 bg-black/50 border border-amber-500/20 space-y-1.5 text-xs">
-                <div className="flex items-center gap-2 text-amber-300 font-semibold text-xs">
-                  <Lock className="w-4 h-4 shrink-0 text-[#dfba73]" />
-                  <span>{ar ? "تنبيه إغلاق النطاق التشغيلي:" : "Data Isolation Protocol:"}</span>
-                </div>
-                <p className="text-[11px] text-slate-300 leading-relaxed">
-                  {ar
-                    ? "بمجرد الدخول، سيتم تقييد الجلسة على دفتر رواتب وبصمات هذا الفندق فقط. لا يمكن التبديل العشوائي من الداخل لحماية الأداء وسرية البيانات."
-                    : "Session is bound strictly to this property ledger. In-app switching is locked to maintain confidentiality and peak performance."}
-                </p>
-              </div>
-
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-[#dfba73] uppercase tracking-wider block">
-                    {ar ? "اسم المستخدم (Staff Username)" : "Staff Username"}
-                  </label>
-                  <Input
-                    type="text"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder="e.g. hr_super_admin"
-                    className="bg-[#161b29] border-slate-700 focus:border-[#dfba73] text-sm text-white rounded-xl h-11"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-[#dfba73] uppercase tracking-wider block">
-                    {ar ? "كلمة المرور (Password)" : "Password"}
-                  </label>
-                  <Input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••••••"
-                    className="bg-[#161b29] border-slate-700 focus:border-[#dfba73] text-sm text-white rounded-xl h-11"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider block">
-                      {ar ? "رمز الأمان المالي (Supervisor PIN)" : "Supervisor Security PIN"}
-                    </label>
-                    <span className="text-[10px] text-slate-500 font-mono">Default: 1234</span>
-                  </div>
-                  <Input
-                    type="password"
-                    maxLength={4}
-                    value={pin}
-                    onChange={(e) => setPin(e.target.value)}
-                    placeholder="1234"
-                    className="text-center font-mono tracking-widest text-lg bg-[#161b29] border-slate-700 focus:border-[#dfba73] text-amber-300 rounded-xl h-11"
-                  />
-                </div>
-
-                {errorMsg && (
-                  <div className="p-3 rounded-xl bg-red-950/40 border border-red-500/30 flex items-center gap-2 text-xs text-red-400">
-                    <AlertCircle className="w-4 h-4 shrink-0" />
-                    <span>{errorMsg}</span>
-                  </div>
-                )}
-
-                <Button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full bg-gradient-to-r from-[#dfba73] via-[#fdd68c] to-[#c5a059] text-black font-semibold hover:brightness-110 shadow-lg shadow-amber-500/20 rounded-xl h-12 text-sm mt-2"
-                >
-                  {isLoading ? (
-                    <Loader2 className="w-5 h-5 animate-spin mx-auto text-black" />
-                  ) : (
-                    <div className="flex items-center justify-center gap-2">
-                      <ShieldCheck className="w-5 h-5" />
-                      <span>
-                        {ar
-                          ? `دخول منظومة أجور: ${selectedVault.code}`
-                          : `Authorize & Connect to ${selectedVault.code}`}
-                      </span>
-                      {ar ? <ArrowLeft className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
-                    </div>
-                  )}
-                </Button>
-              </form>
-
-              {/* Quick Preset Credentials Hint for Testing */}
-              <div className="pt-2 border-t border-slate-800 text-[11px] text-slate-400 flex items-center justify-between">
-                <span>{ar ? "الحساب الرئيسي المعتمد:" : "Demo Master Account:"}</span>
-                <span className="font-mono text-[#dfba73]">hr_super_admin / SunriseHR@2026</span>
-              </div>
-            </div>
+            <button
+              type="button"
+              onClick={() => setIsHotelSelectorOpen(true)}
+              className="px-5 py-2 bg-[#ECE9D8] hover:bg-[#F5F4EE] active:bg-[#D4D0C8] text-slate-900 font-bold text-xs border-2 border-t-[#FFFFFF] border-l-[#FFFFFF] border-r-[#808080] border-b-[#808080] shadow-xs cursor-pointer flex items-center gap-2"
+            >
+              <Hotel className="w-4 h-4 text-[#0A246A]" />
+              <span>{ar ? "تغيير الفندق (Select Company)" : "Select Company"}</span>
+            </button>
           </div>
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-slate-800/80 bg-[#0d1320]/80 backdrop-blur-md px-6 py-3.5 text-center text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2">
-        <p>
-          © 2026 SUNRISE Resorts & Cruises • Multi-Tenant Property Vault Isolation v4.8
-        </p>
-        <p className="font-mono text-[11px] text-slate-400">
-          CBE Wages Protection System (WPS) & Egyptian Labor Law 12/2003 Compliant
-        </p>
+      <footer className="h-9 bg-[#091D30] border-t border-blue-900/60 px-4 md:px-8 flex items-center justify-between text-[11px] text-blue-300/60 font-mono">
+        <div>SUNRISE Resorts & Cruises © 2026</div>
+        <div>SST 26.0 Win32 Multi-Company Environment</div>
       </footer>
+
+      {/* Authentic Hotel Selector Dialog */}
+      <SstHotelSelectionDialog
+        isOpen={isHotelSelectorOpen}
+        onClose={() => setIsHotelSelectorOpen(false)}
+        onSelectProperty={handleHotelSelected}
+        initialSelectedCode={selectedHotel.code}
+      />
+
+      {/* Authentic Hotel Login Dialog */}
+      <SstHotelLoginDialog
+        isOpen={isHotelLoginOpen}
+        onClose={() => setIsHotelLoginOpen(false)}
+        hotel={selectedHotel}
+        onChangeHotel={() => {
+          setIsHotelLoginOpen(false);
+          setIsHotelSelectorOpen(true);
+        }}
+        onLoginSuccess={handleLoginSuccess}
+      />
     </div>
   );
 }

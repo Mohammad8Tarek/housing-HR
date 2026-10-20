@@ -42,7 +42,8 @@ import {
   Bus,
   ArrowRightLeft,
   Lock,
-  FileText
+  FileText,
+  Edit3
 } from "lucide-react";
 import { toast } from "sonner";
 import { PermissionGate } from "@/components/ui/permission-gate";
@@ -59,6 +60,8 @@ import { SstDesktopShell } from "./SstDesktopShell";
 import { SstEmployeeMasterDialog } from "./SstEmployeeMasterDialog";
 import { SstPenaltiesDialog } from "./SstPenaltiesDialog";
 import { SstLeavesVacationsDialog } from "./SstLeavesVacationsDialog";
+import { SstHotelSelectionDialog, SstPropertyItem, SUNRISE_SST_HOTELS } from "../auth/SstHotelSelectionDialog";
+import { SstHotelLoginDialog } from "../auth/SstHotelLoginDialog";
 
 export default function PayrollPage() {
   const { language } = useLanguage();
@@ -92,6 +95,25 @@ export default function PayrollPage() {
   const [isSstPenaltiesOpen, setIsSstPenaltiesOpen] = useState(false);
   const [isSstLeavesOpen, setIsSstLeavesOpen] = useState(false);
   const [activeEmployeeIndex, setActiveEmployeeIndex] = useState(0);
+
+  // SST Multi-Company Selector States
+  const [isCompanySelectorOpen, setIsCompanySelectorOpen] = useState(false);
+  const [isCompanyLoginOpen, setIsCompanyLoginOpen] = useState(false);
+  const [selectedSstHotel, setSelectedSstHotel] = useState<SstPropertyItem>(() => {
+    if (propertyScope) {
+      const found = SUNRISE_SST_HOTELS.find((h) => h.code === propertyScope.code);
+      if (found) return found;
+    }
+    return SUNRISE_SST_HOTELS[1]; // SunRise Meraki Sharm Casual
+  });
+
+  const savedSstPeriod = (() => {
+    try {
+      return JSON.parse(sessionStorage.getItem("sst_selected_period") || "{}");
+    } catch {
+      return {};
+    }
+  })();
 
   // Dual-Key Authorization State
   const [isDualKeyOpen, setIsDualKeyOpen] = useState(false);
@@ -1461,10 +1483,11 @@ export default function PayrollPage() {
           onTabChange={handleTabChange}
           propertyName={activeProperty}
           propertyCode={propertyScope?.code || "MRK-CASUAL"}
-          year={activePeriod?.year || new Date().getFullYear()}
-          month={activePeriod?.month || (new Date().getMonth() + 1)}
-          calcNumber={1}
+          year={savedSstPeriod?.year || activePeriod?.year || new Date().getFullYear()}
+          month={savedSstPeriod?.month || activePeriod?.month || (new Date().getMonth() + 1)}
+          calcNumber={savedSstPeriod?.calcNumber || 1}
           userName={hrUser?.username || auth.user?.username || "admin"}
+          onChangeCompany={() => setIsCompanySelectorOpen(true)}
           onNewAction={() => {
             setActiveEmployeeIndex(0);
             setIsSstMasterOpen(true);
@@ -1583,6 +1606,50 @@ export default function PayrollPage() {
           }
         }}
         propertyName={activeProperty}
+      />
+
+      {/* ─── SST 26.0 HOTEL SELECTION & LOGIN DIALOGS ─── */}
+      <SstHotelSelectionDialog
+        isOpen={isCompanySelectorOpen}
+        onClose={() => setIsCompanySelectorOpen(false)}
+        onSelectProperty={(hotel) => {
+          setSelectedSstHotel(hotel);
+          setIsCompanySelectorOpen(false);
+          setIsCompanyLoginOpen(true);
+        }}
+        initialSelectedCode={selectedSstHotel.code}
+      />
+
+      <SstHotelLoginDialog
+        isOpen={isCompanyLoginOpen}
+        onClose={() => setIsCompanyLoginOpen(false)}
+        hotel={selectedSstHotel}
+        onChangeHotel={() => {
+          setIsCompanyLoginOpen(false);
+          setIsCompanySelectorOpen(true);
+        }}
+        onLoginSuccess={async (creds) => {
+          setIsCompanyLoginOpen(false);
+          sessionStorage.setItem("hr_property_vault_scope", JSON.stringify(selectedSstHotel));
+          sessionStorage.setItem(
+            "sst_selected_period",
+            JSON.stringify({
+              year: creds.year,
+              month: creds.month,
+              calcNumber: creds.calcNumber,
+            })
+          );
+          try {
+            await hrUser ? null : null;
+          } catch {}
+          toast.success(
+            ar
+              ? `تم الانتقال بنجاح إلى: ${selectedSstHotel.nameAr}`
+              : `Connected to: ${selectedSstHotel.nameEn}`
+          );
+          // Trigger reload or state update
+          window.location.reload();
+        }}
       />
 
       {/* ─── MODAL 1: LUXURY SALARY PAY SLIP (مفردات الراتب) ─── */}

@@ -55,6 +55,7 @@ interface SstDesktopShellProps {
   onLastRecord?: () => void;
   currentRecordIndex?: number;
   totalRecordsCount?: number;
+  onChangeCompany?: () => void;
 }
 
 export function SstDesktopShell({
@@ -81,6 +82,7 @@ export function SstDesktopShell({
   onLastRecord,
   currentRecordIndex = 0,
   totalRecordsCount = 623,
+  onChangeCompany,
 }: SstDesktopShellProps) {
   const { language } = useLanguage();
   const ar = language === "ar";
@@ -213,6 +215,15 @@ export function SstDesktopShell({
           <Badge className="bg-emerald-700/80 hover:bg-emerald-700 text-white border-0 text-[10px] px-1.5 py-0 h-4">
             Live Connected
           </Badge>
+          {onChangeCompany && (
+            <button
+              onClick={onChangeCompany}
+              className="bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-[10px] px-2 py-0.5 rounded cursor-pointer border border-amber-600 shadow-2xs transition-colors"
+              title={ar ? "تغيير الفندق والمنشأة (F2)" : "Change Company / Hotel (F2)"}
+            >
+              {ar ? "تغيير الفندق..." : "Change Hotel..."}
+            </button>
+          )}
         </div>
 
         {/* Windows Control Buttons */}
@@ -240,7 +251,17 @@ export function SstDesktopShell({
             File
           </button>
           {activeMenu === "file" && (
-            <div className="absolute top-full start-0 mt-0.5 w-52 bg-white border border-slate-300 rounded shadow-lg py-1 z-50 text-xs">
+            <div className="absolute top-full start-0 mt-0.5 w-56 bg-white border border-slate-300 rounded shadow-lg py-1 z-50 text-xs">
+              {onChangeCompany && (
+                <button
+                  onClick={() => { onChangeCompany(); setActiveMenu(null); }}
+                  className="w-full text-start px-3 py-1.5 hover:bg-blue-50 text-amber-700 font-bold flex items-center justify-between"
+                >
+                  <span>Select Company / Hotel...</span>
+                  <span className="text-[10px] text-slate-400">F2</span>
+                </button>
+              )}
+              <div className="h-px bg-slate-200 my-1"></div>
               <button
                 onClick={() => { onOpenEmployeeMaster?.(); setActiveMenu(null); }}
                 className="w-full text-start px-3 py-1.5 hover:bg-blue-50 hover:text-blue-700 flex items-center justify-between"
@@ -618,7 +639,17 @@ export function SstDesktopShell({
           <span className="text-slate-300">|</span>
           <span className="font-semibold text-slate-700">Year = {year} Month = {month} Calc.# ={calcNumber}</span>
           <span className="text-slate-300">|</span>
-          <span className="font-bold text-rose-700">{propertyName}</span>
+          {onChangeCompany ? (
+            <button
+              onClick={onChangeCompany}
+              className="font-bold text-rose-700 hover:underline cursor-pointer"
+              title={ar ? "اضغط لتغيير الفندق والمنشأة" : "Click to change company / hotel"}
+            >
+              {propertyName}
+            </button>
+          ) : (
+            <span className="font-bold text-rose-700">{propertyName}</span>
+          )}
         </div>
 
         <div className="flex items-center gap-3">
