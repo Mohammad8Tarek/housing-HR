@@ -19,6 +19,8 @@ import {
   Trash2,
   ChevronLeft,
   ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   X,
   CreditCard,
   FileSpreadsheet,
@@ -43,6 +45,16 @@ interface SstDesktopShellProps {
   onPrintAction?: () => void;
   onSearchAction?: () => void;
   onSecurityAction?: () => void;
+  onOpenEmployeeMaster?: () => void;
+  onOpenPenalties?: () => void;
+  onOpenLeaves?: () => void;
+  onOpenClosePeriod?: () => void;
+  onFirstRecord?: () => void;
+  onPrevRecord?: () => void;
+  onNextRecord?: () => void;
+  onLastRecord?: () => void;
+  currentRecordIndex?: number;
+  totalRecordsCount?: number;
 }
 
 export function SstDesktopShell({
@@ -59,6 +71,16 @@ export function SstDesktopShell({
   onPrintAction,
   onSearchAction,
   onSecurityAction,
+  onOpenEmployeeMaster,
+  onOpenPenalties,
+  onOpenLeaves,
+  onOpenClosePeriod,
+  onFirstRecord,
+  onPrevRecord,
+  onNextRecord,
+  onLastRecord,
+  currentRecordIndex = 0,
+  totalRecordsCount = 623,
 }: SstDesktopShellProps) {
   const { language } = useLanguage();
   const ar = language === "ar";
@@ -75,6 +97,7 @@ export function SstDesktopShell({
       bgColor: "bg-blue-600 hover:bg-blue-700",
       accent: "from-blue-500 to-indigo-600",
       badge: "Master",
+      action: () => onOpenEmployeeMaster ? onOpenEmployeeMaster() : onTabChange("employees"),
     },
     {
       id: "transactions",
@@ -84,6 +107,7 @@ export function SstDesktopShell({
       bgColor: "bg-amber-600 hover:bg-amber-700",
       accent: "from-amber-500 to-orange-600",
       badge: "SST",
+      action: () => onTabChange("transactions"),
     },
     {
       id: "operations",
@@ -93,6 +117,7 @@ export function SstDesktopShell({
       bgColor: "bg-rose-600 hover:bg-rose-700",
       accent: "from-rose-500 to-red-600",
       badge: "Law 12",
+      action: () => onOpenPenalties ? onOpenPenalties() : onTabChange("operations"),
     },
     {
       id: "loans",
@@ -103,6 +128,7 @@ export function SstDesktopShell({
       accent: "from-emerald-500 to-teal-600",
       badge: "Loans",
       tab: "operations",
+      action: () => onTabChange("operations"),
     },
     {
       id: "bus",
@@ -112,6 +138,7 @@ export function SstDesktopShell({
       bgColor: "bg-red-700 hover:bg-red-800",
       accent: "from-red-600 to-rose-700",
       badge: "Bus",
+      action: () => onTabChange("bus"),
     },
   ];
 
@@ -125,6 +152,7 @@ export function SstDesktopShell({
       bgColor: "bg-amber-500 hover:bg-amber-600",
       accent: "from-yellow-500 to-amber-600",
       badge: "12%",
+      action: () => onTabChange("service-charge"),
     },
     {
       id: "runs",
@@ -134,6 +162,7 @@ export function SstDesktopShell({
       bgColor: "bg-[#0f2942] hover:bg-[#1a3f63]",
       accent: "from-slate-700 to-slate-900",
       badge: "Calc",
+      action: () => onTabChange("runs"),
     },
     {
       id: "wps",
@@ -143,60 +172,65 @@ export function SstDesktopShell({
       bgColor: "bg-green-700 hover:bg-green-800",
       accent: "from-green-600 to-emerald-700",
       badge: "WPS",
+      action: () => onTabChange("wps"),
     },
     {
       id: "rollover",
       titleAr: "ترحيل رصيد الإجازات السنوي",
       titleEn: "4-Bucket Vacations Rollover",
       icon: ArrowRightLeft,
-      bgColor: "bg-indigo-600 hover:bg-indigo-700",
-      accent: "from-indigo-500 to-purple-600",
-      badge: "4 Pools",
+      bgColor: "bg-indigo-700 hover:bg-indigo-800",
+      accent: "from-indigo-600 to-purple-700",
+      badge: "4-Roll",
+      action: () => onTabChange("rollover"),
     },
     {
       id: "reports",
-      titleAr: "دليل تقارير الرواتب الـ 20",
-      titleEn: "20 SST Reports Catalog",
+      titleAr: "دليل التقارير الشجرية الـ 20",
+      titleEn: "20 SST Tree Reports Catalog",
       icon: FileText,
-      bgColor: "bg-sky-700 hover:bg-sky-800",
-      accent: "from-sky-600 to-blue-700",
-      badge: "20 Tree",
+      bgColor: "bg-cyan-700 hover:bg-cyan-800",
+      accent: "from-cyan-600 to-blue-700",
+      badge: "20-Rpt",
+      action: () => onTabChange("reports"),
     },
   ];
 
+  const displayIndex = totalRecordsCount > 0 ? currentRecordIndex + 1 : 0;
+
   return (
-    <div className="flex flex-col bg-[#d4dce6] min-h-screen text-slate-800 font-sans select-none" dir="ltr">
-      {/* ─── 1. SST MDI TITLE BAR (Exact Windows Styling) ────────────────── */}
-      <div className="bg-gradient-to-r from-[#00387a] via-[#1b5ea3] to-[#00387a] text-white px-3 py-1 flex items-center justify-between shadow-xs select-none border-b border-[#00224d]">
+    <div className="flex flex-col h-[calc(100vh-4.2rem)] bg-[#c9d7e8] border border-[#7f9db9] rounded-lg shadow-xl overflow-hidden font-sans select-none">
+      {/* ─── 1. SST CLASSIC WINDOW TITLE BAR (Exact Windows XP / 7 Frame) ─── */}
+      <header className="bg-gradient-to-r from-[#184a78] via-[#2f6a9e] to-[#184a78] text-white px-3 py-1 flex items-center justify-between text-xs font-semibold shadow-xs select-none">
         <div className="flex items-center gap-2">
-          {/* SST Green 3D Logo */}
-          <div className="w-5 h-5 rounded bg-emerald-600 border border-emerald-300 flex items-center justify-center font-black text-[10px] text-white shadow-2xs">
-            SST
+          {/* SST Brand Icon */}
+          <div className="w-4 h-4 bg-emerald-600 rounded flex items-center justify-center text-[10px] font-black border border-white/40 shadow-2xs">
+            S
           </div>
-          <span className="font-bold text-xs tracking-wide">
-            Integrated System For Payroll And Human Resources ({propertyName})
+          <span className="font-bold tracking-tight">
+            Integrated System For Payroll And Human Resources ({propertyName}) [SST 26.0]
           </span>
-          <Badge className="bg-amber-400 text-slate-950 font-black text-[9px] px-1 py-0 h-4 border-amber-300">
-            SST 26.0
+          <Badge className="bg-emerald-700/80 hover:bg-emerald-700 text-white border-0 text-[10px] px-1.5 py-0 h-4">
+            Live Connected
           </Badge>
         </div>
 
-        {/* Windows Control Box */}
+        {/* Windows Control Buttons */}
         <div className="flex items-center gap-1">
-          <button className="w-6 h-5 bg-[#1b5ea3] hover:bg-[#2b72be] flex items-center justify-center text-xs font-bold rounded-xs border border-white/20 text-white cursor-pointer">
-            _
+          <button className="w-5 h-5 bg-[#2f6a9e] hover:bg-[#3d7fb8] border border-white/20 rounded text-[10px] flex items-center justify-center text-white">
+            <span className="w-2.5 h-[2px] bg-white"></span>
           </button>
-          <button className="w-6 h-5 bg-[#1b5ea3] hover:bg-[#2b72be] flex items-center justify-center text-[10px] font-bold rounded-xs border border-white/20 text-white cursor-pointer">
-            □
+          <button className="w-5 h-5 bg-[#2f6a9e] hover:bg-[#3d7fb8] border border-white/20 rounded text-[10px] flex items-center justify-center text-white">
+            <span className="w-2.5 h-2.5 border border-white"></span>
           </button>
-          <button className="w-6 h-5 bg-rose-600 hover:bg-rose-700 flex items-center justify-center text-xs font-bold rounded-xs border border-white/20 text-white cursor-pointer">
-            ✕
+          <button className="w-5 h-5 bg-rose-600 hover:bg-rose-700 border border-white/20 rounded text-[10px] flex items-center justify-center text-white">
+            <X className="w-3 h-3" />
           </button>
         </div>
-      </div>
+      </header>
 
-      {/* ─── 2. SST CLASSIC DESKTOP MENU BAR ────────────────────────────── */}
-      <div className="bg-[#f0f2f5] border-b border-[#c0c7d2] px-2 py-0.5 flex items-center gap-1 text-xs text-slate-800 font-medium relative shadow-2xs">
+      {/* ─── 2. SST CLASSIC TOP MENU BAR ───────────────────────────────── */}
+      <nav className="bg-[#eef3f9] border-b border-[#bdcadb] px-2 py-0.5 flex flex-wrap items-center gap-1 text-xs text-slate-800 select-none shadow-2xs">
         {/* Menu: File */}
         <div className="relative">
           <button
@@ -206,13 +240,20 @@ export function SstDesktopShell({
             File
           </button>
           {activeMenu === "file" && (
-            <div className="absolute top-full start-0 mt-0.5 w-48 bg-white border border-slate-300 rounded shadow-lg py-1 z-50 text-xs">
+            <div className="absolute top-full start-0 mt-0.5 w-52 bg-white border border-slate-300 rounded shadow-lg py-1 z-50 text-xs">
+              <button
+                onClick={() => { onOpenEmployeeMaster?.(); setActiveMenu(null); }}
+                className="w-full text-start px-3 py-1.5 hover:bg-blue-50 hover:text-blue-700 flex items-center justify-between"
+              >
+                <span>New Employee File</span>
+                <span className="text-[10px] text-slate-400">Ctrl+N</span>
+              </button>
               <button
                 onClick={() => { onNewAction?.(); setActiveMenu(null); }}
                 className="w-full text-start px-3 py-1.5 hover:bg-blue-50 hover:text-blue-700 flex items-center justify-between"
               >
                 <span>New Calculation Period</span>
-                <span className="text-[10px] text-slate-400">Ctrl+N</span>
+                <span className="text-[10px] text-slate-400">Ctrl+P</span>
               </button>
               <button
                 onClick={() => { onPrintAction?.(); setActiveMenu(null); }}
@@ -241,12 +282,12 @@ export function SstDesktopShell({
             Basic Definitions
           </button>
           {activeMenu === "defs" && (
-            <div className="absolute top-full start-0 mt-0.5 w-56 bg-white border border-slate-300 rounded shadow-lg py-1 z-50 text-xs">
+            <div className="absolute top-full start-0 mt-0.5 w-60 bg-white border border-slate-300 rounded shadow-lg py-1 z-50 text-xs">
               <button
-                onClick={() => { onTabChange("employees"); setActiveMenu(null); }}
-                className="w-full text-start px-3 py-1.5 hover:bg-blue-50 hover:text-blue-700"
+                onClick={() => { onOpenEmployeeMaster?.(); setActiveMenu(null); }}
+                className="w-full text-start px-3 py-1.5 hover:bg-blue-50 hover:text-blue-700 font-semibold"
               >
-                Payroll Bands (Bands 1..30)
+                Salary Bands Master (30 SST Bands)
               </button>
               <button
                 onClick={() => { onTabChange("employees"); setActiveMenu(null); }}
@@ -273,10 +314,10 @@ export function SstDesktopShell({
             Functions
           </button>
           {activeMenu === "funcs" && (
-            <div className="absolute top-full start-0 mt-0.5 w-60 bg-white border border-slate-300 rounded shadow-lg py-1 z-50 text-xs">
+            <div className="absolute top-full start-0 mt-0.5 w-64 bg-white border border-slate-300 rounded shadow-lg py-1 z-50 text-xs">
               <button
-                onClick={() => { onTabChange("employees"); setActiveMenu(null); }}
-                className="w-full text-start px-3 py-1.5 hover:bg-blue-50 hover:text-blue-700 flex items-center justify-between"
+                onClick={() => { onOpenEmployeeMaster ? onOpenEmployeeMaster() : onTabChange("employees"); setActiveMenu(null); }}
+                className="w-full text-start px-3 py-1.5 hover:bg-blue-50 hover:text-blue-700 flex items-center justify-between font-bold"
               >
                 <span>Employee Master (0/623)</span>
                 <Badge className="bg-blue-100 text-blue-800 text-[9px]">Master</Badge>
@@ -289,16 +330,22 @@ export function SstDesktopShell({
                 <Badge className="bg-amber-100 text-amber-800 text-[9px]">Calc.#</Badge>
               </button>
               <button
-                onClick={() => { onTabChange("operations"); setActiveMenu(null); }}
-                className="w-full text-start px-3 py-1.5 hover:bg-blue-50 hover:text-blue-700"
+                onClick={() => { onOpenPenalties ? onOpenPenalties() : onTabChange("operations"); setActiveMenu(null); }}
+                className="w-full text-start px-3 py-1.5 hover:bg-blue-50 hover:text-blue-700 text-rose-700 font-bold"
               >
-                Staff Loans & Installments
+                Disciplinary Penalties (Law 12)
+              </button>
+              <button
+                onClick={() => { onOpenLeaves ? onOpenLeaves() : onTabChange("rollover"); setActiveMenu(null); }}
+                className="w-full text-start px-3 py-1.5 hover:bg-blue-50 hover:text-blue-700 text-emerald-700 font-semibold"
+              >
+                leaves and Vacations Form
               </button>
               <button
                 onClick={() => { onTabChange("operations"); setActiveMenu(null); }}
                 className="w-full text-start px-3 py-1.5 hover:bg-blue-50 hover:text-blue-700"
               >
-                Disciplinary Penalties (Law 12)
+                Staff Loans & Installments
               </button>
               <button
                 onClick={() => { onTabChange("bus"); setActiveMenu(null); }}
@@ -319,12 +366,18 @@ export function SstDesktopShell({
             End Period
           </button>
           {activeMenu === "endp" && (
-            <div className="absolute top-full start-0 mt-0.5 w-60 bg-white border border-slate-300 rounded shadow-lg py-1 z-50 text-xs">
+            <div className="absolute top-full start-0 mt-0.5 w-64 bg-white border border-slate-300 rounded shadow-lg py-1 z-50 text-xs">
               <button
                 onClick={() => { onTabChange("runs"); setActiveMenu(null); }}
                 className="w-full text-start px-3 py-1.5 hover:bg-blue-50 hover:text-blue-700 font-bold"
               >
                 Calculate Salaries (Runs Engine)
+              </button>
+              <button
+                onClick={() => { onOpenClosePeriod?.(); setActiveMenu(null); }}
+                className="w-full text-start px-3 py-1.5 hover:bg-blue-50 hover:text-blue-700 text-amber-800 font-semibold"
+              >
+                Pre-Calculation Audit Checklist
               </button>
               <button
                 onClick={() => { onTabChange("service-charge"); setActiveMenu(null); }}
@@ -345,7 +398,7 @@ export function SstDesktopShell({
         {/* Menu: Reports */}
         <button
           onClick={() => { onTabChange("reports"); setActiveMenu(null); }}
-          className="px-2.5 py-1 hover:bg-[#d8e2ee] rounded cursor-pointer"
+          className="px-2.5 py-1 hover:bg-[#d8e2ee] rounded cursor-pointer text-slate-700"
         >
           Reports (20 Suites)
         </button>
@@ -361,22 +414,16 @@ export function SstDesktopShell({
           {activeMenu === "tools" && (
             <div className="absolute top-full start-0 mt-0.5 w-60 bg-white border border-slate-300 rounded shadow-lg py-1 z-50 text-xs">
               <button
+                onClick={() => { onTabChange("transactions"); setActiveMenu(null); }}
+                className="w-full text-start px-3 py-1.5 hover:bg-blue-50 hover:text-blue-700"
+              >
+                Import Monthly Transactions Excel
+              </button>
+              <button
                 onClick={() => { onTabChange("rollover"); setActiveMenu(null); }}
-                className="w-full text-start px-3 py-1.5 hover:bg-blue-50 hover:text-blue-700 font-bold text-indigo-700"
-              >
-                Yearly Vacations Rollover (4 Pools)
-              </button>
-              <button
-                onClick={() => { onTabChange("runs"); setActiveMenu(null); }}
                 className="w-full text-start px-3 py-1.5 hover:bg-blue-50 hover:text-blue-700"
               >
-                Egyptian Tax Calculator Simulator
-              </button>
-              <button
-                onClick={() => { onTabChange("runs"); setActiveMenu(null); }}
-                className="w-full text-start px-3 py-1.5 hover:bg-blue-50 hover:text-blue-700"
-              >
-                End of Service Gratuity Settlement
+                4-Bucket Leave Rollover Utility
               </button>
             </div>
           )}
@@ -397,7 +444,7 @@ export function SstDesktopShell({
         >
           Help
         </button>
-      </div>
+      </nav>
 
       {/* ─── 3. SST ICON TOOLBAR (Exact Icons from Screenshot) ──────────── */}
       <div className="bg-[#e4ebf3] border-b border-[#b5c2d1] px-3 py-1.5 flex items-center justify-between shadow-xs">
@@ -405,27 +452,27 @@ export function SstDesktopShell({
         <div className="flex items-center gap-1.5">
           {/* New Document Button (White page) */}
           <button
-            onClick={onNewAction}
+            onClick={() => onOpenEmployeeMaster ? onOpenEmployeeMaster() : onNewAction?.()}
             className="w-8 h-8 rounded bg-white hover:bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-700 shadow-xs cursor-pointer transition-transform hover:scale-105"
-            title="New Record / New Period"
+            title={ar ? "إضافة ملف موظف جديد" : "New Employee File / Record"}
           >
             <Plus className="w-4 h-4 text-emerald-700" />
           </button>
 
           {/* Edit Button (Pencil & colors) */}
           <button
-            onClick={() => onTabChange("employees")}
+            onClick={() => onOpenEmployeeMaster ? onOpenEmployeeMaster() : onTabChange("employees")}
             className="w-8 h-8 rounded bg-white hover:bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-700 shadow-xs cursor-pointer transition-transform hover:scale-105"
-            title="Edit Active Employee"
+            title={ar ? "فتح شاشة الموظف الأصلية للتعديل" : "Open Authentic Employee Master Screen"}
           >
             <Edit3 className="w-4 h-4 text-blue-700" />
           </button>
 
           {/* Delete Button (Green Recycle Bin) */}
           <button
-            onClick={() => alert("Please select an item from grid to delete")}
+            onClick={() => alert(ar ? "يرجى تحديد السجل المراد حذفه من القائمة" : "Please select an item from grid to delete")}
             className="w-8 h-8 rounded bg-white hover:bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-700 shadow-xs cursor-pointer transition-transform hover:scale-105"
-            title="Delete Selected Record"
+            title={ar ? "حذف السجل المحدد" : "Delete Selected Record"}
           >
             <Trash2 className="w-4 h-4 text-emerald-600" />
           </button>
@@ -434,7 +481,7 @@ export function SstDesktopShell({
           <button
             onClick={onPrintAction}
             className="w-8 h-8 rounded bg-white hover:bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-700 shadow-xs cursor-pointer transition-transform hover:scale-105"
-            title="Print Current Report / Slip"
+            title={ar ? "طباعة مسير الرواتب / مفردات المرتب" : "Print Current Report / Slip"}
           >
             <Printer className="w-4 h-4 text-slate-800" />
           </button>
@@ -443,35 +490,55 @@ export function SstDesktopShell({
           <button
             onClick={onSearchAction}
             className="w-8 h-8 rounded bg-white hover:bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-700 shadow-xs cursor-pointer transition-transform hover:scale-105"
-            title="Search Records"
+            title={ar ? "بحث سريع في العاملين والحركات" : "Search Records"}
           >
             <Search className="w-4 h-4 text-[#c89332]" />
           </button>
 
-          <div className="h-6 w-px bg-slate-300 mx-1"></div>
+          <div className="h-6 w-px bg-slate-300 mx-2"></div>
 
-          {/* Navigation Controls: Green Circles */}
-          <div className="flex items-center gap-1">
+          {/* Navigation Controls: Green Circles & Counter (0 / 623) */}
+          <div className="flex items-center gap-1.5 font-mono text-xs">
             <button
-              onClick={() => onTabChange("runs")}
+              onClick={onFirstRecord}
               className="w-7 h-7 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center shadow-xs cursor-pointer"
-              title="Previous Batch"
+              title={ar ? "أول سجل" : "First Record"}
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronsLeft className="w-4 h-4 rtl:rotate-180" />
             </button>
             <button
-              onClick={() => onTabChange("employees")}
+              onClick={onPrevRecord}
               className="w-7 h-7 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center shadow-xs cursor-pointer"
-              title="Next Batch"
+              title={ar ? "السابق" : "Previous Record"}
             >
-              <ChevronRight className="w-4 h-4" />
+              <ChevronLeft className="w-4 h-4 rtl:rotate-180" />
+            </button>
+
+            {/* SST TELEMETRY COUNTER */}
+            <div className="px-3 py-1 bg-white border border-slate-300 rounded text-slate-800 font-bold min-w-[70px] text-center shadow-inner">
+              {displayIndex} / {totalRecordsCount}
+            </div>
+
+            <button
+              onClick={onNextRecord}
+              className="w-7 h-7 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center shadow-xs cursor-pointer"
+              title={ar ? "التالي" : "Next Record"}
+            >
+              <ChevronRight className="w-4 h-4 rtl:rotate-180" />
+            </button>
+            <button
+              onClick={onLastRecord}
+              className="w-7 h-7 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center shadow-xs cursor-pointer"
+              title={ar ? "آخر سجل" : "Last Record"}
+            >
+              <ChevronsRight className="w-4 h-4 rtl:rotate-180" />
             </button>
           </div>
         </div>
 
         {/* Current Active Context Badge */}
         <div className="flex items-center gap-2">
-          <span className="text-[11px] font-mono font-bold text-slate-600">
+          <span className="text-[11px] font-mono font-bold text-slate-700">
             {propertyName} [{propertyCode}]
           </span>
           <Badge className="bg-[#0f2942] text-amber-300 font-mono text-[10px]">
@@ -493,7 +560,7 @@ export function SstDesktopShell({
             return (
               <button
                 key={item.id}
-                onClick={() => onTabChange(item.id)}
+                onClick={item.action}
                 className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center p-1 cursor-pointer transition-all ${
                   isActive
                     ? "bg-[#0f2942] text-amber-300 shadow-md ring-2 ring-amber-400 scale-105"
@@ -511,7 +578,7 @@ export function SstDesktopShell({
         </aside>
 
         {/* CENTER MDI CANVAS / CONTENT WORKSPACE */}
-        <main className="flex-1 overflow-y-auto p-3 bg-slate-100/60" dir={ar ? "rtl" : "ltr"}>
+        <main className="flex-1 overflow-y-auto p-2 bg-slate-100/60" dir={ar ? "rtl" : "ltr"}>
           {children}
         </main>
 
@@ -526,7 +593,7 @@ export function SstDesktopShell({
             return (
               <button
                 key={item.id}
-                onClick={() => onTabChange(item.tab || item.id)}
+                onClick={item.action}
                 className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center p-1 cursor-pointer transition-all ${
                   isActive
                     ? "bg-[#0f2942] text-amber-300 shadow-md ring-2 ring-amber-400 scale-105"

@@ -56,6 +56,9 @@ import { VacationsRolloverTab } from "./VacationsRolloverTab";
 import { ReportsCatalogTab } from "./ReportsCatalogTab";
 import { ClosePeriodModal } from "./ClosePeriodModal";
 import { SstDesktopShell } from "./SstDesktopShell";
+import { SstEmployeeMasterDialog } from "./SstEmployeeMasterDialog";
+import { SstPenaltiesDialog } from "./SstPenaltiesDialog";
+import { SstLeavesVacationsDialog } from "./SstLeavesVacationsDialog";
 
 export default function PayrollPage() {
   const { language } = useLanguage();
@@ -83,6 +86,12 @@ export default function PayrollPage() {
 
   // Close Period Modal State
   const [isClosePeriodOpen, setIsClosePeriodOpen] = useState(false);
+
+  // SST 26.0 Authentic Dialog States
+  const [isSstMasterOpen, setIsSstMasterOpen] = useState(false);
+  const [isSstPenaltiesOpen, setIsSstPenaltiesOpen] = useState(false);
+  const [isSstLeavesOpen, setIsSstLeavesOpen] = useState(false);
+  const [activeEmployeeIndex, setActiveEmployeeIndex] = useState(0);
 
   // Dual-Key Authorization State
   const [isDualKeyOpen, setIsDualKeyOpen] = useState(false);
@@ -894,7 +903,36 @@ export default function PayrollPage() {
         </TabsContent>
 
         {/* ─── TAB 2: EMPLOYEES & SALARY DETAILS ─── */}
-        <TabsContent value="employees" className="space-y-4">
+        <TabsContent value="employees" className="space-y-3">
+          {/* SST 26.0 Master Form Launcher Banner */}
+          <div className="bg-gradient-to-r from-[#184a78] via-[#245888] to-[#12395d] text-white p-3.5 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md border border-[#3b74a4]">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-emerald-600 flex items-center justify-center font-bold text-lg text-white shadow-inner border border-white/40">
+                S
+              </div>
+              <div>
+                <div className="font-bold text-sm flex items-center gap-2">
+                  <span>{ar ? "شاشة ملف الموظف الأصلية — SST 26.0 Master File" : "Authentic SST 26.0 Employee Master Studio"}</span>
+                  <Badge className="bg-amber-400 text-slate-900 font-mono text-[10px] font-bold">SST Form</Badge>
+                </div>
+                <div className="text-xs text-blue-200">
+                  {ar ? "تحكم تفصيلي بالبنود الـ 30 للراتب، التأمينات الاجتماعية (ق148)، التأمين الصحي الشامل (ق2/2018)، والملاحظات" : "Full 30-Band Salary Details, Law 148 Social Insurance, Comprehensive Health Law 2/2018"}
+                </div>
+              </div>
+            </div>
+
+            <Button
+              onClick={() => {
+                setActiveEmployeeIndex(0);
+                setIsSstMasterOpen(true);
+              }}
+              className="bg-amber-400 hover:bg-amber-500 text-slate-950 font-black gap-2 rounded-xl text-xs h-10 px-4 shadow-sm"
+            >
+              <Users className="w-4 h-4 text-slate-950" />
+              <span>{ar ? "فتح نافذة الموظف (SST Master Window)" : "Open SST Master Form"}</span>
+            </Button>
+          </div>
+
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="relative w-full sm:w-80">
               <Search className="w-4 h-4 absolute right-3 top-3 text-muted-foreground rtl:right-3 rtl:left-auto ltr:left-3 ltr:right-auto" />
@@ -914,16 +952,16 @@ export default function PayrollPage() {
             <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm text-right rtl:text-right ltr:text-left">
-                  <thead className="bg-slate-50 text-slate-600 border-b text-xs font-bold uppercase">
+                  <thead className="bg-[#1b7e3e] text-white border-b text-xs font-bold uppercase select-none">
                     <tr>
-                      <th className="p-3.5">{ar ? "كود الموظف" : "Code"}</th>
-                      <th className="p-3.5">{ar ? "اسم الموظف" : "Employee Name"}</th>
-                      <th className="p-3.5">{ar ? "النوع" : "Entity"}</th>
-                      <th className="p-3.5 font-mono">{ar ? "رقم البصمة" : "Biometric ID"}</th>
-                      <th className="p-3.5">{ar ? "الراتب الأساسي" : "Base Salary"}</th>
-                      <th className="p-3.5">{ar ? "التأمينات الاجتماعية" : "Social Insurance"}</th>
-                      <th className="p-3.5">{ar ? "الحساب البنكي / IBAN" : "Bank Account"}</th>
-                      <th className="p-3.5 text-center">{ar ? "مفردات الراتب" : "Salary Slip"}</th>
+                      <th className="p-3">{ar ? "كود الموظف" : "Code"}</th>
+                      <th className="p-3">{ar ? "اسم الموظف" : "Employee Name"}</th>
+                      <th className="p-3">{ar ? "النوع" : "Entity"}</th>
+                      <th className="p-3 font-mono">{ar ? "رقم البصمة" : "Biometric ID"}</th>
+                      <th className="p-3">{ar ? "الراتب الأساسي" : "Base Salary"}</th>
+                      <th className="p-3">{ar ? "التأمينات الاجتماعية" : "Social Insurance"}</th>
+                      <th className="p-3">{ar ? "الحساب البنكي / IBAN" : "Bank Account"}</th>
+                      <th className="p-3 text-center">{ar ? "إجراءات SST والرواتب" : "SST Actions"}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -936,19 +974,19 @@ export default function PayrollPage() {
                     ) : (
                       employeesList.map((emp: any) => (
                         <tr key={emp.id} className="hover:bg-slate-50/80 transition-colors">
-                          <td className="p-3.5 font-mono font-bold text-xs text-[#0f2942]">{emp.employeeCode}</td>
-                          <td className="p-3.5">
+                          <td className="p-3 font-mono font-bold text-xs text-[#0f2942]">{emp.employeeCode}</td>
+                          <td className="p-3">
                             <div className="font-bold text-slate-800">{emp.fullName}</div>
                             {emp.fullNameAr && <div className="text-xs text-muted-foreground">{emp.fullNameAr}</div>}
                           </td>
-                          <td className="p-3.5">
+                          <td className="p-3">
                             <Badge variant={emp.employmentType === "casual" ? "secondary" : "default"} className="rounded-lg text-[11px]">
                               {emp.employmentType === "casual" ? (ar ? "يومية" : "Casual") : (ar ? "مثبت" : "Regular")}
                             </Badge>
                           </td>
-                          <td className="p-3.5 font-mono text-xs text-slate-600">{emp.biometricId || "-"}</td>
-                          <td className="p-3.5 font-mono font-bold text-slate-800">{Number(emp.baseSalary).toLocaleString()} EGP</td>
-                          <td className="p-3.5">
+                          <td className="p-3 font-mono text-xs text-slate-600">{emp.biometricId || "-"}</td>
+                          <td className="p-3 font-mono font-bold text-slate-800">{Number(emp.baseSalary).toLocaleString()} EGP</td>
+                          <td className="p-3">
                             {emp.isInsured ? (
                               <Badge variant="outline" className="text-emerald-700 border-emerald-300 bg-emerald-50 text-[10px] rounded-lg">
                                 {ar ? "مؤمن (قانون 148)" : "Insured (Law 148)"}
@@ -959,11 +997,26 @@ export default function PayrollPage() {
                               </Badge>
                             )}
                           </td>
-                          <td className="p-3.5 font-mono text-xs text-muted-foreground">
+                          <td className="p-3 font-mono text-xs text-muted-foreground">
                             {emp.bankAccountNumber || emp.iban || (ar ? "صرف نقدي" : "Cash")}
                           </td>
-                          <td className="p-3.5 text-center">
+                          <td className="p-3 text-center">
                             <div className="flex items-center justify-center gap-1.5">
+                              {/* SST AUTHENTIC MASTER LAUNCHER */}
+                              <Button
+                                size="sm"
+                                onClick={() => {
+                                  const idx = employeesList.findIndex((e: any) => e.id === emp.id);
+                                  setActiveEmployeeIndex(idx >= 0 ? idx : 0);
+                                  setIsSstMasterOpen(true);
+                                }}
+                                className="h-8 gap-1 text-[11px] font-bold rounded-xl bg-[#0f2942] hover:bg-[#1a3f63] text-amber-300 shadow-xs"
+                                title={ar ? "فتح شاشة SST الأصلية بالـ 30 بنداً وتأمينات ق148" : "Open Authentic SST 30-Band Window"}
+                              >
+                                <Edit3 className="w-3.5 h-3.5 text-amber-400" />
+                                <span>{ar ? "شاشة SST" : "SST Master"}</span>
+                              </Button>
+
                               <PermissionGate module="payroll" action="edit">
                                 <Button 
                                   size="sm"
@@ -987,7 +1040,7 @@ export default function PayrollPage() {
                                   className="h-8 gap-1 text-[11px] font-semibold rounded-xl border-blue-200 text-blue-700 hover:bg-blue-50"
                                 >
                                   <Pencil className="w-3.5 h-3.5" />
-                                  <span>{ar ? "تعديل الراتب" : "Edit Salary"}</span>
+                                  <span>{ar ? "تعديل سريع" : "Quick Edit"}</span>
                                 </Button>
                               </PermissionGate>
                               <Button 
@@ -1412,7 +1465,20 @@ export default function PayrollPage() {
           month={activePeriod?.month || (new Date().getMonth() + 1)}
           calcNumber={1}
           userName={hrUser?.username || auth.user?.username || "admin"}
-          onNewAction={() => setIsNewPeriodOpen(true)}
+          onNewAction={() => {
+            setActiveEmployeeIndex(0);
+            setIsSstMasterOpen(true);
+          }}
+          onOpenEmployeeMaster={() => setIsSstMasterOpen(true)}
+          onOpenPenalties={() => setIsSstPenaltiesOpen(true)}
+          onOpenLeaves={() => setIsSstLeavesOpen(true)}
+          onOpenClosePeriod={() => setIsClosePeriodOpen(true)}
+          onFirstRecord={() => setActiveEmployeeIndex(0)}
+          onPrevRecord={() => setActiveEmployeeIndex(prev => Math.max(0, prev - 1))}
+          onNextRecord={() => setActiveEmployeeIndex(prev => Math.min(employeesList.length - 1, prev + 1))}
+          onLastRecord={() => setActiveEmployeeIndex(Math.max(0, employeesList.length - 1))}
+          currentRecordIndex={activeEmployeeIndex}
+          totalRecordsCount={employeesList.length}
           onPrintAction={() => {
             if (runsList[0]?.id) {
               window.open(`/api/payroll/runs/${runsList[0].id}/wps?format=nbe`, "_blank");
@@ -1445,6 +1511,79 @@ export default function PayrollPage() {
           {mainTabsContent}
         </div>
       )}
+
+      {/* ─── SST 26.0 AUTHENTIC DIALOGS (Solutions Software Technology) ─── */}
+      <SstEmployeeMasterDialog
+        isOpen={isSstMasterOpen}
+        onClose={() => setIsSstMasterOpen(false)}
+        employees={employeesList}
+        currentIndex={activeEmployeeIndex}
+        onNavigate={(idx) => setActiveEmployeeIndex(idx)}
+        onSaveEmployee={async (emp) => {
+          await updateEmployeeMutation.mutateAsync({
+            id: emp.id,
+            data: {
+              fullName: emp.fullName,
+              fullNameAr: emp.fullNameAr,
+              baseSalary: emp.baseSalary,
+              insuranceSalary: emp.insuranceSalary,
+              isInsured: emp.isInsured,
+              insuranceNumber: emp.insuranceNumber,
+              gender: emp.gender,
+              maritalStatus: emp.maritalStatus,
+              joiningDate: emp.joiningDate,
+              contractType: emp.contractType,
+              employmentType: emp.employmentType,
+              bankName: emp.bankName,
+              bankAccountNumber: emp.bankAccountNumber,
+              iban: emp.iban,
+            }
+          });
+        }}
+        onPrintSlip={(emp) => openSlipForEmployee(emp)}
+        propertyName={activeProperty}
+      />
+
+      <SstPenaltiesDialog
+        isOpen={isSstPenaltiesOpen}
+        onClose={() => setIsSstPenaltiesOpen(false)}
+        employees={employeesList}
+        currentIndex={activeEmployeeIndex}
+        onNavigate={(idx) => setActiveEmployeeIndex(idx)}
+        onSavePenalty={async (p) => {
+          const res = await fetch("/api/payroll-operations/penalties", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(p),
+          });
+          if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || "Failed to record penalty");
+          }
+          queryClient.invalidateQueries({ queryKey: ["payroll-penalties"] });
+        }}
+        propertyName={activeProperty}
+      />
+
+      <SstLeavesVacationsDialog
+        isOpen={isSstLeavesOpen}
+        onClose={() => setIsSstLeavesOpen(false)}
+        employees={employeesList}
+        currentIndex={activeEmployeeIndex}
+        onNavigate={(idx) => setActiveEmployeeIndex(idx)}
+        onSaveLeave={async (l) => {
+          const res = await fetch("/api/hrms/leaves/apply", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(l),
+          });
+          if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || "Failed to register leave");
+          }
+        }}
+        propertyName={activeProperty}
+      />
 
       {/* ─── MODAL 1: LUXURY SALARY PAY SLIP (مفردات الراتب) ─── */}
       <Dialog open={isSlipModalOpen} onOpenChange={setIsSlipModalOpen}>
