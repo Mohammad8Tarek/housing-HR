@@ -48,18 +48,30 @@ import { toast } from "sonner";
 import { PermissionGate } from "@/components/ui/permission-gate";
 import { formatDate } from "@/lib/date-utils";
 import { useHrAuth } from "@/context/HrAuthContext";
+import { useAuth } from "@/context/AuthContext";
 import { DualKeyAuthModal } from "@/components/modals/DualKeyAuthModal";
 import { MonthlyTransactionsTab } from "./MonthlyTransactionsTab";
 import { StaffBusManifestTab } from "./StaffBusManifestTab";
 import { VacationsRolloverTab } from "./VacationsRolloverTab";
 import { ReportsCatalogTab } from "./ReportsCatalogTab";
 import { ClosePeriodModal } from "./ClosePeriodModal";
+import { SstDesktopShell } from "./SstDesktopShell";
 
 export default function PayrollPage() {
   const { language } = useLanguage();
   const ar = language === "ar";
   const queryClient = useQueryClient();
-  const { propertyScope } = useHrAuth();
+  const { hrUser, propertyScope } = useHrAuth();
+  const auth = useAuth();
+
+  const [viewTheme, setViewTheme] = useState<"sst" | "modern">(() => {
+    return (localStorage.getItem("payroll_view_theme") as "sst" | "modern") || "sst";
+  });
+
+  const handleThemeToggle = (newTheme: "sst" | "modern") => {
+    setViewTheme(newTheme);
+    localStorage.setItem("payroll_view_theme", newTheme);
+  };
 
   const [selectedPropertyId, setSelectedPropertyId] = useState<number>(() => {
     return propertyScope?.id ? Number(propertyScope.id) : 2;
@@ -499,39 +511,42 @@ export default function PayrollPage() {
     setIsSlipModalOpen(true);
   };
 
-  return (
-    <div className="space-y-6 p-4 md:p-6" dir={ar ? "rtl" : "ltr"}>
+  const activeProperty = propertyScope?.nameAr || propertiesList.find((p: any) => p.id === selectedPropertyId)?.nameAr || "SunRise Meraki Sharm Casual";
+  const activePeriod = periodsList[0];
+
+  const mainTabsContent = (
+    <div className="space-y-4">
       {/* Top Header & Property Switcher */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-card border border-slate-200/80 rounded-2xl p-5 shadow-xs">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-card border border-slate-200/80 rounded-2xl p-4 shadow-xs">
         <div>
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-[#0f2942] text-[#c89332] flex items-center justify-center shadow-xs font-bold text-lg">
-              <DollarSign className="w-6 h-6 text-[#c89332]" />
+            <div className="w-10 h-10 rounded-xl bg-[#0f2942] text-[#c89332] flex items-center justify-center shadow-xs font-bold text-base">
+              <DollarSign className="w-5 h-5 text-[#c89332]" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-xl md:text-2xl font-bold tracking-tight text-[#0f2942] dark:text-foreground">
-                  {ar ? "نظام الرواتب والأجور الفندقية" : "Hospitality Payroll & Compensation System"}
+                <h1 className="text-lg md:text-xl font-bold tracking-tight text-[#0f2942] dark:text-foreground">
+                  {ar ? "استوديو الرواتب والأجور (SST 26.0 Studio)" : "SST Payroll & Compensation Studio"}
                 </h1>
-                <Badge variant="outline" className="text-[#c89332] border-[#c89332]/40 bg-amber-50/50 text-[11px] font-semibold">
-                  {ar ? "قانون العمل المصري 148/2019" : "Egyptian Law 148/2019"}
+                <Badge variant="outline" className="text-[#c89332] border-[#c89332]/40 bg-amber-50/50 text-[10px] font-semibold">
+                  SST 26.0 Parity
                 </Badge>
               </div>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <p className="text-[11px] text-muted-foreground mt-0.5">
                 {ar 
-                  ? "مسير الرواتب الشامل، عمولة الخدمة 12%، التأمينات والضرائب، السلف، وشيتات بنوك CIB و NBE"
-                  : "End-to-end hotel payroll, 12% service charge pools, Egyptian statutory tax/insurance, staff loans, and bank WPS"}
+                  ? "مسير الرواتب الشامل، الحركات المتغيرة، عمولة 12%، السلف والجزاءات، وأتوبيس القاهرة"
+                  : "End-to-end hotel payroll, 12% service charge pools, staff loans, and bank WPS"}
               </p>
             </div>
           </div>
         </div>
 
-        {/* Hotel & Employment Type Selector */}
-        <div className="flex flex-wrap items-center gap-3">
+        {/* Hotel & Employment Type Selector & SST Theme Switcher */}
+        <div className="flex flex-wrap items-center gap-2.5">
           <select 
             value={selectedPropertyId} 
             onChange={(e) => setSelectedPropertyId(Number(e.target.value))}
-            className="h-10 px-3 rounded-xl border border-slate-200 bg-background font-medium text-xs focus:ring-2 focus:ring-[#c89332] text-slate-800"
+            className="h-9 px-2.5 rounded-xl border border-slate-200 bg-background font-medium text-xs focus:ring-2 focus:ring-[#c89332] text-slate-800"
           >
             {propertiesList.map((p: any) => (
               <option key={p.id} value={p.id}>
@@ -541,26 +556,54 @@ export default function PayrollPage() {
           </select>
 
           {/* Toggle Regular vs Casual */}
-          <div className="inline-flex rounded-xl border border-slate-200 bg-slate-100/70 p-1">
+          <div className="inline-flex rounded-xl border border-slate-200 bg-slate-100/70 p-0.5">
             <button
               onClick={() => setEmploymentType("regular")}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+              className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-all ${
                 employmentType === "regular" 
                   ? "bg-white text-[#0f2942] shadow-xs font-bold" 
                   : "text-slate-500 hover:text-slate-800"
               }`}
             >
-              {ar ? "العمالة المثبتة (Regular)" : "Regular Staff"}
+              {ar ? "المثبتة" : "Regular"}
             </button>
             <button
               onClick={() => setEmploymentType("casual")}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+              className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-all ${
                 employmentType === "casual" 
                   ? "bg-white text-[#0f2942] shadow-xs font-bold" 
                   : "text-slate-500 hover:text-slate-800"
               }`}
             >
-              {ar ? "العمالة اليومية (Casual)" : "Casual Workers"}
+              {ar ? "الكاجوال" : "Casual"}
+            </button>
+          </div>
+
+          {/* Theme Toggle: SST Classic vs Modern */}
+          <div className="inline-flex rounded-xl border border-slate-200 bg-slate-100/70 p-0.5">
+            <button
+              onClick={() => handleThemeToggle("sst")}
+              className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all flex items-center gap-1 cursor-pointer ${
+                viewTheme === "sst"
+                  ? "bg-[#0f2942] text-amber-300 shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+              title={ar ? "واجهة وتصميم نظام SST 26.0 الأصلي" : "SST 26.0 Classic Desktop View"}
+            >
+              <span>🖥️</span>
+              <span>{ar ? "مظهر SST الأصلي" : "SST Classic"}</span>
+            </button>
+            <button
+              onClick={() => handleThemeToggle("modern")}
+              className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all flex items-center gap-1 cursor-pointer ${
+                viewTheme === "modern"
+                  ? "bg-[#0f2942] text-amber-300 shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+              title={ar ? "المظهر الحديث" : "Modern View"}
+            >
+              <span>✨</span>
+              <span>{ar ? "حديث" : "Modern"}</span>
             </button>
           </div>
         </div>
@@ -1354,6 +1397,54 @@ export default function PayrollPage() {
           </Card>
         </TabsContent>
       </Tabs>
+    </div>
+  );
+
+  return (
+    <>
+      {viewTheme === "sst" ? (
+        <SstDesktopShell
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          propertyName={activeProperty}
+          propertyCode={propertyScope?.code || "MRK-CASUAL"}
+          year={activePeriod?.year || new Date().getFullYear()}
+          month={activePeriod?.month || (new Date().getMonth() + 1)}
+          calcNumber={1}
+          userName={hrUser?.username || auth.user?.username || "admin"}
+          onNewAction={() => setIsNewPeriodOpen(true)}
+          onPrintAction={() => {
+            if (runsList[0]?.id) {
+              window.open(`/api/payroll/runs/${runsList[0].id}/wps?format=nbe`, "_blank");
+            } else {
+              toast.info(ar ? "يرجى تحديد مسير رواتب للطباعة" : "Select a payroll run to print");
+            }
+          }}
+          onSearchAction={() => {
+            const searchInput = document.querySelector('input[type="text"]') as HTMLInputElement;
+            if (searchInput) searchInput.focus();
+          }}
+          onSecurityAction={() => {
+            setPendingDualKeyAction({
+              code: "SUPERVISOR_AUDIT",
+              titleAr: "تفويض المشرف الأمني (System Manager)",
+              titleEn: "Supervisor Security Authorization",
+              descriptionAr: "التحقق من رمز الأمان (PIN) لفتح صلاحيات الرقابة الإدارية في استوديو SST",
+              descriptionEn: "Enter Supervisor PIN to unlock administrative controls",
+              execute: () => {
+                toast.success(ar ? "تم تفويض المشرف الإداري بنجاح!" : "Supervisor authorized!");
+              },
+            });
+            setIsDualKeyOpen(true);
+          }}
+        >
+          {mainTabsContent}
+        </SstDesktopShell>
+      ) : (
+        <div className="space-y-6 p-4 md:p-6" dir={ar ? "rtl" : "ltr"}>
+          {mainTabsContent}
+        </div>
+      )}
 
       {/* ─── MODAL 1: LUXURY SALARY PAY SLIP (مفردات الراتب) ─── */}
       <Dialog open={isSlipModalOpen} onOpenChange={setIsSlipModalOpen}>
@@ -2274,6 +2365,6 @@ export default function PayrollPage() {
         />
       )}
 
-    </div>
+    </>
   );
 }
