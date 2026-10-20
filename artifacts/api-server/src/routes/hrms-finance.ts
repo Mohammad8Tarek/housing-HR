@@ -144,14 +144,14 @@ router.post("/hrms/finance/journal-entries/generate/:payrollRunId", requirePermi
 
     const voucherNumber = `JV-PAY-${Date.now().toString().slice(-6)}`;
     const voucherDate = new Date().toISOString().split("T")[0];
-    const totalAmount = String(run.totalNetPay || "0.00");
+    const totalAmount = String(run.totalNet || "0.00");
 
     const [entry] = await payrollDb.insert(glJournalEntries).values({
       payrollRunId,
       propertyId: run.propertyId,
       voucherNumber,
       voucherDate,
-      periodLabel: `Payroll ${run.periodId}`,
+      periodLabel: `Payroll Period #${run.payrollPeriodId}`,
       totalDebit: totalAmount,
       totalCredit: totalAmount,
       isBalanced: true,

@@ -8,7 +8,7 @@ import {
   loanInstallments,
   employees,
 } from "@workspace/db-payroll";
-import { eq, desc, and, sql } from "drizzle-orm";
+import { eq, desc, and, ne, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { requirePermission } from "../middlewares/permissions.js";
 
@@ -58,6 +58,35 @@ router.get(["/payroll-ops/leaves", "/payroll-operations/leaves"], requirePermiss
 router.post(["/payroll-ops/leaves", "/payroll-operations/leaves"], requirePermission("payroll", "create"), async (req: Request, res: Response) => {
   try {
     const { propertyId, employeeId, leaveTypeId, startDate, endDate, totalDays, reason, replacementEmployeeId } = req.body;
+
+    if (!propertyId || !employeeId || !leaveTypeId || !startDate || !endDate) {
+      return res.status(400).json({ success: false, error: "الموظف ونوع الإجازة وتواريخ البداية والنهاية مطلوبة" });
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    if (isNaN(start.getTime()) || isNaN(end.getTime()) || start > end) {
+      return res.status(400).json({ success: false, error: "تاريخ بداية الإجازة يجب أن يكون مساوياً أو سابقاً لتاريخ النهاية" });
+    }
+
+    // Check for conflicting overlapping leave applications for this employee
+    const [existingOverlap] = await payrollDb
+      .select()
+      .from(leaveApplications)
+      .where(and(
+        eq(leaveApplications.employeeId, Number(employeeId)),
+        ne(leaveApplications.status, "rejected"),
+        sql`${leaveApplications.startDate} <= ${endDate} AND ${leaveApplications.endDate} >= ${startDate}`
+      ))
+      .limit(1);
+
+    if (existingOverlap) {
+      return res.status(400).json({
+        success: false,
+        error: "يوجد طلب إجازة مسجل مسبقاً لنفس الموظف يتعارض مع هذه الفترة الزمنية المحددة",
+      });
+    }
+
     const [leave] = await payrollDb.insert(leaveApplications).values({
       propertyId: Number(propertyId),
       employeeId: Number(employeeId),

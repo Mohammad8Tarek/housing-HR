@@ -242,6 +242,8 @@ async function runSuite() {
 
   if (payrollRunsRes.body?.runs?.length > 0) {
     const runId = payrollRunsRes.body.runs[0].id;
+    // Approve run before generating formal WPS file
+    await request("POST", `/payroll/runs/${runId}/approve`);
     const wpsRes = await request("GET", `/payroll/runs/${runId}/wps?format=nbe`);
     assert(wpsRes.status === 200, "Generate Bank WPS File Export (NBE Spec)");
   } else {

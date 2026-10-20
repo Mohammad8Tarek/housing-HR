@@ -97,6 +97,26 @@ async function seedFoundationData() {
       ON CONFLICT DO NOTHING;
     `);
 
+    // 7. Standard Hospitality Chart of Accounts (USALI Standard)
+    for (const prop of propRows.rows) {
+      await client.query(`
+        INSERT INTO gl_accounts (property_id, account_number, account_name_en, account_name_ar, account_type, sub_ledger_code, is_active)
+        VALUES 
+          ($1, '51010', 'Salaries & Basic Wages', 'مصروف المرتبات والأجور الأساسية', 'expense', 'PAY-BASE', true),
+          ($1, '51020', 'Overtime Pay', 'مصروف ساعات العمل الإضافية', 'expense', 'PAY-OT', true),
+          ($1, '51030', 'Hotel Service Charge Pool Distribution', 'مصروف توزيع حصة مقابل الخدمة 12%', 'expense', 'PAY-SVC', true),
+          ($1, '51040', 'Social Insurance Employer Contribution', 'حصة صاحب العمل في التأمينات الاجتماعية', 'expense', 'PAY-GOSI-ER', true),
+          ($1, '51050', 'Employee Housing & Living Allowance', 'بدل سكن وإعاشة الموظفين', 'expense', 'PAY-HOUSE', true),
+          ($1, '51060', 'Employee Meal & Uniform Allowance', 'بدلات وجبات وزي عمل', 'expense', 'PAY-MEAL', true),
+          ($1, '21010', 'Accrued Payroll & Net Salaries Payable', 'أمانات ورواتب مستحقة الصرف', 'liability', 'PAY-NET-PAYABLE', true),
+          ($1, '21020', 'Social Insurance Authority Payable (GOSI)', 'مصلحة التأمينات الاجتماعية الدائنة', 'liability', 'PAY-GOSI-DUE', true),
+          ($1, '21030', 'Income Tax & Salary Tax Authority', 'مصلحة الضرائب - كسب العمل', 'liability', 'PAY-TAX-DUE', true),
+          ($1, '21040', 'Service Charge Clearing Account', 'حساب تسوية مقابل الخدمة 12%', 'clearing', 'PAY-SVC-CLR', true),
+          ($1, '11010', 'Bank Payroll Clearing Account (WPS)', 'حساب بنك الرواتب والتحويلات WPS', 'clearing', 'PAY-BANK-CLR', true)
+        ON CONFLICT DO NOTHING;
+      `, [prop.id]);
+    }
+
     await client.query("COMMIT;");
     console.log("✅ HRMS Foundation Master Data seeded successfully!");
 
@@ -106,6 +126,7 @@ async function seedFoundationData() {
     const holCount = await client.query("SELECT COUNT(*) FROM holiday_calendars;");
     const tcCount = await client.query("SELECT COUNT(*) FROM training_courses;");
     const dcCount = await client.query("SELECT COUNT(*) FROM document_categories;");
+    const glCount = await client.query("SELECT COUNT(*) FROM gl_accounts;");
 
     console.log(`📈 Summary:`);
     console.log(`   - Legal Entities: ${leCount.rows[0].count}`);
@@ -114,6 +135,7 @@ async function seedFoundationData() {
     console.log(`   - 2026 Holidays: ${holCount.rows[0].count}`);
     console.log(`   - Training Courses: ${tcCount.rows[0].count}`);
     console.log(`   - Document Categories: ${dcCount.rows[0].count}`);
+    console.log(`   - GL Accounts: ${glCount.rows[0].count}`);
 
   } catch (err: any) {
     await client.query("ROLLBACK;");

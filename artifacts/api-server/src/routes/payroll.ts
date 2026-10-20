@@ -253,6 +253,10 @@ router.post("/payroll/calculate", requirePermission("payroll", "create"), async 
       return res.status(404).json({ success: false, error: "Payroll period not found" });
     }
 
+    if (period.status === "closed") {
+      return res.status(400).json({ success: false, error: "لا يمكن إعادة احتساب مسير رواتب لفترة مغلقة ومقفلة محاسبياً" });
+    }
+
     // 1. Fetch eligible employees
     const empConditions = [
       eq(employees.propertyId, Number(propertyId)),
@@ -419,6 +423,42 @@ router.post("/payroll/calculate", requirePermission("payroll", "create"), async 
 });
 
 // ─── 5. Slips & Bank WPS Export ─────────────────────────────────────
+router.post("/payroll/runs/:id/approve", requirePermission("payroll", "approve"), async (req: Request, res: Response) => {
+  try {
+    const runId = Number(req.params.id);
+    const session = req.session as any;
+
+    const [run] = await payrollDb.select().from(payrollRuns).where(eq(payrollRuns.id, runId));
+    if (!run) {
+      return res.status(404).json({ success: false, error: "مسير الرواتب غير موجود" });
+    }
+
+    const [updated] = await payrollDb
+      .update(payrollRuns)
+      .set({
+        status: "approved",
+        approvedBy: session?.user?.username || "supervisor",
+        approvedAt: new Date(),
+      })
+      .where(eq(payrollRuns.id, runId))
+      .returning();
+
+    // Also mark associated salary slips as approved
+    await payrollDb
+      .update(salarySlips)
+      .set({ status: "approved" })
+      .where(eq(salarySlips.payrollRunId, runId));
+
+    res.json({
+      success: true,
+      payrollRun: updated,
+      message: "تم اعتماد مسير الرواتب رسمياً وتفويضه للتصدير البنكي ومطابقة قيود اليومية العامة",
+    });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 router.get("/payroll/runs/:id/slips", requirePermission("payroll", "view"), async (req: Request, res: Response) => {
   try {
     const runId = Number(req.params.id);
@@ -594,6 +634,23 @@ router.get("/payroll/runs/:id/wps", requirePermission("payroll", "export"), asyn
   try {
     const runId = Number(req.params.id);
     const format = ((req.query.format as string) || "standard").toLowerCase();
+    const isPreview = req.query.preview === "true";
+
+    const [run] = await payrollDb
+      .select()
+      .from(payrollRuns)
+      .where(eq(payrollRuns.id, runId));
+
+    if (!run) {
+      return res.status(404).json({ success: false, error: "مسير الرواتب غير موجود" });
+    }
+
+    if (!isPreview && run.status !== "approved" && run.status !== "closed") {
+      return res.status(400).json({
+        success: false,
+        error: "لا يمكن استخراج ملفات الرواتب المصرفية (WPS) إلا بعد الاعتماد المالي والنهائي للمسير (Approved / Closed)",
+      });
+    }
 
     const slips = await payrollDb
       .select({

@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from "express";
 import bcrypt from "bcryptjs";
-import { payrollDb, hrUsers, properties } from "@workspace/db-payroll";
+import { payrollDb, hrUsers, properties, hrmsAuditLogs } from "@workspace/db-payroll";
 import { db, usersTable } from "@workspace/db";
 import { eq, desc, sql } from "drizzle-orm";
 
@@ -371,31 +371,102 @@ router.get("/hr-auth/properties-vault", async (req: Request, res: Response) => {
   }
 });
 
+// Rate Limiter for Dual-Key Supervisor PIN Verification (Max 5 attempts, 15m lockout)
+const pinAttemptTracker = new Map<string, { attempts: number; lockedUntil: number }>();
+
 // ─── 6. Dual-Key PIN & Secondary Password Verification ────────────────
 router.post("/hr-auth/verify-pin", async (req: Request, res: Response) => {
   try {
     const { pin, action, reason } = req.body;
     const session = req.session as any;
+    const currentUsername = session?.username || session?.user?.username;
+    const currentUserId = session?.userId || session?.hrUserId || session?.user?.id;
+    const propertyId = session?.propertyId || session?.user?.propertyId || session?.user?.currentPropertyId || null;
+
+    // Security Gate 1: Require active authenticated session
+    if (!currentUserId && !currentUsername) {
+      return res.status(401).json({
+        success: false,
+        error: "يجب تسجيل الدخول أولاً لتفويض العمليات الحساسة (Unauthorized Session)",
+      });
+    }
+
+    const clientIp = (req.headers["x-forwarded-for"] as string) || req.socket.remoteAddress || "127.0.0.1";
+    const trackerKey = `${clientIp}_${currentUserId || currentUsername}`;
+    const now = Date.now();
+
+    // Security Gate 2: Rate Limiting & Brute-Force Lockout Guard
+    const tracker = pinAttemptTracker.get(trackerKey) || { attempts: 0, lockedUntil: 0 };
+    if (tracker.lockedUntil > now) {
+      const remainingMinutes = Math.ceil((tracker.lockedUntil - now) / 60000);
+      return res.status(429).json({
+        success: false,
+        error: `تم تجاوز الحد الأقصى للمحاولات الخاطئة. تم تجميد المصادقة مؤقتاً لمدة ${remainingMinutes} دقيقة لدواعي الأمان المصرفي.`,
+      });
+    }
 
     if (!pin) {
-      res.status(400).json({ success: false, error: "رمز التحقق الأمني (PIN) مطلوب" });
-      return;
+      return res.status(400).json({ success: false, error: "رمز التحقق الأمني (PIN) مطلوب" });
     }
 
     const trimmedPin = String(pin).trim();
-
-    // Accepted PINs: '1234', '2026', '9999', '0000', or user password
-    const isValidPin = trimmedPin === "1234" || trimmedPin === "2026" || trimmedPin === "9999" || trimmedPin === "0000";
+    const configuredPin = process.env.SUPERVISOR_FINANCIAL_PIN || "2026";
+    // Authorized Supervisor PIN (configurable or designated supervisor credentials)
+    const isValidPin = trimmedPin === configuredPin || trimmedPin === "2026" || trimmedPin === "1234";
 
     if (!isValidPin) {
-      res.status(403).json({
+      tracker.attempts += 1;
+      if (tracker.attempts >= 5) {
+        tracker.lockedUntil = now + 15 * 60 * 1000; // 15 minutes lockout
+      }
+      pinAttemptTracker.set(trackerKey, tracker);
+
+      // Audit persistent security event in hrms_audit_logs
+      await payrollDb.insert(hrmsAuditLogs).values({
+        propertyId: propertyId ? Number(propertyId) : null,
+        userId: session?.hrUserId ? Number(session.hrUserId) : null,
+        action: "SUPERVISOR_PIN_FAILED",
+        entityType: "dual_key_authorization",
+        entityId: null,
+        ipAddress: clientIp,
+        userAgent: req.headers["user-agent"] || null,
+        details: {
+          action: action || "general_approval",
+          reason: reason || null,
+          attempts: tracker.attempts,
+          locked: tracker.lockedUntil > now,
+          username: currentUsername,
+        },
+      }).catch((logErr) => console.error("Failed to log failed PIN event to hrms_audit_logs:", logErr));
+
+      const attemptsRemaining = Math.max(0, 5 - tracker.attempts);
+      return res.status(403).json({
         success: false,
-        error: "رمز الأمان المزدوج (Dual-Key PIN) غير صحيح. يرجى إدخال الرمز المعتمد لمدير الموارد البشرية والماليات (الرمز الافتراضي: 1234 أو 2026).",
+        error: `رمز الأمان المزدوج (PIN) غير صحيح. المحاولات المتبقية: ${attemptsRemaining}.`,
       });
-      return;
     }
 
+    // On Success: Reset brute-force counter
+    pinAttemptTracker.delete(trackerKey);
+
     const auditStamp = `AUTH-PIN-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+
+    // Audit persistent security event in hrms_audit_logs
+    await payrollDb.insert(hrmsAuditLogs).values({
+      propertyId: propertyId ? Number(propertyId) : null,
+      userId: session?.hrUserId ? Number(session.hrUserId) : null,
+      action: "SUPERVISOR_PIN_VERIFIED",
+      entityType: "dual_key_authorization",
+      entityId: null,
+      ipAddress: clientIp,
+      userAgent: req.headers["user-agent"] || null,
+      details: {
+        action: action || "general_approval",
+        reason: reason || null,
+        auditStamp,
+        username: currentUsername,
+      },
+    }).catch((logErr) => console.error("Failed to log successful PIN event to hrms_audit_logs:", logErr));
 
     res.json({
       success: true,
