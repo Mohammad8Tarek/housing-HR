@@ -27,7 +27,10 @@ router.get("/hrms/recruitment/requisitions", requirePermission("payroll", "view"
     const list = await query;
     res.json({ success: true, requisitions: list });
   } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
+    const pgMsg = err.cause?.message || err.message;
+    const pgDetail = err.cause?.detail || err.detail;
+    console.error("CONVERT CANDIDATE ERROR:", pgMsg, pgDetail);
+    res.status(500).json({ success: false, error: pgMsg, detail: pgDetail });
   }
 });
 
@@ -54,7 +57,10 @@ router.post("/hrms/recruitment/requisitions", requirePermission("payroll", "crea
 
     res.status(201).json({ success: true, requisition: created });
   } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
+    const pgMsg = err.cause?.message || err.message;
+    const pgDetail = err.cause?.detail || err.detail;
+    console.error("CONVERT CANDIDATE ERROR:", pgMsg, pgDetail);
+    res.status(500).json({ success: false, error: pgMsg, detail: pgDetail });
   }
 });
 
@@ -69,7 +75,10 @@ router.patch("/hrms/recruitment/requisitions/:id/status", requirePermission("pay
     }).where(eq(manpowerRequisitions.id, id)).returning();
     res.json({ success: true, requisition: updated });
   } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
+    const pgMsg = err.cause?.message || err.message;
+    const pgDetail = err.cause?.detail || err.detail;
+    console.error("CONVERT CANDIDATE ERROR:", pgMsg, pgDetail);
+    res.status(500).json({ success: false, error: pgMsg, detail: pgDetail });
   }
 });
 
@@ -83,7 +92,10 @@ router.get("/hrms/recruitment/vacancies", requirePermission("payroll", "view"), 
     const list = await query;
     res.json({ success: true, vacancies: list });
   } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
+    const pgMsg = err.cause?.message || err.message;
+    const pgDetail = err.cause?.detail || err.detail;
+    console.error("CONVERT CANDIDATE ERROR:", pgMsg, pgDetail);
+    res.status(500).json({ success: false, error: pgMsg, detail: pgDetail });
   }
 });
 
@@ -109,7 +121,10 @@ router.post("/hrms/recruitment/vacancies", requirePermission("payroll", "create"
 
     res.status(201).json({ success: true, vacancy: created });
   } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
+    const pgMsg = err.cause?.message || err.message;
+    const pgDetail = err.cause?.detail || err.detail;
+    console.error("CONVERT CANDIDATE ERROR:", pgMsg, pgDetail);
+    res.status(500).json({ success: false, error: pgMsg, detail: pgDetail });
   }
 });
 
@@ -129,7 +144,10 @@ router.get("/hrms/recruitment/candidates", requirePermission("payroll", "view"),
     const list = await query;
     res.json({ success: true, candidates: list });
   } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
+    const pgMsg = err.cause?.message || err.message;
+    const pgDetail = err.cause?.detail || err.detail;
+    console.error("CONVERT CANDIDATE ERROR:", pgMsg, pgDetail);
+    res.status(500).json({ success: false, error: pgMsg, detail: pgDetail });
   }
 });
 
@@ -155,7 +173,10 @@ router.post("/hrms/recruitment/candidates", requirePermission("payroll", "create
 
     res.status(201).json({ success: true, candidate: created });
   } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
+    const pgMsg = err.cause?.message || err.message;
+    const pgDetail = err.cause?.detail || err.detail;
+    console.error("CONVERT CANDIDATE ERROR:", pgMsg, pgDetail);
+    res.status(500).json({ success: false, error: pgMsg, detail: pgDetail });
   }
 });
 
@@ -171,7 +192,10 @@ router.patch("/hrms/recruitment/candidates/:id/stage", requirePermission("payrol
     }).where(eq(candidates.id, id)).returning();
     res.json({ success: true, candidate: updated });
   } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
+    const pgMsg = err.cause?.message || err.message;
+    const pgDetail = err.cause?.detail || err.detail;
+    console.error("CONVERT CANDIDATE ERROR:", pgMsg, pgDetail);
+    res.status(500).json({ success: false, error: pgMsg, detail: pgDetail });
   }
 });
 
@@ -185,7 +209,10 @@ router.get("/hrms/recruitment/interviews", requirePermission("payroll", "view"),
     const list = await query;
     res.json({ success: true, interviews: list });
   } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
+    const pgMsg = err.cause?.message || err.message;
+    const pgDetail = err.cause?.detail || err.detail;
+    console.error("CONVERT CANDIDATE ERROR:", pgMsg, pgDetail);
+    res.status(500).json({ success: false, error: pgMsg, detail: pgDetail });
   }
 });
 
@@ -213,7 +240,10 @@ router.post("/hrms/recruitment/interviews", requirePermission("payroll", "create
 
     res.status(201).json({ success: true, interview: created });
   } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
+    const pgMsg = err.cause?.message || err.message;
+    const pgDetail = err.cause?.detail || err.detail;
+    console.error("CONVERT CANDIDATE ERROR:", pgMsg, pgDetail);
+    res.status(500).json({ success: false, error: pgMsg, detail: pgDetail });
   }
 });
 
@@ -227,7 +257,10 @@ router.get("/hrms/recruitment/offers", requirePermission("payroll", "view"), asy
     const list = await query;
     res.json({ success: true, offers: list });
   } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
+    const pgMsg = err.cause?.message || err.message;
+    const pgDetail = err.cause?.detail || err.detail;
+    console.error("CONVERT CANDIDATE ERROR:", pgMsg, pgDetail);
+    res.status(500).json({ success: false, error: pgMsg, detail: pgDetail });
   }
 });
 
@@ -254,7 +287,10 @@ router.post("/hrms/recruitment/offers", requirePermission("payroll", "create"), 
 
     res.status(201).json({ success: true, offer: created });
   } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
+    const pgMsg = err.cause?.message || err.message;
+    const pgDetail = err.cause?.detail || err.detail;
+    console.error("CONVERT CANDIDATE ERROR:", pgMsg, pgDetail);
+    res.status(500).json({ success: false, error: pgMsg, detail: pgDetail });
   }
 });
 
@@ -270,10 +306,11 @@ router.post("/hrms/recruitment/candidates/:id/convert-to-employee", requirePermi
     const nameParts = cand.fullName.split(" ");
     const firstName = nameParts[0] || cand.fullName;
     const lastName = nameParts[nameParts.length - 1] || "Staff";
+    const finalEmployeeCode = employeeCode || `EMP-REC-${Date.now().toString().slice(-5)}`;
 
     const [newEmp] = await payrollDb.insert(employees).values({
       propertyId: Number(propertyId),
-      employeeCode,
+      employeeCode: finalEmployeeCode,
       firstName,
       lastName,
       fullName: cand.fullName,
@@ -281,6 +318,7 @@ router.post("/hrms/recruitment/candidates/:id/convert-to-employee", requirePermi
       nationalId: cand.nationalId,
       phone: cand.phoneNumber,
       email: cand.email,
+      gender: cand.gender || "male",
       departmentId: departmentId ? Number(departmentId) : null,
       designationId: designationId ? Number(designationId) : null,
       joiningDate: joiningDate || new Date().toISOString().split("T")[0],
@@ -301,7 +339,10 @@ router.post("/hrms/recruitment/candidates/:id/convert-to-employee", requirePermi
 
     res.status(201).json({ success: true, employee: newEmp });
   } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
+    const pgMsg = err.cause?.message || err.message;
+    const pgDetail = err.cause?.detail || err.detail;
+    console.error("CONVERT CANDIDATE ERROR:", pgMsg, pgDetail);
+    res.status(500).json({ success: false, error: pgMsg, detail: pgDetail });
   }
 });
 
@@ -315,7 +356,10 @@ router.get("/hrms/recruitment/onboarding-tasks", requirePermission("payroll", "v
     const list = await query;
     res.json({ success: true, tasks: list });
   } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
+    const pgMsg = err.cause?.message || err.message;
+    const pgDetail = err.cause?.detail || err.detail;
+    console.error("CONVERT CANDIDATE ERROR:", pgMsg, pgDetail);
+    res.status(500).json({ success: false, error: pgMsg, detail: pgDetail });
   }
 });
 
@@ -330,7 +374,10 @@ router.patch("/hrms/recruitment/onboarding-tasks/:id", requirePermission("payrol
     }).where(eq(onboardingTasks.id, id)).returning();
     res.json({ success: true, task: updated });
   } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
+    const pgMsg = err.cause?.message || err.message;
+    const pgDetail = err.cause?.detail || err.detail;
+    console.error("CONVERT CANDIDATE ERROR:", pgMsg, pgDetail);
+    res.status(500).json({ success: false, error: pgMsg, detail: pgDetail });
   }
 });
 

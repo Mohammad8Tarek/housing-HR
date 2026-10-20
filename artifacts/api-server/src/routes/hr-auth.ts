@@ -87,6 +87,7 @@ router.post("/hr-auth/login", async (req: Request, res: Response) => {
         const isSysAdmin = roles.includes("super_admin") || roles.includes("system_admin") || roles.includes("admin");
 
         const session = req.session as any;
+        session.userId = housingUser.id;
         session.hrUserId = housingUser.id;
         session.hrUser = {
           id: housingUser.id,

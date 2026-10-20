@@ -557,6 +557,46 @@ export async function loadAuthUser(
 
   // If authenticated via dedicated HR system
   if (!userId && hrUserId) {
+    if (session.hrUser) {
+      const u = session.hrUser;
+      const isSysAdmin = u.role === "super_admin" || (u.roles || []).includes("super_admin");
+      const perms: string[] = [];
+      if (isSysAdmin) {
+        perms.push("*");
+      } else {
+        const p = u.permissions || {};
+        if (p.payroll) {
+          Object.entries(p.payroll).forEach(([act, allowed]) => {
+            if (allowed) {
+              perms.push(`payroll.${act}`);
+              perms.push(`payroll:${act}`);
+            }
+          });
+        }
+        if (p.attendance) {
+          Object.entries(p.attendance).forEach(([act, allowed]) => {
+            if (allowed) {
+              perms.push(`attendance.${act}`);
+              perms.push(`attendance:${act}`);
+            }
+          });
+        }
+      }
+
+      const authUser: AuthUser = {
+        id: u.id,
+        username: u.username,
+        status: "active",
+        roles: Array.isArray(u.roles) ? u.roles : [u.role || "officer"],
+        permissions: perms,
+        propertyId: u.propertyId ?? null,
+        propertyIds: u.propertyId ? [u.propertyId] : [],
+        isSystemAdmin: isSysAdmin,
+      };
+      (req as any).authUser = authUser;
+      return authUser;
+    }
+
     try {
       const [hrRow] = await payrollDb
         .select()

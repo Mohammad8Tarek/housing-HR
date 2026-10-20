@@ -140,7 +140,10 @@ router.get("/hrms/employees", requirePermission("payroll", "view"), async (req: 
       },
     });
   } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
+    const pgMsg = err.cause?.message || err.message;
+    const pgDetail = err.cause?.detail || err.detail;
+    console.error("CREATE EMPLOYEE ERROR:", pgMsg, pgDetail);
+    res.status(500).json({ success: false, error: pgMsg, detail: pgDetail });
   }
 });
 
@@ -244,7 +247,10 @@ router.get("/hrms/employees/:id", requirePermission("payroll", "view"), async (r
       }
     });
   } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
+    const pgMsg = err.cause?.message || err.message;
+    const pgDetail = err.cause?.detail || err.detail;
+    console.error("CREATE EMPLOYEE ERROR:", pgMsg, pgDetail);
+    res.status(500).json({ success: false, error: pgMsg, detail: pgDetail });
   }
 });
 
@@ -310,6 +316,8 @@ router.post("/hrms/employees", requirePermission("payroll", "create"), async (re
     const fullName = [firstName, secondName, thirdName, lastName].filter(Boolean).join(" ");
     const fullNameAr = req.body.fullNameAr || fullName;
 
+    const normalizedGender = (gender && String(gender).toLowerCase().startsWith("f")) ? "female" : "male";
+
     const [newEmp] = await payrollDb
       .insert(employees)
       .values({
@@ -323,8 +331,8 @@ router.post("/hrms/employees", requirePermission("payroll", "create"), async (re
         fullNameAr,
         nationalId,
         passportNumber,
-        gender: gender || "M",
-        dateOfBirth: dateOfBirth || null,
+        gender: normalizedGender,
+        dateOfBirth: (dateOfBirth && String(dateOfBirth).trim() !== "") ? String(dateOfBirth) : null,
         maritalStatus: maritalStatus || "Single",
         employmentType: employmentType || "regular",
         contractType: contractType || "permanent",
@@ -334,9 +342,9 @@ router.post("/hrms/employees", requirePermission("payroll", "create"), async (re
         sectionId: sectionId ? Number(sectionId) : null,
         costCenterId: costCenterId ? Number(costCenterId) : null,
         jobGradeId: jobGradeId ? Number(jobGradeId) : null,
-        joiningDate,
-        probationEndDate: probationEndDate || null,
-        contractEndDate: contractEndDate || null,
+        joiningDate: (joiningDate && String(joiningDate).trim() !== "") ? String(joiningDate) : new Date().toISOString().split("T")[0],
+        probationEndDate: (probationEndDate && String(probationEndDate).trim() !== "") ? String(probationEndDate) : null,
+        contractEndDate: (contractEndDate && String(contractEndDate).trim() !== "") ? String(contractEndDate) : null,
         baseSalary: baseSalary ? String(baseSalary) : "0.00",
         bankName,
         bankAccountNumber,
@@ -363,7 +371,10 @@ router.post("/hrms/employees", requirePermission("payroll", "create"), async (re
 
     res.status(201).json({ success: true, employee: newEmp });
   } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
+    const pgMsg = err.cause?.message || err.message;
+    const pgDetail = err.cause?.detail || err.detail;
+    console.error("CREATE EMPLOYEE ERROR:", pgMsg, pgDetail);
+    res.status(500).json({ success: false, error: pgMsg, detail: pgDetail });
   }
 });
 
@@ -396,7 +407,10 @@ router.put("/hrms/employees/:id", requirePermission("payroll", "edit"), async (r
 
     res.json({ success: true, employee: updated });
   } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
+    const pgMsg = err.cause?.message || err.message;
+    const pgDetail = err.cause?.detail || err.detail;
+    console.error("CREATE EMPLOYEE ERROR:", pgMsg, pgDetail);
+    res.status(500).json({ success: false, error: pgMsg, detail: pgDetail });
   }
 });
 
@@ -426,7 +440,10 @@ router.post("/hrms/employees/:id/documents", requirePermission("payroll", "creat
 
     res.status(201).json({ success: true, document: doc });
   } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
+    const pgMsg = err.cause?.message || err.message;
+    const pgDetail = err.cause?.detail || err.detail;
+    console.error("CREATE EMPLOYEE ERROR:", pgMsg, pgDetail);
+    res.status(500).json({ success: false, error: pgMsg, detail: pgDetail });
   }
 });
 
@@ -480,7 +497,10 @@ router.post("/hrms/employees/:id/history", requirePermission("payroll", "edit"),
 
     res.status(201).json({ success: true, historyEntry: entry });
   } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
+    const pgMsg = err.cause?.message || err.message;
+    const pgDetail = err.cause?.detail || err.detail;
+    console.error("CREATE EMPLOYEE ERROR:", pgMsg, pgDetail);
+    res.status(500).json({ success: false, error: pgMsg, detail: pgDetail });
   }
 });
 
@@ -573,7 +593,10 @@ router.post("/hrms/employees/bulk-import", requirePermission("payroll", "create"
       errors,
     });
   } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
+    const pgMsg = err.cause?.message || err.message;
+    const pgDetail = err.cause?.detail || err.detail;
+    console.error("CREATE EMPLOYEE ERROR:", pgMsg, pgDetail);
+    res.status(500).json({ success: false, error: pgMsg, detail: pgDetail });
   }
 });
 
