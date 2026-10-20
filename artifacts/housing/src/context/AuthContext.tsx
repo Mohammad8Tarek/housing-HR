@@ -70,6 +70,9 @@ export function storeToken(token?: string | null, persistent: boolean = true): v
     sessionStorage.setItem("session_id", val);
     localStorage.setItem("auth_token", val);
     localStorage.setItem("session_id", val);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("auth-state-change"));
+    }
   } catch {}
 }
 
@@ -79,6 +82,9 @@ export function clearToken(): void {
     sessionStorage.removeItem("session_id");
     localStorage.removeItem("auth_token");
     localStorage.removeItem("session_id");
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("auth-state-change"));
+    }
   } catch {}
 }
 
@@ -89,6 +95,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isLoggingOut = useRef(false);
   const hadUserRef = useRef(false);
 
+  const [hasToken, setHasToken] = useState<boolean>(() => Boolean(getStoredToken()));
+
+  // Synchronize token state across tabs or manual logins/logouts
+  useEffect(() => {
+    const syncToken = () => {
+      setHasToken(Boolean(getStoredToken()));
+    };
+    window.addEventListener("auth-state-change", syncToken);
+    window.addEventListener("storage", syncToken);
+    return () => {
+      window.removeEventListener("auth-state-change", syncToken);
+      window.removeEventListener("storage", syncToken);
+    };
+  }, []);
+
   // ─── Logout ───────────────────────────────────────────────────────────
   const logout = useCallback((reason: LogoutReason = "manual") => {
     if (isLoggingOut.current) return;
@@ -96,6 +117,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     hadUserRef.current = false;
 
     clearToken();
+    setHasToken(false);
 
     // Store reason so login page can display appropriate message
     if (reason !== "manual") {
@@ -128,7 +150,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, INACTIVITY_MS);
   }, [logout]);
 
-  // ─── Fetch /auth/me ───────────────────────────────────────────────────
+  // ─── Fetch /auth/me (only when a stored session exists) ───────────────
   const {
     data: user,
     isLoading,
@@ -137,7 +159,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   } = useGetMe({
     query: {
       queryKey: getGetMeQueryKey(),
-      enabled: true,
+      enabled: hasToken,
       staleTime: 60 * 1000,
       retry: false,
       refetchInterval: (query: any) => {
@@ -182,9 +204,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // When session is lost or 401 occurs, reset local token state gracefully without destructive reload loop
   useEffect(() => {
-    if (hadUserRef.current && isError && (error as any)?.status === 401) {
+    if (isError && (error as any)?.status === 401) {
       hadUserRef.current = false;
       clearToken();
+      setHasToken(false);
     }
   }, [isError, error]);
 
