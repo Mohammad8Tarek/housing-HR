@@ -38,13 +38,22 @@ import {
   FileCheck2,
   Eye,
   AlertTriangle,
-  Pencil
+  Pencil,
+  Bus,
+  ArrowRightLeft,
+  Lock,
+  FileText
 } from "lucide-react";
 import { toast } from "sonner";
 import { PermissionGate } from "@/components/ui/permission-gate";
 import { formatDate } from "@/lib/date-utils";
 import { useHrAuth } from "@/context/HrAuthContext";
 import { DualKeyAuthModal } from "@/components/modals/DualKeyAuthModal";
+import { MonthlyTransactionsTab } from "./MonthlyTransactionsTab";
+import { StaffBusManifestTab } from "./StaffBusManifestTab";
+import { VacationsRolloverTab } from "./VacationsRolloverTab";
+import { ReportsCatalogTab } from "./ReportsCatalogTab";
+import { ClosePeriodModal } from "./ClosePeriodModal";
 
 export default function PayrollPage() {
   const { language } = useLanguage();
@@ -59,6 +68,9 @@ export default function PayrollPage() {
     return propertyScope?.category === "casuals" ? "casual" : "regular";
   });
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Close Period Modal State
+  const [isClosePeriodOpen, setIsClosePeriodOpen] = useState(false);
 
   // Dual-Key Authorization State
   const [isDualKeyOpen, setIsDualKeyOpen] = useState(false);
@@ -83,8 +95,8 @@ export default function PayrollPage() {
   const getInitialTab = () => {
     if (typeof window !== "undefined") {
       const p = new URLSearchParams(window.location.search).get("tab");
-      if (p === "loans") return "operations";
-      if (p && ["runs", "employees", "service-charge", "operations", "reports", "wps"].includes(p)) return p;
+      if (p === "loans" || p === "penalties") return "operations";
+      if (p && ["runs", "employees", "transactions", "service-charge", "operations", "bus", "rollover", "reports", "wps"].includes(p)) return p;
     }
     return "runs";
   };
@@ -93,8 +105,8 @@ export default function PayrollPage() {
   React.useEffect(() => {
     const handlePopState = () => {
       const p = new URLSearchParams(window.location.search).get("tab");
-      if (p === "loans") setActiveTab("operations");
-      else if (p && ["runs", "employees", "service-charge", "operations", "reports", "wps"].includes(p)) {
+      if (p === "loans" || p === "penalties") setActiveTab("operations");
+      else if (p && ["runs", "employees", "transactions", "service-charge", "operations", "bus", "rollover", "reports", "wps"].includes(p)) {
         setActiveTab(p);
       }
     };
@@ -557,25 +569,41 @@ export default function PayrollPage() {
       {/* Main Tabs Navigation */}
       <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
         <TabsList className="flex flex-wrap items-center gap-1.5 w-full h-auto p-1.5 bg-slate-100/80 rounded-2xl border border-slate-200/80">
-          <TabsTrigger value="runs" className="py-2.5 px-4 gap-2 rounded-xl text-xs font-semibold data-[state=active]:bg-white data-[state=active]:text-[#0f2942] data-[state=active]:shadow-xs">
+          <TabsTrigger value="runs" className="py-2.5 px-3.5 gap-1.5 rounded-xl text-xs font-semibold data-[state=active]:bg-white data-[state=active]:text-[#0f2942] data-[state=active]:shadow-xs">
             <Calculator className="w-4 h-4 text-[#c89332]" />
-            <span>{ar ? "مسير الرواتب الشهرية (Payroll Runs)" : "Payroll Runs"}</span>
+            <span>{ar ? "مسير الرواتب (Runs)" : "Payroll Runs"}</span>
           </TabsTrigger>
-          <TabsTrigger value="employees" className="py-2.5 px-4 gap-2 rounded-xl text-xs font-semibold data-[state=active]:bg-white data-[state=active]:text-[#0f2942] data-[state=active]:shadow-xs">
+          <TabsTrigger value="employees" className="py-2.5 px-3.5 gap-1.5 rounded-xl text-xs font-semibold data-[state=active]:bg-white data-[state=active]:text-[#0f2942] data-[state=active]:shadow-xs">
             <Users className="w-4 h-4 text-[#0f2942]" />
-            <span>{ar ? "سجل الموظفين والرواتب (Staff)" : "Employees & Salaries"}</span>
+            <span>{ar ? "بيانات الموظفين (Staff)" : "Employees & Salaries"}</span>
           </TabsTrigger>
-          <TabsTrigger value="service-charge" className="py-2.5 px-4 gap-2 rounded-xl text-xs font-semibold data-[state=active]:bg-white data-[state=active]:text-[#0f2942] data-[state=active]:shadow-xs">
+          <TabsTrigger value="transactions" className="py-2.5 px-3.5 gap-1.5 rounded-xl text-xs font-semibold data-[state=active]:bg-white data-[state=active]:text-[#0f2942] data-[state=active]:shadow-xs">
+            <Receipt className="w-4 h-4 text-blue-600" />
+            <span>{ar ? "الحركات المتغيرة (Transactions)" : "Monthly Transactions"}</span>
+          </TabsTrigger>
+          <TabsTrigger value="service-charge" className="py-2.5 px-3.5 gap-1.5 rounded-xl text-xs font-semibold data-[state=active]:bg-white data-[state=active]:text-[#0f2942] data-[state=active]:shadow-xs">
             <Percent className="w-4 h-4 text-emerald-600" />
-            <span>{ar ? "عمولة الخدمة الفندقية 12% (Tronc Pool)" : "12% Service Charge"}</span>
+            <span>{ar ? "عمولة الـ 12% خدمة (Tronc)" : "12% Service Charge"}</span>
           </TabsTrigger>
-          <TabsTrigger value="operations" className="py-2.5 px-4 gap-2 rounded-xl text-xs font-semibold data-[state=active]:bg-white data-[state=active]:text-[#0f2942] data-[state=active]:shadow-xs">
+          <TabsTrigger value="operations" className="py-2.5 px-3.5 gap-1.5 rounded-xl text-xs font-semibold data-[state=active]:bg-white data-[state=active]:text-[#0f2942] data-[state=active]:shadow-xs">
             <Landmark className="w-4 h-4 text-amber-600" />
-            <span>{ar ? "السلف والجزاءات (Loans & Legal)" : "Loans & Disciplinary"}</span>
+            <span>{ar ? "السلف والجزاءات (Loans)" : "Loans & Disciplinary"}</span>
           </TabsTrigger>
-          <TabsTrigger value="reports" className="py-2.5 px-4 gap-2 rounded-xl text-xs font-semibold data-[state=active]:bg-white data-[state=active]:text-[#0f2942] data-[state=active]:shadow-xs">
-            <FileSpreadsheet className="w-4 h-4 text-blue-600" />
-            <span>{ar ? "شيتات البنوك WPS والتقارير" : "Bank WPS & Audit"}</span>
+          <TabsTrigger value="bus" className="py-2.5 px-3.5 gap-1.5 rounded-xl text-xs font-semibold data-[state=active]:bg-white data-[state=active]:text-[#0f2942] data-[state=active]:shadow-xs">
+            <Bus className="w-4 h-4 text-emerald-700" />
+            <span>{ar ? "أتوبيس القاهرة (Bus)" : "Bus Manifest"}</span>
+          </TabsTrigger>
+          <TabsTrigger value="rollover" className="py-2.5 px-3.5 gap-1.5 rounded-xl text-xs font-semibold data-[state=active]:bg-white data-[state=active]:text-[#0f2942] data-[state=active]:shadow-xs">
+            <ArrowRightLeft className="w-4 h-4 text-indigo-600" />
+            <span>{ar ? "ترحيل الإجازات (Rollover)" : "Leave Rollover"}</span>
+          </TabsTrigger>
+          <TabsTrigger value="reports" className="py-2.5 px-3.5 gap-1.5 rounded-xl text-xs font-semibold data-[state=active]:bg-white data-[state=active]:text-[#0f2942] data-[state=active]:shadow-xs">
+            <FileText className="w-4 h-4 text-amber-700" />
+            <span>{ar ? "دليل التقارير الـ 20 (SST)" : "20 Reports Catalog"}</span>
+          </TabsTrigger>
+          <TabsTrigger value="wps" className="py-2.5 px-3.5 gap-1.5 rounded-xl text-xs font-semibold data-[state=active]:bg-white data-[state=active]:text-[#0f2942] data-[state=active]:shadow-xs">
+            <FileSpreadsheet className="w-4 h-4 text-purple-600" />
+            <span>{ar ? "شيتات WPS والـ GL" : "Bank WPS & GL"}</span>
           </TabsTrigger>
         </TabsList>
 
@@ -628,6 +656,24 @@ export default function PayrollPage() {
                 >
                   <Calendar className="w-4 h-4 text-blue-600" />
                   <span>{ar ? "فترة مالية جديدة" : "New Period"}</span>
+                </Button>
+              </PermissionGate>
+
+              <PermissionGate module="payroll" action="edit">
+                <Button 
+                  variant="outline"
+                  onClick={() => {
+                    if (periodsList.length === 0) {
+                      toast.error(ar ? "لا توجد فترة مالية حالية" : "No active period");
+                      return;
+                    }
+                    setIsClosePeriodOpen(true);
+                  }}
+                  className="gap-1.5 border-amber-300 text-amber-800 bg-amber-50/50 hover:bg-amber-100 rounded-xl text-xs font-semibold h-10 px-3"
+                  title={ar ? "إقفال الحركات الشهرية والتأكد من مطابقة السجلات قبل الاحتساب" : "Lock monthly transactions"}
+                >
+                  <Lock className="w-4 h-4 text-amber-600" />
+                  <span>{ar ? "إقفال حركات الفترة" : "Close Transactions"}</span>
                 </Button>
               </PermissionGate>
 
@@ -1147,8 +1193,32 @@ export default function PayrollPage() {
           </div>
         </TabsContent>
 
-        {/* ─── TAB 5: BANK WPS & AUDIT REPORTS ─── */}
+        {/* ─── TAB 3: SST MONTHLY VARIABLE TRANSACTIONS ─── */}
+        <TabsContent value="transactions" className="space-y-4">
+          <MonthlyTransactionsTab
+            propertyId={selectedPropertyId}
+            periodId={periodsList[0]?.id}
+            employees={employeesList}
+          />
+        </TabsContent>
+
+        {/* ─── TAB 6: SST STAFF BUS MANIFEST ─── */}
+        <TabsContent value="bus" className="space-y-4">
+          <StaffBusManifestTab propertyId={selectedPropertyId} />
+        </TabsContent>
+
+        {/* ─── TAB 7: SST YEARLY VACATIONS ROLLOVER ─── */}
+        <TabsContent value="rollover" className="space-y-4">
+          <VacationsRolloverTab propertyId={selectedPropertyId} />
+        </TabsContent>
+
+        {/* ─── TAB 8: SST 20 REPORTS CATALOG TREE ─── */}
         <TabsContent value="reports" className="space-y-4">
+          <ReportsCatalogTab propertyId={selectedPropertyId} />
+        </TabsContent>
+
+        {/* ─── TAB 9: BANK WPS & AUDIT REPORTS ─── */}
+        <TabsContent value="wps" className="space-y-4">
           <Card className="rounded-2xl border-slate-200/80 shadow-xs">
             <CardHeader>
               <div className="flex items-center gap-2">
@@ -2192,6 +2262,15 @@ export default function PayrollPage() {
           titleEn={pendingDualKeyAction.titleEn}
           descriptionAr={pendingDualKeyAction.descriptionAr}
           descriptionEn={pendingDualKeyAction.descriptionEn}
+        />
+      )}
+
+      {/* SST Close Period Transactions Lock Modal */}
+      {isClosePeriodOpen && periodsList.length > 0 && (
+        <ClosePeriodModal
+          isOpen={isClosePeriodOpen}
+          onClose={() => setIsClosePeriodOpen(false)}
+          period={periodsList[0]}
         />
       )}
 

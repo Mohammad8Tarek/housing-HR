@@ -29,7 +29,13 @@ import {
   FileSpreadsheet,
   Clock,
   Sparkles,
-  Lock
+  Lock,
+  Receipt,
+  Bus,
+  ArrowRightLeft,
+  Percent,
+  Calculator,
+  FileText
 } from "lucide-react";
 
 interface HrSuiteLayoutProps {
@@ -65,20 +71,176 @@ export function HrSuiteLayout({ children, activeModule }: HrSuiteLayoutProps) {
     if (auth.isAuthenticated) auth.logout();
   };
 
-  // Grouped Navigation for the Enterprise HRMS, Payroll & Attendance Suite
-  const navGroups = [
+  // Determine current active domain
+  const currentDomain: "payroll" | "attendance" | "hrms" = 
+    activeModule ||
+    (location.startsWith("/payroll") ? "payroll" :
+     location.startsWith("/attendance") ? "attendance" : "hrms");
+
+  // 1. DEDICATED PAYROLL STUDIO NAVIGATION (Exact SST 26.0 Legacy Architecture)
+  const payrollNavGroups = [
     {
-      title: ar ? "الموارد البشرية والكفاءات" : "Core HR & Master Data",
+      title: ar ? "1. التعريفات الأساسية (Definitions)" : "1. Basic Definitions",
       items: [
         {
-          label: ar ? "دليل الموظفين المركزي" : "Employee Master",
+          label: ar ? "بنود المرتبات والبدلات (30 بند)" : "Salary Bands & Elements",
+          icon: Receipt,
+          href: "/payroll?tab=bands",
+          tab: "bands",
+          badge: "SST 1..30",
+        },
+        {
+          label: ar ? "مراكز التكلفة والتوجيه المحاسبي" : "Cost Centers & GL Accounts",
+          icon: Building2,
+          href: "/payroll?tab=cost-centers",
+          tab: "cost-centers",
+          badge: null,
+        },
+      ],
+    },
+    {
+      title: ar ? "2. الوظائف والعمليات (Functions)" : "2. Functions & Operations",
+      items: [
+        {
+          label: ar ? "بيانات رواتب الموظفين" : "Employee Master & Salaries",
           icon: Users,
-          href: "/hrms",
+          href: "/payroll?tab=employees",
           tab: "employees",
           badge: null,
         },
         {
-          label: ar ? "الهيكل ومراكز التكلفة" : "Org & Cost Centers",
+          label: ar ? "الحركات الشهرية المتغيرة" : "Monthly Transactions",
+          icon: Receipt,
+          href: "/payroll?tab=transactions",
+          tab: "transactions",
+          badge: ar ? "متغيرات" : "Variable",
+        },
+        {
+          label: ar ? "السلف والأقساط الشهرية" : "Staff Loans & Advances",
+          icon: CreditCard,
+          href: "/payroll?tab=loans",
+          tab: "loans",
+          badge: null,
+        },
+        {
+          label: ar ? "الجزاءات والخصومات المعتمدة" : "Disciplinary Penalties",
+          icon: ShieldCheck,
+          href: "/payroll?tab=penalties",
+          tab: "penalties",
+          badge: ar ? "قانون 12" : "Law 12",
+        },
+        {
+          label: ar ? "أتوبيس العاملين - رحلات القاهرة" : "Staff Bus Travel Manifest",
+          icon: Bus,
+          href: "/payroll?tab=bus",
+          tab: "bus",
+          badge: ar ? "سفر" : "Travel",
+        },
+      ],
+    },
+    {
+      title: ar ? "3. إقفال الفترة والاحتساب (End Period)" : "3. End Period & Runs",
+      items: [
+        {
+          label: ar ? "مسير الرواتب الشهرية والاحتساب" : "Payroll Runs & Calculation",
+          icon: Calculator,
+          href: "/payroll?tab=runs",
+          tab: "runs",
+          badge: ar ? "شهري" : "Monthly",
+        },
+        {
+          label: ar ? "توزيع نسبة الـ 12% خدمة (85/15)" : "12% Service Charge Distribution",
+          icon: Percent,
+          href: "/payroll?tab=service-charge",
+          tab: "service-charge",
+          badge: "85% / 15%",
+        },
+        {
+          label: ar ? "شيتات البنوك WPS وقيود الـ GL" : "Bank WPS & GL Vouchers",
+          icon: FileSpreadsheet,
+          href: "/payroll?tab=wps",
+          tab: "wps",
+          badge: "WPS",
+        },
+      ],
+    },
+    {
+      title: ar ? "4. التقارير والأدوات الخاصة (Tools)" : "4. Reports & Special Tools",
+      items: [
+        {
+          label: ar ? "دليل تقارير الرواتب الـ 20" : "20 Reports Catalog Tree",
+          icon: FileText,
+          href: "/payroll?tab=reports",
+          tab: "reports",
+          badge: "20 Suites",
+        },
+        {
+          label: ar ? "ترحيل أرصدة الإجازات السنوي" : "Yearly Vacations Rollover",
+          icon: ArrowRightLeft,
+          href: "/payroll?tab=rollover",
+          tab: "rollover",
+          badge: "4 Pools",
+        },
+      ],
+    },
+  ];
+
+  // 2. DEDICATED ATTENDANCE NAVIGATION (Time Machine & Biometrics Architecture)
+  const attendanceNavGroups = [
+    {
+      title: ar ? "ماكينة الحضور وتفريغ البصمة" : "Time Machine & Telemetry",
+      items: [
+        {
+          label: ar ? "تفريغ البصمة المباشر" : "Live Biometric Punches",
+          icon: Fingerprint,
+          href: "/attendance?tab=roster",
+          tab: "roster",
+          badge: ar ? "لحظي" : "Live",
+        },
+        {
+          label: ar ? "جدول الورديات والشفتات" : "Shift Roster Matrix",
+          icon: Clock,
+          href: "/attendance?tab=roster",
+          tab: "roster",
+          badge: null,
+        },
+      ],
+    },
+    {
+      title: ar ? "إجازات الموظفين والأرصدة" : "Leaves & Exceptions",
+      items: [
+        {
+          label: ar ? "طلبات وأرصدة الإجازات" : "Leaves & Balances",
+          icon: Calendar,
+          href: "/attendance?tab=leaves",
+          tab: "leaves",
+          badge: null,
+        },
+        {
+          label: ar ? "إشعارات العودة من الإجازة" : "Return from Leave Notices",
+          icon: Sparkles,
+          href: "/attendance?tab=leaves",
+          tab: "leaves",
+          badge: ar ? "إشعار عودة" : "Return",
+        },
+      ],
+    },
+  ];
+
+  // 3. DEDICATED HRMS NAVIGATION (Core Master Data & Talent Architecture)
+  const hrmsNavGroups = [
+    {
+      title: ar ? "الموارد البشرية والشؤون الإدارية" : "Core HR & Master Data",
+      items: [
+        {
+          label: ar ? "دليل الموظفين المركزي" : "Employee Master",
+          icon: Users,
+          href: "/hrms?tab=employees",
+          tab: "employees",
+          badge: null,
+        },
+        {
+          label: ar ? "الهيكل الإداري ومراكز التكلفة" : "Org Hierarchy & Centers",
           icon: Building2,
           href: "/hrms?tab=org",
           tab: "org",
@@ -112,45 +274,12 @@ export function HrSuiteLayout({ children, activeModule }: HrSuiteLayoutProps) {
         },
       ],
     },
-    {
-      title: ar ? "المرتبات والمستحقات" : "Payroll & Finance",
-      items: [
-        {
-          label: ar ? "مسير الرواتب والاستحقاقات" : "Payroll Processing",
-          icon: DollarSign,
-          href: "/payroll",
-          tab: "runs",
-          badge: ar ? "شهري" : "Monthly",
-        },
-        {
-          label: ar ? "السلف والجزاءات وWPS" : "Advances, Loans & WPS",
-          icon: CreditCard,
-          href: "/payroll?tab=loans",
-          tab: "loans",
-          badge: null,
-        },
-      ],
-    },
-    {
-      title: ar ? "الحضور وأجهزة البصمة" : "Biometrics & Attendance",
-      items: [
-        {
-          label: ar ? "تفريغ البصمة وجدول الورديات" : "Biometrics & Roster",
-          icon: Fingerprint,
-          href: "/attendance",
-          tab: "roster",
-          badge: ar ? "لحظي" : "Sync",
-        },
-        {
-          label: ar ? "إجازات الموظفين والأرصدة" : "Leaves & Balances",
-          icon: Calendar,
-          href: "/attendance?tab=leaves",
-          tab: "leaves",
-          badge: null,
-        },
-      ],
-    },
   ];
+
+  // Select isolated navigation group based strictly on current domain
+  const navGroups = 
+    currentDomain === "payroll" ? payrollNavGroups :
+    currentDomain === "attendance" ? attendanceNavGroups : hrmsNavGroups;
 
   const currentTab = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("tab") : null;
 
@@ -173,9 +302,9 @@ export function HrSuiteLayout({ children, activeModule }: HrSuiteLayoutProps) {
 
   return (
     <div className="min-h-screen bg-[#f8fafc] flex flex-col" dir={ar ? "rtl" : "ltr"}>
-      {/* ─── 1. Top Enterprise Header ─────────────────────────────────── */}
-      <header className="border-b bg-white sticky top-0 z-40 px-4 sm:px-6 h-14 flex items-center justify-between shadow-xs">
-        <div className="flex items-center gap-3">
+      {/* ─── 1. Top Enterprise Header & Standalone System Switcher ─────── */}
+      <header className="border-b bg-white sticky top-0 z-40 px-3 sm:px-6 h-14 flex items-center justify-between shadow-xs">
+        <div className="flex items-center gap-2 sm:gap-3">
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMobileOpen(!isMobileOpen)}
@@ -191,46 +320,90 @@ export function HrSuiteLayout({ children, activeModule }: HrSuiteLayoutProps) {
               <div className="w-8 h-8 rounded-lg bg-[#0f2942] text-[#c89332] flex items-center justify-center font-black font-serif text-sm shadow-xs">
                 S
               </div>
-              <div className="hidden sm:block">
+              <div className="hidden lg:block">
                 <div className="flex items-center gap-1.5">
                   <span className="text-xs font-black text-[#0f2942] tracking-wider">SUNRISE</span>
                   <span className="text-[10px] font-bold text-[#c89332] bg-amber-50 border border-amber-200/70 px-1.5 py-0.2 rounded">
-                    People Suite
+                    Enterprise Suite
                   </span>
-                </div>
-                <div className="text-[9px] text-slate-400 font-medium">
-                  {ar ? "منظومة العمليات الفندقية والموارد البشرية" : "Enterprise Workforce & HR Operations"}
                 </div>
               </div>
             </div>
           </Link>
 
-          <div className="hidden md:block h-5 w-px bg-slate-200 mx-1"></div>
+          <div className="hidden md:block h-6 w-px bg-slate-200 mx-1"></div>
 
-          {/* Quick Switch to Staff Housing */}
-          <Link href={`/${propertySlug || "all"}/dashboard`}>
-            <button className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-50/80 hover:bg-blue-100 text-[#0f2942] text-xs font-semibold transition-all border border-blue-200/60 cursor-pointer">
-              <Home className="w-3.5 h-3.5 text-blue-600" />
-              <span>{ar ? "سكن العاملين" : "Staff Housing"}</span>
-            </button>
-          </Link>
+          {/* ─── STANDALONE APP SYSTEM SWITCHER BAR ───────────────────────── */}
+          <nav className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
+            {/* 1. Staff Housing App */}
+            <Link href={`/${propertySlug || "all"}/dashboard`}>
+              <button
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  location.includes("/dashboard") || location.includes("/housing") || location.includes("/reservations")
+                    ? "bg-[#0f2942] text-white shadow-xs"
+                    : "text-slate-600 hover:bg-white hover:text-slate-900"
+                }`}
+                title={ar ? "سكن العاملين الفندقي (قاعدة بيانات staff-housing)" : "Staff Housing System (DB: staff-housing)"}
+              >
+                <Home className="w-3.5 h-3.5 text-blue-400" />
+                <span className="hidden sm:inline">{ar ? "سكن العاملين" : "Housing"}</span>
+              </button>
+            </Link>
 
-          {/* Central Apps Switcher */}
-          <Link href="/apps">
-            <button className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all cursor-pointer">
-              <Layers className="w-3.5 h-3.5 text-[#c89332]" />
-              <span>{ar ? "بوابة الأنظمة" : "Launcher"}</span>
-            </button>
-          </Link>
+            {/* 2. Core HRMS App */}
+            <Link href="/hrms">
+              <button
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  currentDomain === "hrms"
+                    ? "bg-[#0f2942] text-white shadow-xs"
+                    : "text-slate-600 hover:bg-white hover:text-slate-900"
+                }`}
+                title={ar ? "شؤون العاملين والهيكل الإداري" : "Core HRMS"}
+              >
+                <Users className="w-3.5 h-3.5 text-purple-400" />
+                <span className="hidden sm:inline">{ar ? "شؤون العاملين" : "HRMS"}</span>
+              </button>
+            </Link>
+
+            {/* 3. Attendance App */}
+            <Link href="/attendance">
+              <button
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  currentDomain === "attendance"
+                    ? "bg-[#0f2942] text-white shadow-xs"
+                    : "text-slate-600 hover:bg-white hover:text-slate-900"
+                }`}
+                title={ar ? "الحضور والانصراف وأجهزة البصمة" : "Biometrics & Time Machine"}
+              >
+                <Fingerprint className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="hidden sm:inline">{ar ? "الحضور والبصمة" : "Attendance"}</span>
+              </button>
+            </Link>
+
+            {/* 4. Payroll Studio (SST Replica) */}
+            <Link href="/payroll">
+              <button
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                  currentDomain === "payroll"
+                    ? "bg-[#c89332] text-slate-950 shadow-xs ring-1 ring-[#c89332]"
+                    : "text-slate-700 hover:bg-white hover:text-slate-900 font-bold"
+                }`}
+                title={ar ? "استوديو الرواتب والأجور الفندقية (نسخة SST 26.0 المطابقة)" : "SUNRISE Payroll Studio (SST Replica)"}
+              >
+                <DollarSign className="w-3.5 h-3.5 text-slate-950" />
+                <span>{ar ? "استوديو الرواتب (SST)" : "Payroll Studio"}</span>
+              </button>
+            </Link>
+          </nav>
         </div>
 
         {/* Right Action Icons: Property Picker, Language Toggle, User Profile */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2 sm:gap-2.5">
           {/* Property Scope Locked Vault Indicator */}
-          <div className="flex items-center gap-2 bg-[#0d1320] text-[#dde2f5] border border-[#dfba73]/40 px-3 py-1 rounded-xl text-xs shadow-xs">
-            <Lock className="w-3.5 h-3.5 text-[#dfba73]" />
+          <div className="flex items-center gap-1.5 sm:gap-2 bg-[#0d1320] text-[#dde2f5] border border-[#dfba73]/40 px-2 sm:px-3 py-1 rounded-xl text-xs shadow-xs">
+            <Lock className="w-3.5 h-3.5 text-[#dfba73] shrink-0" />
             <div className="flex items-center gap-1.5 font-bold">
-              <span className="text-white max-w-[140px] truncate sm:max-w-[200px]">
+              <span className="text-white max-w-[100px] truncate sm:max-w-[180px]">
                 {ar ? propertyScope?.nameAr : propertyScope?.nameEn}
               </span>
               <Badge
@@ -246,7 +419,7 @@ export function HrSuiteLayout({ children, activeModule }: HrSuiteLayoutProps) {
             </div>
             <Link href="/hr-portal">
               <button
-                className="text-[10px] text-slate-400 hover:text-amber-300 underline ms-1 cursor-pointer"
+                className="text-[10px] text-slate-400 hover:text-amber-300 underline ms-1 cursor-pointer hidden sm:inline"
                 title={ar ? "العودة لبوابة اختيار فندق وقاعدة بيانات أخرى" : "Switch Hotel Vault via Portal"}
               >
                 {ar ? "تبديل الفندق" : "Switch"}
@@ -265,14 +438,14 @@ export function HrSuiteLayout({ children, activeModule }: HrSuiteLayoutProps) {
             <span className="font-semibold">{ar ? "EN" : "عربي"}</span>
           </Button>
 
-          <div className="h-4 w-px bg-slate-200"></div>
+          <div className="h-4 w-px bg-slate-200 hidden sm:block"></div>
 
           {/* User Badge */}
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-[#0f2942] text-[#c89332] font-black flex items-center justify-center text-xs shadow-2xs">
               {displayUser?.username?.substring(0, 2).toUpperCase() || "HR"}
             </div>
-            <div className="hidden sm:block text-start">
+            <div className="hidden md:block text-start">
               <div className="text-xs font-bold text-slate-800 leading-tight">
                 {displayUser?.fullName || displayUser?.username}
               </div>
@@ -303,12 +476,16 @@ export function HrSuiteLayout({ children, activeModule }: HrSuiteLayoutProps) {
             isCollapsed ? "w-16" : "w-64"
           }`}
         >
-          {/* Sidebar Top: Collapse Toggle */}
+          {/* Sidebar Top: Collapse Toggle & Active Module Indicator */}
           <div className="p-3 border-b border-slate-100 flex items-center justify-between">
             {!isCollapsed && (
-              <span className="text-[11px] font-black uppercase text-slate-400 tracking-wider">
-                {ar ? "لوحة الإبحار الفندقي" : "HR Navigation"}
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-[#c89332]"></span>
+                <span className="text-[11px] font-black uppercase text-slate-700 tracking-wider">
+                  {currentDomain === "payroll" ? (ar ? "استوديو الرواتب SST" : "Payroll Studio") :
+                   currentDomain === "attendance" ? (ar ? "الحضور والبصمة" : "Attendance") : (ar ? "شؤون العاملين" : "Core HRMS")}
+                </span>
+              </div>
             )}
             <button
               onClick={() => setIsCollapsed(!isCollapsed)}
@@ -335,7 +512,6 @@ export function HrSuiteLayout({ children, activeModule }: HrSuiteLayoutProps) {
                     <Link key={iIdx} href={item.href}>
                       <button
                         onClick={() => {
-                          // If current page is same, trigger URL replace smoothly
                           if (item.href.includes("?tab=")) {
                             const newTab = item.tab;
                             const searchParams = new URLSearchParams(window.location.search);
@@ -379,8 +555,11 @@ export function HrSuiteLayout({ children, activeModule }: HrSuiteLayoutProps) {
             {!isCollapsed ? (
               <div className="flex items-center gap-2 text-[10px] text-slate-500">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span className="font-semibold">{ar ? "النظام متصل لحظياً" : "Suite Connected"}</span>
-                <span className="ms-auto font-mono text-[9px] text-slate-400">v2026.4</span>
+                <span className="font-semibold">
+                  {currentDomain === "payroll" ? (ar ? "قاعدة بيانات الرواتب متصلة" : "Payroll DB Online") :
+                   currentDomain === "attendance" ? (ar ? "سيرفر البصمة متصل" : "Biometrics Online") : (ar ? "HRMS متصل لحظياً" : "HRMS Online")}
+                </span>
+                <span className="ms-auto font-mono text-[9px] text-slate-400">SST 26.0</span>
               </div>
             ) : (
               <div className="flex justify-center">
@@ -441,3 +620,4 @@ export function HrSuiteLayout({ children, activeModule }: HrSuiteLayoutProps) {
 }
 
 export default HrSuiteLayout;
+

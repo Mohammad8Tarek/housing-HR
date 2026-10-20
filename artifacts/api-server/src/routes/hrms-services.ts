@@ -10,7 +10,10 @@ import {
   documentStorageRecords, 
   hrmsAuditLogs, 
   systemNotifications,
-  employees
+  employees,
+  staffBusManifests,
+  staffBusPassengers,
+  leaveApplications
 } from "@workspace/db-payroll";
 import { eq, desc, and, asc } from "drizzle-orm";
 import { requirePermission } from "../middlewares/permissions.js";
@@ -127,6 +130,192 @@ router.post("/hrms/services/transport/assignments", requirePermission("payroll",
     }).returning();
 
     res.status(201).json({ success: true, assignment: created });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ─── 2.2 SST Staff Bus Travel Manifests (رحلات أتوبيس العاملين إلى ومن القاهرة) ──────
+router.get("/hrms/services/transport/manifests", requirePermission("payroll", "view"), async (req: Request, res: Response) => {
+  try {
+    const propertyId = req.query.propertyId ? Number(req.query.propertyId) : undefined;
+    const direction = req.query.direction as string | undefined;
+
+    const conditions = [];
+    if (propertyId) conditions.push(eq(staffBusManifests.propertyId, propertyId));
+    if (direction) conditions.push(eq(staffBusManifests.tripDirection, direction));
+
+    const query = conditions.length > 0
+      ? payrollDb.select().from(staffBusManifests).where(and(...conditions)).orderBy(desc(staffBusManifests.travelDate))
+      : payrollDb.select().from(staffBusManifests).orderBy(desc(staffBusManifests.travelDate));
+
+    const list = await query;
+    res.json({ success: true, manifests: list });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+router.post("/hrms/services/transport/manifests", requirePermission("payroll", "create"), async (req: Request, res: Response) => {
+  try {
+    const { 
+      propertyId, tripCode, tripNameAr, tripDirection, travelDate, 
+      departureTime, vehicleNumber, busNumber, driverName, driverPhone, totalSeats, notes 
+    } = req.body;
+
+    const finalTripCode = tripCode || `TRIP-${Date.now().toString().slice(-6)}`;
+    const finalVehicle = vehicleNumber || busNumber || "BUS-DEFAULT";
+
+    if (!propertyId || !travelDate) {
+      return res.status(400).json({ success: false, error: "Property and travel date are required" });
+    }
+
+    const [created] = await payrollDb.insert(staffBusManifests).values({
+      propertyId: Number(propertyId),
+      tripCode: finalTripCode,
+      tripDirection: tripDirection || "to_cairo",
+      travelDate,
+      departureTime: departureTime || "06:00",
+      vehicleNumber: finalVehicle,
+      driverName: driverName || "",
+      driverPhone: driverPhone || "",
+      totalSeats: totalSeats ? Number(totalSeats) : 50,
+      notes: notes || tripNameAr || "",
+      status: "scheduled",
+    }).returning();
+
+    res.status(200).json({ success: true, manifest: created });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+router.get("/hrms/services/transport/manifests/:id/passengers", requirePermission("payroll", "view"), async (req: Request, res: Response) => {
+  try {
+    const manifestId = Number(req.params.id);
+    const list = await payrollDb
+      .select({
+        passenger: staffBusPassengers,
+        employee: employees,
+      })
+      .from(staffBusPassengers)
+      .leftJoin(employees, eq(staffBusPassengers.employeeId, employees.id))
+      .where(eq(staffBusPassengers.manifestId, manifestId))
+      .orderBy(asc(staffBusPassengers.seatNumber));
+
+    res.json({ success: true, passengers: list });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+router.post("/hrms/services/transport/manifests/:id/passengers", requirePermission("payroll", "create"), async (req: Request, res: Response) => {
+  try {
+    const manifestId = Number(req.params.id);
+    const { employeeId, passengerType, passengerName, jobTitle, seatNumber, travelDate, returnDate, birthDate, birthPlace, nationalId, notes } = req.body;
+
+    if (!seatNumber || (!passengerName && !employeeId)) {
+      return res.status(400).json({ success: false, error: "Seat number and passenger name/employee are required" });
+    }
+
+    let finalName = passengerName;
+    let finalJob = jobTitle;
+    let finalNatId = nationalId;
+
+    if (employeeId) {
+      const [emp] = await payrollDb.select().from(employees).where(eq(employees.id, Number(employeeId)));
+      if (emp) {
+        finalName = finalName || emp.nameAr || emp.nameEn;
+        finalNatId = finalNatId || emp.nationalId || "";
+      }
+    }
+
+    const [created] = await payrollDb.insert(staffBusPassengers).values({
+      manifestId,
+      employeeId: employeeId ? Number(employeeId) : null,
+      passengerType: passengerType || "employee",
+      passengerName: finalName || "Unnamed Passenger",
+      jobTitle: finalJob || "",
+      seatNumber: Number(seatNumber),
+      travelDate: travelDate || new Date().toISOString().split("T")[0],
+      returnDate: returnDate || null,
+      birthDate: birthDate || null,
+      birthPlace: birthPlace || "",
+      nationalId: finalNatId || "",
+      notes: notes || "",
+    }).returning();
+
+    res.status(201).json({ success: true, passenger: created });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// SST Function: تسجيل المسافرون المتوقعون (Auto-Populate Expected Travelers from Approved Leaves)
+router.post("/hrms/services/transport/manifests/:id/auto-populate-expected", requirePermission("payroll", "create"), async (req: Request, res: Response) => {
+  try {
+    const manifestId = Number(req.params.id);
+    const [manifest] = await payrollDb.select().from(staffBusManifests).where(eq(staffBusManifests.id, manifestId));
+    if (!manifest) {
+      return res.status(404).json({ success: false, error: "Manifest not found" });
+    }
+
+    // Find all approved leaves starting on manifest travel_date
+    const approvedLeaves = await payrollDb
+      .select({
+        leave: leaveApplications,
+        employee: employees,
+      })
+      .from(leaveApplications)
+      .innerJoin(employees, eq(leaveApplications.employeeId, employees.id))
+      .where(and(
+        eq(leaveApplications.propertyId, manifest.propertyId),
+        eq(leaveApplications.status, "approved"),
+        eq(leaveApplications.startDate, manifest.travelDate)
+      ));
+
+    // Get currently occupied seats
+    const existing = await payrollDb
+      .select()
+      .from(staffBusPassengers)
+      .where(eq(staffBusPassengers.manifestId, manifestId));
+    
+    const occupiedSeats = new Set(existing.map(p => p.seatNumber));
+    const addedPassengers = [];
+    let nextSeat = 1;
+
+    for (const item of approvedLeaves) {
+      if (existing.some(p => p.employeeId === item.employee.id)) continue;
+
+      while (occupiedSeats.has(nextSeat) && nextSeat <= (manifest.totalSeats || 50)) {
+        nextSeat++;
+      }
+      if (nextSeat > (manifest.totalSeats || 50)) break; // Bus is full
+
+      const [p] = await payrollDb.insert(staffBusPassengers).values({
+        manifestId,
+        employeeId: item.employee.id,
+        passengerType: "employee",
+        passengerName: item.employee.nameAr || item.employee.nameEn,
+        jobTitle: "",
+        seatNumber: nextSeat,
+        travelDate: manifest.travelDate,
+        returnDate: item.leave.endDate,
+        nationalId: item.employee.nationalId || "",
+        notes: `Auto-populated from Leave #${item.leave.id}`,
+      }).returning();
+
+      occupiedSeats.add(nextSeat);
+      addedPassengers.push(p);
+      nextSeat++;
+    }
+
+    res.json({
+      success: true,
+      message: `تم تسجيل ${addedPassengers.length} مسافر آلياً من واقع الإجازات المعتمدة`,
+      addedCount: addedPassengers.length,
+      passengers: addedPassengers,
+    });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }

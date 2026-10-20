@@ -195,6 +195,9 @@ export const leaveApplications = pgTable("leave_applications", {
   status: varchar("status", { length: 20 }).notNull().default("pending"),
   approvedBy: varchar("approved_by", { length: 100 }),
   approvedAt: timestamp("approved_at", { withTimezone: true }),
+  returnNotificationRequired: boolean("return_notification_required").default(false),
+  returnNotifiedAt: timestamp("return_notified_at", { withTimezone: true }),
+  returnNotifiedBy: varchar("return_notified_by", { length: 100 }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
@@ -252,6 +255,9 @@ export const payrollPeriods = pgTable("payroll_periods", {
   endDate: date("end_date").notNull(),
   totalWorkingDays: integer("total_working_days").default(30),
   status: varchar("status", { length: 20 }).default("open"),
+  transactionsClosedAt: timestamp("transactions_closed_at", { withTimezone: true }),
+  transactionsClosedBy: varchar("transactions_closed_by", { length: 100 }),
+  isTransactionClosed: boolean("is_transaction_closed").default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
@@ -334,6 +340,10 @@ export const serviceChargePools = pgTable("service_charge_pools", {
   totalServiceAmount: numeric("total_service_amount", { precision: 14, scale: 2 }).notNull().default("0.00"),
   hotelSharePercent: numeric("hotel_share_percent", { precision: 5, scale: 2 }).default("15.00"),
   staffDistributableAmount: numeric("staff_distributable_amount", { precision: 14, scale: 2 }).notNull().default("0.00"),
+  previousMonthCredit: numeric("previous_month_credit", { precision: 14, scale: 2 }).default("0.00"),
+  extraPercent: numeric("extra_percent", { precision: 5, scale: 2 }).default("0.00"),
+  nonGuestTotal: numeric("non_guest_total", { precision: 14, scale: 2 }).default("0.00"),
+  guestTotal: numeric("guest_total", { precision: 14, scale: 2 }).default("0.00"),
   totalPoints: numeric("total_points", { precision: 10, scale: 2 }).notNull().default("0.00"),
   pointValue: numeric("point_value", { precision: 10, scale: 4 }).notNull().default("0.00"),
   status: varchar("status", { length: 30 }).default("draft"),
@@ -1024,5 +1034,73 @@ export const hrPinAttempts = pgTable("hr_pin_attempts", {
   attempts: integer("attempts").notNull().default(1),
   lockedUntil: timestamp("locked_until", { withTimezone: true }),
   lastAttemptAt: timestamp("last_attempt_at", { withTimezone: true }).defaultNow(),
+});
+
+// 30. SST Legacy Parity: Staff Bus Travel Manifests (رحلات أتوبيس العاملين)
+export const staffBusManifests = pgTable("staff_bus_manifests", {
+  id: serial("id").primaryKey(),
+  propertyId: integer("property_id").notNull().references(() => properties.id, { onDelete: "cascade" }),
+  tripCode: varchar("trip_code", { length: 50 }).notNull(),
+  tripDirection: varchar("trip_direction", { length: 30 }).notNull().default("to_cairo"), // to_cairo, from_cairo, alexandria, other
+  travelDate: date("travel_date").notNull(),
+  departureTime: varchar("departure_time", { length: 20 }).default("06:00"),
+  vehicleNumber: varchar("vehicle_number", { length: 50 }).notNull(),
+  driverName: varchar("driver_name", { length: 100 }),
+  driverPhone: varchar("driver_phone", { length: 50 }),
+  totalSeats: integer("total_seats").default(50),
+  status: varchar("status", { length: 30 }).default("scheduled"), // scheduled, in_progress, completed, cancelled
+  notes: text("notes"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+export const staffBusPassengers = pgTable("staff_bus_passengers", {
+  id: serial("id").primaryKey(),
+  manifestId: integer("manifest_id").notNull().references(() => staffBusManifests.id, { onDelete: "cascade" }),
+  employeeId: integer("employee_id").references(() => employees.id, { onDelete: "set null" }),
+  passengerType: varchar("passenger_type", { length: 30 }).notNull().default("employee"), // employee, escort, guest
+  passengerName: varchar("passenger_name", { length: 150 }).notNull(),
+  jobTitle: varchar("job_title", { length: 100 }),
+  seatNumber: integer("seat_number").notNull(),
+  travelDate: date("travel_date").notNull(),
+  returnDate: date("return_date"),
+  birthDate: date("birth_date"),
+  birthPlace: varchar("birth_place", { length: 100 }),
+  nationalId: varchar("national_id", { length: 30 }),
+  notes: text("notes"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// 31. SST Legacy Parity: Yearly Vacations Balance Rollover (ترحيل أرصدة الإجازات السنوي بأوعيتها الـ 4)
+export const leaveRolloverPostings = pgTable("leave_rollover_postings", {
+  id: serial("id").primaryKey(),
+  propertyId: integer("property_id").notNull().references(() => properties.id, { onDelete: "cascade" }),
+  employeeId: integer("employee_id").notNull().references(() => employees.id, { onDelete: "cascade" }),
+  year: integer("year").notNull(),
+  annualCarried: numeric("annual_carried", { precision: 5, scale: 1 }).default("0.0"),
+  dayoffCarried: numeric("dayoff_carried", { precision: 5, scale: 1 }).default("0.0"),
+  holidayCarried: numeric("holiday_carried", { precision: 5, scale: 1 }).default("0.0"),
+  fourthCarried: numeric("fourth_carried", { precision: 5, scale: 1 }).default("0.0"),
+  maxPostingCap: numeric("max_posting_cap", { precision: 5, scale: 1 }).default("30.0"),
+  postedBy: varchar("posted_by", { length: 100 }),
+  postedAt: timestamp("posted_at", { withTimezone: true }).defaultNow(),
+});
+
+// 32. SST Legacy Parity: Monthly Variable Transactions (الحركات الشهرية المتغيرة ومراكز التكلفة)
+export const monthlyTransactions = pgTable("monthly_transactions", {
+  id: serial("id").primaryKey(),
+  propertyId: integer("property_id").notNull().references(() => properties.id, { onDelete: "cascade" }),
+  employeeId: integer("employee_id").notNull().references(() => employees.id, { onDelete: "cascade" }),
+  componentId: integer("component_id").references(() => salaryComponents.id, { onDelete: "restrict" }),
+  bandCode: varchar("band_code", { length: 30 }).notNull(),
+  calculateBy: varchar("calculate_by", { length: 30 }).notNull().default("amount"), // amount, days, hours, percentage
+  amount: numeric("amount", { precision: 12, scale: 2 }).notNull().default("0.00"),
+  periodMonth: integer("period_month").notNull(),
+  periodYear: integer("period_year").notNull(),
+  calcNumber: integer("calc_number").notNull().default(1), // 1=Normal, 2=Casuals, 3=Adjustments
+  paymentMethod: varchar("payment_method", { length: 30 }).notNull().default("bank"), // bank, cash, cheque
+  costCenterId: integer("cost_center_id").references(() => costCenters.id, { onDelete: "set null" }),
+  comment: text("comment"),
+  status: varchar("status", { length: 30 }).default("pending"), // pending, processed, cancelled
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
