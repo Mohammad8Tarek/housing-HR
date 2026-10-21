@@ -1085,27 +1085,27 @@ export default function AttendancePage() {
           )}
         </SstAttendanceDesktopShell>
       ) : (
-    <div className="space-y-6 p-4 md:p-6 bg-[#070d18] min-h-screen text-slate-100">
-      {/* ─── Top Header: Nocturne Opulence Executive Command Banner ─────── */}
-      <div className="bg-[#0a1424]/90 backdrop-blur-xl border border-cyan-500/30 rounded-3xl p-5 md:p-6 shadow-2xl relative overflow-hidden">
+    <div className="space-y-6 p-4 md:p-6 bg-background text-foreground min-h-screen">
+      {/* ─── Top Header: Adaptive Enterprise Command Banner ─────── */}
+      <div className="bg-card border border-border rounded-2xl p-5 md:p-6 shadow-xs relative overflow-hidden transition-all duration-300">
         {/* Ambient Top Glow Line */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent" />
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-cyan-500/60 to-transparent" />
 
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-900/40 text-cyan-400 border border-cyan-500/30 flex items-center justify-center shadow-lg shadow-cyan-500/10 shrink-0">
+            <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20 flex items-center justify-center shadow-xs shrink-0">
               <Fingerprint className="w-7 h-7" />
             </div>
             <div>
               <div className="flex items-center gap-2.5">
-                <h1 className="text-xl md:text-2xl font-black tracking-tight text-white">
+                <h1 className="text-xl md:text-2xl font-bold tracking-tight text-foreground">
                   {ar ? "منظومة الحضور والانصراف والبصمة الذكية" : "Attendance & Biometrics Telemetry Suite"}
                 </h1>
-                <Badge className="bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 text-[10px] font-bold px-2 py-0.5">
+                <Badge className="bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30 text-[10px] font-bold px-2 py-0.5">
                   Live Feed
                 </Badge>
               </div>
-              <p className="text-xs text-slate-400 mt-1 max-w-2xl leading-relaxed">
+              <p className="text-xs text-muted-foreground mt-1 max-w-2xl leading-relaxed">
                 {ar
                   ? "تفريغ وتكامل حركات أجهزة البصمة، مطابقة الورديات الفندقية (46 شفت)، احتساب التأخير والإضافي، والربط الفوري مع مسير الرواتب"
                   : "Biometric TCP/IP telemetry, automated 46-shift roster matching, overtime tracking, and statutory payroll synchronization"}
@@ -1116,15 +1116,15 @@ export default function AttendancePage() {
           {/* Controls: Hotel Scope & Quick Actions */}
           <div className="flex flex-wrap items-center gap-2.5">
             {/* Property Selector */}
-            <div className="flex items-center gap-2 bg-[#0f1d33] border border-slate-700/80 px-3 py-2 rounded-xl text-xs">
-              <Building2 className="w-4 h-4 text-cyan-400" />
+            <div className="flex items-center gap-2 bg-muted/70 border border-border px-3 py-2 rounded-xl text-xs">
+              <Building2 className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
               <select
                 value={selectedPropertyId}
                 onChange={(e) => setSelectedPropertyId(Number(e.target.value))}
-                className="bg-transparent text-white text-xs font-bold focus:outline-hidden cursor-pointer"
+                className="bg-transparent text-foreground text-xs font-bold focus:outline-hidden cursor-pointer"
               >
                 {properties.map((p: any) => (
-                  <option key={p.id} value={p.id} className="bg-[#0a1424] text-white">
+                  <option key={p.id} value={p.id} className="bg-card text-foreground">
                     {ar ? p.nameAr || p.name : p.name}
                   </option>
                 ))}
@@ -1135,7 +1135,7 @@ export default function AttendancePage() {
               <Button
                 onClick={() => processPunchesMutation.mutate()}
                 disabled={processPunchesMutation.isPending}
-                className="bg-emerald-600 hover:bg-emerald-500 text-white gap-2 shadow-lg shadow-emerald-900/30 font-bold text-xs rounded-xl h-9.5 px-3.5 cursor-pointer"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 shadow-xs font-bold text-xs rounded-xl h-9.5 px-3.5 cursor-pointer"
               >
                 <Play className={`w-3.5 h-3.5 ${processPunchesMutation.isPending ? "animate-spin" : ""}`} />
                 <span>{ar ? "معالجة حركات اليوم" : "Evaluate Today"}</span>
@@ -1146,7 +1146,7 @@ export default function AttendancePage() {
               <Button
                 onClick={() => syncToPayrollMutation.mutate()}
                 disabled={syncToPayrollMutation.isPending}
-                className="bg-gradient-to-r from-[#dfba73] to-[#c89332] hover:from-[#c89332] hover:to-[#b07e28] text-[#070d18] gap-2 shadow-lg shadow-[#dfba73]/10 font-black text-xs rounded-xl h-9.5 px-3.5 cursor-pointer"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2 shadow-xs font-bold text-xs rounded-xl h-9.5 px-3.5 cursor-pointer"
               >
                 <ArrowUpRight className={`w-4 h-4 ${syncToPayrollMutation.isPending ? "animate-spin" : ""}`} />
                 <span>{ar ? "ترحيل لرواتب الشهر" : "Sync to Payroll"}</span>
@@ -1159,70 +1159,70 @@ export default function AttendancePage() {
       {/* ─── KPI Telemetry Cards ─────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Metric 1: Devices */}
-        <div className="p-4 rounded-2xl bg-[#0a1424]/80 backdrop-blur-md border border-slate-800 hover:border-cyan-500/40 transition-colors flex items-center justify-between">
+        <div className="p-4 rounded-2xl bg-card border border-border hover:border-cyan-500/50 shadow-xs hover:shadow-md transition-all duration-300 hover:scale-[1.01] flex items-center justify-between">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
               {ar ? "أجهزة البصمة المتصلة" : "Active Biometric Devices"}
             </p>
-            <h3 className="text-2xl font-black mt-1 text-white font-mono">
+            <h3 className="text-2xl font-black mt-1 text-foreground font-mono">
               {onlineDevicesCount} / {devices.length}
             </h3>
-            <p className="text-[11px] text-cyan-400 font-medium mt-1 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+            <p className="text-[11px] text-cyan-600 dark:text-cyan-400 font-medium mt-1 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse"></span>
               {ar ? "بث مباشر عبر بروتوكول TCP/IP" : "Live telemetry stream"}
             </p>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 flex items-center justify-center shrink-0">
+          <div className="w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20 flex items-center justify-center shrink-0">
             <Cpu className="w-6 h-6" />
           </div>
         </div>
 
         {/* Metric 2: Today Punches */}
-        <div className="p-4 rounded-2xl bg-[#0a1424]/80 backdrop-blur-md border border-slate-800 hover:border-blue-500/40 transition-colors flex items-center justify-between">
+        <div className="p-4 rounded-2xl bg-card border border-border hover:border-blue-500/50 shadow-xs hover:shadow-md transition-all duration-300 hover:scale-[1.01] flex items-center justify-between">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
               {ar ? "حركات البصمة المسجلة اليوم" : "Punches Ingested Today"}
             </p>
-            <h3 className="text-2xl font-black mt-1 text-white font-mono">{punches.length}</h3>
-            <p className="text-[11px] text-slate-400 mt-1">
+            <h3 className="text-2xl font-black mt-1 text-foreground font-mono">{punches.length}</h3>
+            <p className="text-[11px] text-muted-foreground mt-1">
               {ar ? "بفر الحركات الخام الفورية" : "Live raw punch buffer"}
             </p>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center justify-center shrink-0">
+          <div className="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 flex items-center justify-center shrink-0">
             <Activity className="w-6 h-6" />
           </div>
         </div>
 
         {/* Metric 3: Present */}
-        <div className="p-4 rounded-2xl bg-[#0a1424]/80 backdrop-blur-md border border-slate-800 hover:border-emerald-500/40 transition-colors flex items-center justify-between">
+        <div className="p-4 rounded-2xl bg-card border border-border hover:border-emerald-500/50 shadow-xs hover:shadow-md transition-all duration-300 hover:scale-[1.01] flex items-center justify-between">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
               {ar ? "حضور العاملين اليوم" : "Present On-Duty Today"}
             </p>
-            <h3 className="text-2xl font-black mt-1 text-emerald-400 font-mono">{presentCount}</h3>
-            <p className="text-[11px] text-emerald-300/80 mt-1">
+            <h3 className="text-2xl font-black mt-1 text-emerald-600 dark:text-emerald-400 font-mono">{presentCount}</h3>
+            <p className="text-[11px] text-muted-foreground mt-1">
               {ar ? "مطابق وفق الشفتات المجدولة" : "Roster verified punches"}
             </p>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center shrink-0">
+          <div className="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center shrink-0">
             <UserCheck className="w-6 h-6" />
           </div>
         </div>
 
         {/* Metric 4: Delays & Absent */}
-        <div className="p-4 rounded-2xl bg-[#0a1424]/80 backdrop-blur-md border border-slate-800 hover:border-amber-500/40 transition-colors flex items-center justify-between">
+        <div className="p-4 rounded-2xl bg-card border border-border hover:border-amber-500/50 shadow-xs hover:shadow-md transition-all duration-300 hover:scale-[1.01] flex items-center justify-between">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
               {ar ? "تأخيرات وغياب" : "Lateness & Absenteeism"}
             </p>
-            <h3 className="text-2xl font-black mt-1 text-amber-400 font-mono">
-              {lateCount} <span className="text-xs font-normal text-slate-400">/ {absentCount} {ar ? "غياب" : "Absent"}</span>
+            <h3 className="text-2xl font-black mt-1 text-amber-600 dark:text-amber-400 font-mono">
+              {lateCount} <span className="text-xs font-normal text-muted-foreground">/ {absentCount} {ar ? "غياب" : "Absent"}</span>
             </h3>
-            <p className="text-[11px] text-slate-400 mt-1">
+            <p className="text-[11px] text-muted-foreground mt-1">
               {ar ? "محتسب وفق لائحة الجزاءات" : "Under disciplinary rules"}
             </p>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center shrink-0">
+          <div className="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center justify-center shrink-0">
             <Clock className="w-6 h-6" />
           </div>
         </div>
@@ -1231,20 +1231,20 @@ export default function AttendancePage() {
       {/* ─── Main Tabs Navigation ────────────────────────────────────── */}
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <TabsList className="bg-[#091220] border border-slate-800/80 p-1 rounded-2xl h-auto flex flex-wrap gap-1">
-            <TabsTrigger value="daily" className="gap-2 rounded-xl text-xs font-bold data-[state=active]:bg-[#0f1d33] data-[state=active]:text-cyan-400 data-[state=active]:border data-[state=active]:border-cyan-500/40 transition-all">
+          <TabsList className="bg-muted/70 border border-border p-1 rounded-xl h-auto flex flex-wrap gap-1">
+            <TabsTrigger value="daily" className="gap-2 rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-xs transition-all">
               <Calendar className="w-3.5 h-3.5" />
               {ar ? "سجل الحضور اليومي" : "Daily Attendance"}
             </TabsTrigger>
-            <TabsTrigger value="punches" className="gap-2 rounded-xl text-xs font-bold data-[state=active]:bg-[#0f1d33] data-[state=active]:text-cyan-400 data-[state=active]:border data-[state=active]:border-cyan-500/40 transition-all">
+            <TabsTrigger value="punches" className="gap-2 rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-xs transition-all">
               <Radio className="w-3.5 h-3.5" />
               {ar ? "بث حركات البصمة" : "Live Punches Feed"}
             </TabsTrigger>
-            <TabsTrigger value="devices" className="gap-2 rounded-xl text-xs font-bold data-[state=active]:bg-[#0f1d33] data-[state=active]:text-cyan-400 data-[state=active]:border data-[state=active]:border-cyan-500/40 transition-all">
+            <TabsTrigger value="devices" className="gap-2 rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-xs transition-all">
               <Cpu className="w-3.5 h-3.5" />
               {ar ? "أجهزة وسيرفرات البصمة" : "Biometric Machines"}
             </TabsTrigger>
-            <TabsTrigger value="shifts" className="gap-2 rounded-xl text-xs font-bold data-[state=active]:bg-[#0f1d33] data-[state=active]:text-cyan-400 data-[state=active]:border data-[state=active]:border-cyan-500/40 transition-all">
+            <TabsTrigger value="shifts" className="gap-2 rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-xs transition-all">
               <Clock className="w-3.5 h-3.5" />
               {ar ? "الورديات ومواعيد العمل" : "Shifts & Rosters"}
             </TabsTrigger>

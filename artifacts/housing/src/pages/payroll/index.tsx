@@ -544,27 +544,27 @@ export default function PayrollPage() {
   const activePeriod = periodsList[0];
 
   const mainTabsContent = (
-    <div className="space-y-6 p-4 md:p-6 bg-[#070d18] min-h-screen text-slate-100">
-      {/* ─── Top Header: Nocturne Opulence Executive Command Banner ─────── */}
-      <div className="bg-[#0a1424]/90 backdrop-blur-xl border border-[#dfba73]/30 rounded-3xl p-5 md:p-6 shadow-2xl relative overflow-hidden">
+    <div className="space-y-6 p-4 md:p-6 bg-background text-foreground min-h-screen">
+      {/* ─── Top Header: Adaptive Enterprise Command Banner ─────── */}
+      <div className="bg-card border border-border rounded-2xl p-5 md:p-6 shadow-xs relative overflow-hidden transition-all duration-300">
         {/* Ambient Top Glow Line */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#dfba73] to-transparent" />
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
 
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#dfba73]/20 via-[#c89332]/20 to-amber-950/40 text-[#dfba73] border border-[#dfba73]/30 flex items-center justify-center shadow-lg shadow-[#dfba73]/10 shrink-0">
+            <div className="w-14 h-14 rounded-2xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center shadow-xs shrink-0">
               <DollarSign className="w-7 h-7" />
             </div>
             <div>
               <div className="flex items-center gap-2.5">
-                <h1 className="text-xl md:text-2xl font-black tracking-tight text-white">
+                <h1 className="text-xl md:text-2xl font-bold tracking-tight text-foreground">
                   {ar ? "استوديو الرواتب والأجور ومسيرات البنوك" : "Payroll & Statutory Compensation Studio"}
                 </h1>
-                <Badge className="bg-[#dfba73]/15 text-[#dfba73] border border-[#dfba73]/30 text-[10px] font-bold px-2 py-0.5">
+                <Badge className="bg-primary/10 text-primary border border-primary/30 text-[10px] font-bold px-2 py-0.5">
                   SST 26.0 High Parity
                 </Badge>
               </div>
-              <p className="text-xs text-slate-400 mt-1 max-w-2xl leading-relaxed">
+              <p className="text-xs text-muted-foreground mt-1 max-w-2xl leading-relaxed">
                 {ar 
                   ? "احتساب الرواتب الشامل، استقطاعات قانون العمل والضرائب، توزيع عمولة الـ 12% خدمة (85/15)، السلف والجزاءات، وتصدير شيتات WPS"
                   : "End-to-end hotel payroll, Egyptian statutory tax & insurance, 12% service charge pools, staff loans, and WPS bank disbursements"}
@@ -575,15 +575,15 @@ export default function PayrollPage() {
           {/* Controls: Hotel Scope & Employment Type */}
           <div className="flex flex-wrap items-center gap-2.5">
             {/* Property Selector */}
-            <div className="flex items-center gap-2 bg-[#0f1d33] border border-slate-700/80 px-3 py-2 rounded-xl text-xs">
-              <Building2 className="w-4 h-4 text-[#dfba73]" />
+            <div className="flex items-center gap-2 bg-muted/70 border border-border px-3 py-2 rounded-xl text-xs">
+              <Building2 className="w-4 h-4 text-primary" />
               <select 
                 value={selectedPropertyId} 
                 onChange={(e) => setSelectedPropertyId(Number(e.target.value))}
-                className="bg-transparent text-white text-xs font-bold focus:outline-hidden cursor-pointer"
+                className="bg-transparent text-foreground text-xs font-bold focus:outline-hidden cursor-pointer"
               >
                 {propertiesList.map((p: any) => (
-                  <option key={p.id} value={p.id} className="bg-[#0a1424] text-white">
+                  <option key={p.id} value={p.id} className="bg-card text-foreground">
                     {ar ? p.nameAr : p.nameEn}
                   </option>
                 ))}
@@ -591,13 +591,13 @@ export default function PayrollPage() {
             </div>
 
             {/* Toggle Regular vs Casual */}
-            <div className="inline-flex rounded-xl border border-slate-800 bg-[#091220] p-1">
+            <div className="inline-flex rounded-xl border border-border bg-muted/60 p-1">
               <button
                 onClick={() => setEmploymentType("regular")}
                 className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                   employmentType === "regular" 
-                    ? "bg-[#0f1d33] text-[#dfba73] border border-[#dfba73]/40 shadow-xs" 
-                    : "text-slate-400 hover:text-white"
+                    ? "bg-card text-foreground shadow-xs border border-border" 
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 {ar ? "العمالة المثبتة" : "Regular"}
@@ -606,8 +606,8 @@ export default function PayrollPage() {
                 onClick={() => setEmploymentType("casual")}
                 className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                   employmentType === "casual" 
-                    ? "bg-[#0f1d33] text-[#dfba73] border border-[#dfba73]/40 shadow-xs" 
-                    : "text-slate-400 hover:text-white"
+                    ? "bg-card text-foreground shadow-xs border border-border" 
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 {ar ? "الكاجوال واليوميات" : "Casual"}
@@ -619,41 +619,41 @@ export default function PayrollPage() {
 
       {/* ─── Main Tabs Navigation ────────────────────────────────────── */}
       <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-5">
-        <TabsList className="flex flex-wrap items-center gap-1.5 w-full h-auto p-1.5 bg-[#091220] rounded-2xl border border-slate-800/80">
-          <TabsTrigger value="runs" className="py-2.5 px-3.5 gap-1.5 rounded-xl text-xs font-bold data-[state=active]:bg-[#0f1d33] data-[state=active]:text-[#dfba73] data-[state=active]:border data-[state=active]:border-[#dfba73]/40 transition-all">
-            <Calculator className="w-4 h-4 text-[#dfba73]" />
+        <TabsList className="flex flex-wrap items-center gap-1.5 w-full h-auto p-1.5 bg-muted/70 rounded-xl border border-border">
+          <TabsTrigger value="runs" className="py-2.5 px-3.5 gap-1.5 rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-xs transition-all">
+            <Calculator className="w-4 h-4 text-primary" />
             <span>{ar ? "مسير الرواتب (Runs)" : "Payroll Runs"}</span>
           </TabsTrigger>
-          <TabsTrigger value="employees" className="py-2.5 px-3.5 gap-1.5 rounded-xl text-xs font-bold data-[state=active]:bg-[#0f1d33] data-[state=active]:text-[#dfba73] data-[state=active]:border data-[state=active]:border-[#dfba73]/40 transition-all">
-            <Users className="w-4 h-4 text-[#dfba73]" />
+          <TabsTrigger value="employees" className="py-2.5 px-3.5 gap-1.5 rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-xs transition-all">
+            <Users className="w-4 h-4 text-primary" />
             <span>{ar ? "بيانات الموظفين (Staff)" : "Employees & Salaries"}</span>
           </TabsTrigger>
-          <TabsTrigger value="transactions" className="py-2.5 px-3.5 gap-1.5 rounded-xl text-xs font-bold data-[state=active]:bg-[#0f1d33] data-[state=active]:text-[#dfba73] data-[state=active]:border data-[state=active]:border-[#dfba73]/40 transition-all">
-            <Receipt className="w-4 h-4 text-blue-400" />
+          <TabsTrigger value="transactions" className="py-2.5 px-3.5 gap-1.5 rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-xs transition-all">
+            <Receipt className="w-4 h-4 text-blue-500" />
             <span>{ar ? "الحركات المتغيرة (Transactions)" : "Monthly Transactions"}</span>
           </TabsTrigger>
-          <TabsTrigger value="service-charge" className="py-2.5 px-3.5 gap-1.5 rounded-xl text-xs font-bold data-[state=active]:bg-[#0f1d33] data-[state=active]:text-[#dfba73] data-[state=active]:border data-[state=active]:border-[#dfba73]/40 transition-all">
-            <Percent className="w-4 h-4 text-emerald-400" />
+          <TabsTrigger value="service-charge" className="py-2.5 px-3.5 gap-1.5 rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-xs transition-all">
+            <Percent className="w-4 h-4 text-emerald-500" />
             <span>{ar ? "عمولة الـ 12% خدمة (Tronc)" : "12% Service Charge"}</span>
           </TabsTrigger>
-          <TabsTrigger value="operations" className="py-2.5 px-3.5 gap-1.5 rounded-xl text-xs font-bold data-[state=active]:bg-[#0f1d33] data-[state=active]:text-[#dfba73] data-[state=active]:border data-[state=active]:border-[#dfba73]/40 transition-all">
-            <Landmark className="w-4 h-4 text-amber-400" />
+          <TabsTrigger value="operations" className="py-2.5 px-3.5 gap-1.5 rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-xs transition-all">
+            <Landmark className="w-4 h-4 text-amber-500" />
             <span>{ar ? "السلف والجزاءات (Loans)" : "Loans & Disciplinary"}</span>
           </TabsTrigger>
-          <TabsTrigger value="bus" className="py-2.5 px-3.5 gap-1.5 rounded-xl text-xs font-bold data-[state=active]:bg-[#0f1d33] data-[state=active]:text-[#dfba73] data-[state=active]:border data-[state=active]:border-[#dfba73]/40 transition-all">
-            <Bus className="w-4 h-4 text-emerald-400" />
+          <TabsTrigger value="bus" className="py-2.5 px-3.5 gap-1.5 rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-xs transition-all">
+            <Bus className="w-4 h-4 text-emerald-600" />
             <span>{ar ? "أتوبيس القاهرة (Bus)" : "Bus Manifest"}</span>
           </TabsTrigger>
-          <TabsTrigger value="rollover" className="py-2.5 px-3.5 gap-1.5 rounded-xl text-xs font-bold data-[state=active]:bg-[#0f1d33] data-[state=active]:text-[#dfba73] data-[state=active]:border data-[state=active]:border-[#dfba73]/40 transition-all">
-            <ArrowRightLeft className="w-4 h-4 text-indigo-400" />
+          <TabsTrigger value="rollover" className="py-2.5 px-3.5 gap-1.5 rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-xs transition-all">
+            <ArrowRightLeft className="w-4 h-4 text-indigo-500" />
             <span>{ar ? "ترحيل الإجازات (Rollover)" : "Leave Rollover"}</span>
           </TabsTrigger>
-          <TabsTrigger value="reports" className="py-2.5 px-3.5 gap-1.5 rounded-xl text-xs font-bold data-[state=active]:bg-[#0f1d33] data-[state=active]:text-[#dfba73] data-[state=active]:border data-[state=active]:border-[#dfba73]/40 transition-all">
-            <FileText className="w-4 h-4 text-amber-400" />
+          <TabsTrigger value="reports" className="py-2.5 px-3.5 gap-1.5 rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-xs transition-all">
+            <FileText className="w-4 h-4 text-amber-600" />
             <span>{ar ? "دليل التقارير الـ 20 (SST)" : "20 Reports Catalog"}</span>
           </TabsTrigger>
-          <TabsTrigger value="wps" className="py-2.5 px-3.5 gap-1.5 rounded-xl text-xs font-bold data-[state=active]:bg-[#0f1d33] data-[state=active]:text-[#dfba73] data-[state=active]:border data-[state=active]:border-[#dfba73]/40 transition-all">
-            <FileSpreadsheet className="w-4 h-4 text-purple-400" />
+          <TabsTrigger value="wps" className="py-2.5 px-3.5 gap-1.5 rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-xs transition-all">
+            <FileSpreadsheet className="w-4 h-4 text-purple-500" />
             <span>{ar ? "شيتات WPS والـ GL" : "Bank WPS & GL"}</span>
           </TabsTrigger>
         </TabsList>
@@ -662,10 +662,10 @@ export default function PayrollPage() {
         <TabsContent value="runs" className="space-y-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
             <div>
-              <h3 className="text-base font-bold text-white">
+              <h3 className="text-base font-bold text-foreground">
                 {ar ? "سجل دورات ومسيرات الرواتب الشهرية المعتمدة" : "Monthly Hotel Payroll Runs"}
               </h3>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 {ar ? "احتساب دقيق وفقاً لحركات الحضور والغياب وساعات العمل الإضافي وأقساط السلف" : "Calculated with live attendance punches, statutory taxes, and loan deductions"}
               </p>
             </div>
@@ -674,9 +674,9 @@ export default function PayrollPage() {
               <Button 
                 variant="outline"
                 onClick={() => setIsTaxSimOpen(true)}
-                className="gap-1.5 border-slate-700 bg-[#0f1d33] hover:bg-[#152744] text-slate-200 rounded-xl text-xs font-bold h-9.5 px-3.5 cursor-pointer"
+                className="gap-1.5 border-border bg-card hover:bg-muted text-foreground rounded-xl text-xs font-semibold h-9.5 px-3.5 cursor-pointer shadow-2xs"
               >
-                <Percent className="w-4 h-4 text-emerald-400" />
+                <Percent className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 <span>{ar ? "حاسبة كسب العمل" : "Tax Simulator"}</span>
               </Button>
 
@@ -693,9 +693,9 @@ export default function PayrollPage() {
                   }
                   setIsEosModalOpen(true);
                 }}
-                className="gap-1.5 border-slate-700 bg-[#0f1d33] hover:bg-[#152744] text-slate-200 rounded-xl text-xs font-bold h-9.5 px-3.5 cursor-pointer"
+                className="gap-1.5 border-border bg-card hover:bg-muted text-foreground rounded-xl text-xs font-semibold h-9.5 px-3.5 cursor-pointer shadow-2xs"
               >
-                <Landmark className="w-4 h-4 text-amber-400" />
+                <Landmark className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                 <span>{ar ? "مكافأة نهاية الخدمة" : "End of Service"}</span>
               </Button>
 
@@ -703,9 +703,9 @@ export default function PayrollPage() {
                 <Button 
                   variant="outline"
                   onClick={() => setIsNewPeriodOpen(true)}
-                  className="gap-1.5 border-blue-500/30 text-blue-300 bg-blue-950/40 hover:bg-blue-900/60 rounded-xl text-xs font-bold h-9.5 px-3.5 cursor-pointer"
+                  className="gap-1.5 border-blue-500/30 text-blue-700 dark:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 rounded-xl text-xs font-semibold h-9.5 px-3.5 cursor-pointer shadow-2xs"
                 >
-                  <Calendar className="w-4 h-4 text-blue-400" />
+                  <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                   <span>{ar ? "فترة مالية جديدة" : "New Period"}</span>
                 </Button>
               </PermissionGate>
@@ -720,10 +720,10 @@ export default function PayrollPage() {
                     }
                     setIsClosePeriodOpen(true);
                   }}
-                  className="gap-1.5 border-amber-500/30 text-amber-300 bg-amber-950/40 hover:bg-amber-900/60 rounded-xl text-xs font-bold h-9.5 px-3.5 cursor-pointer"
+                  className="gap-1.5 border-amber-500/30 text-amber-800 dark:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 rounded-xl text-xs font-semibold h-9.5 px-3.5 cursor-pointer shadow-2xs"
                   title={ar ? "إقفال الحركات الشهرية والتأكد من مطابقة السجلات قبل الاحتساب" : "Lock monthly transactions"}
                 >
-                  <Lock className="w-4 h-4 text-amber-400" />
+                  <Lock className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                   <span>{ar ? "إقفال حركات الفترة" : "Close Transactions"}</span>
                 </Button>
               </PermissionGate>
@@ -752,9 +752,9 @@ export default function PayrollPage() {
                     setIsDualKeyOpen(true);
                   }}
                   disabled={calculateMutation.isPending}
-                  className="gap-2 bg-gradient-to-r from-[#dfba73] to-[#c89332] hover:from-[#c89332] hover:to-[#b07e28] text-[#070d18] rounded-xl shadow-lg shadow-[#dfba73]/10 text-xs font-black h-9.5 px-4 cursor-pointer"
+                  className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl shadow-xs text-xs font-bold h-9.5 px-4 cursor-pointer"
                 >
-                  <Calculator className="w-4 h-4 text-[#070d18]" />
+                  <Calculator className="w-4 h-4" />
                   <span>{calculateMutation.isPending ? (ar ? "جاري احتساب المسير..." : "Calculating...") : (ar ? "احتساب مسير الشهر الحالي" : "Calculate Active Period")}</span>
                 </Button>
               </PermissionGate>
@@ -763,36 +763,36 @@ export default function PayrollPage() {
 
           {/* ─── Metric Overview Telemetry Cards ─────────────────────── */}
           <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="p-4 rounded-2xl bg-[#0a1424]/80 backdrop-blur-md border border-slate-800 hover:border-emerald-500/40 transition-colors">
-              <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">{ar ? "إجمالي صافي الرواتب (Net)" : "Total Net Payroll"}</div>
-              <div className="text-2xl font-black text-emerald-400 font-mono mt-1">
+            <div className="p-4 rounded-2xl bg-card border border-border hover:border-emerald-500/50 shadow-xs hover:shadow-md transition-all duration-300 hover:scale-[1.01]">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{ar ? "إجمالي صافي الرواتب (Net)" : "Total Net Payroll"}</div>
+              <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono mt-1">
                 {runsList[0]?.totalNet ? `${Number(runsList[0].totalNet).toLocaleString()} EGP` : "0 EGP"}
               </div>
-              <p className="text-[11px] text-emerald-300/80 mt-1">{ar ? "المبلغ الفعلي القابل للتحويل للبنوك" : "Total net funds disbursed to bank"}</p>
+              <p className="text-[11px] text-muted-foreground mt-1">{ar ? "المبلغ الفعلي القابل للتحويل للبنوك" : "Total net funds disbursed to bank"}</p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-[#0a1424]/80 backdrop-blur-md border border-slate-800 hover:border-rose-500/40 transition-colors">
-              <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">{ar ? "إجمالي الاستقطاعات والضرائب" : "Total Deductions"}</div>
-              <div className="text-2xl font-black text-rose-400 font-mono mt-1">
+            <div className="p-4 rounded-2xl bg-card border border-border hover:border-rose-500/50 shadow-xs hover:shadow-md transition-all duration-300 hover:scale-[1.01]">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{ar ? "إجمالي الاستقطاعات والضرائب" : "Total Deductions"}</div>
+              <div className="text-2xl font-black text-rose-600 dark:text-rose-400 font-mono mt-1">
                 {runsList[0]?.totalDeductions ? `${Number(runsList[0].totalDeductions).toLocaleString()} EGP` : "0 EGP"}
               </div>
-              <p className="text-[11px] text-slate-400 mt-1">{ar ? "تأمينات 11%، كسب عمل، سلف، وجزاءات" : "Statutory tax, insurance, loans, penalties"}</p>
+              <p className="text-[11px] text-muted-foreground mt-1">{ar ? "تأمينات 11%، كسب عمل، سلف، وجزاءات" : "Statutory tax, insurance, loans, penalties"}</p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-[#0a1424]/80 backdrop-blur-md border border-slate-800 hover:border-[#dfba73]/40 transition-colors">
-              <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">{ar ? "حصيلة عمولة الخدمة 12%" : "12% Service Charge Pool"}</div>
-              <div className="text-2xl font-black text-[#dfba73] font-mono mt-1">
+            <div className="p-4 rounded-2xl bg-card border border-border hover:border-amber-500/50 shadow-xs hover:shadow-md transition-all duration-300 hover:scale-[1.01]">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{ar ? "حصيلة عمولة الخدمة 12%" : "12% Service Charge Pool"}</div>
+              <div className="text-2xl font-black text-amber-600 dark:text-amber-400 font-mono mt-1">
                 {serviceChargePoolsList[0]?.totalServiceAmount ? `${Number(serviceChargePoolsList[0].totalServiceAmount).toLocaleString()} EGP` : "0 EGP"}
               </div>
-              <p className="text-[11px] text-slate-400 mt-1">{ar ? "85% توزع على العاملين بنظام النقط" : "85% distributed via point ratio"}</p>
+              <p className="text-[11px] text-muted-foreground mt-1">{ar ? "85% توزع على العاملين بنظام النقط" : "85% distributed via point ratio"}</p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-[#0a1424]/80 backdrop-blur-md border border-slate-800 hover:border-blue-500/40 transition-colors">
-              <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">{ar ? "عدد الموظفين في المسير" : "Processed Employees"}</div>
-              <div className="text-2xl font-black text-white font-mono mt-1">
+            <div className="p-4 rounded-2xl bg-card border border-border hover:border-blue-500/50 shadow-xs hover:shadow-md transition-all duration-300 hover:scale-[1.01]">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{ar ? "عدد الموظفين في المسير" : "Processed Employees"}</div>
+              <div className="text-2xl font-black text-foreground font-mono mt-1">
                 {runsList[0]?.totalEmployees ?? employeesList.length}
               </div>
-              <p className="text-[11px] text-slate-400 mt-1">{employmentType === "regular" ? (ar ? "عمالة فندقية مثبتة" : "Regular Hotel Staff") : (ar ? "عمالة يوميات وحفلات" : "Casual Banquet Staff")}</p>
+              <p className="text-[11px] text-muted-foreground mt-1">{employmentType === "regular" ? (ar ? "عمالة فندقية مثبتة" : "Regular Hotel Staff") : (ar ? "عمالة يوميات وحفلات" : "Casual Banquet Staff")}</p>
             </div>
           </div>
 
