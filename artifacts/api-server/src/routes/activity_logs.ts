@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, Request, Response } from "express";
 import { db, withTenant, activityLogsTable, propertiesTable } from "@workspace/db";
 import { eq, desc, ilike, or, and, SQL, sql } from "drizzle-orm";
 import {
@@ -7,6 +7,7 @@ import {
 } from "@workspace/api-zod";
 import { requirePermission } from "../middlewares/permissions.js";
 import { getTenantId } from "../lib/request-utils.js";
+import { logActivity, getClientIp } from "../lib/activity-logger.js";
 
 const router: Router = Router();
 
@@ -278,6 +279,88 @@ router.get(
     }));
 
     res.json(formatted);
+  },
+);
+
+// ─── POST /activity-logs/launch ──────────────────────────────────────────
+// Logs application launch events from the launcher
+router.post(
+  "/activity-logs/launch",
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { app, propertyId, propertyName, username } = req.body;
+      const user = (req as any).user || (req.session as any)?.user;
+      const effectiveUsername = username || user?.username || "authenticated_user";
+      const effectivePropertyId = propertyId ? Number(propertyId) : (user?.activePropertyId ? Number(user.activePropertyId) : null);
+
+      await logActivity({
+        req,
+        propertyId: effectivePropertyId,
+        username: effectiveUsername,
+        userId: user?.id ? Number(user.id) : null,
+        userRole: user?.role || "user",
+        action: "APPLICATION_LAUNCH",
+        actionType: "LOGIN",
+        module: "launcher",
+        severity: "info",
+        details: JSON.stringify({
+          application: app || "unknown",
+          propertyName: propertyName || "Enterprise Scope",
+          launchedAt: new Date().toISOString(),
+          ip: getClientIp(req),
+        }),
+      });
+
+      res.json({
+        success: true,
+        message: "Application launch recorded in audit trail",
+        timestamp: new Date().toISOString(),
+      });
+    } catch (err: any) {
+      console.error("[ActivityLogs] Failed to log application launch:", err);
+      res.status(500).json({ error: "Failed to record application launch", details: err?.message });
+    }
+  },
+);
+
+// ─── POST /activity-logs/exit ────────────────────────────────────────────
+// Logs application sign-out / termination events
+router.post(
+  "/activity-logs/exit",
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { app, durationSeconds, username, propertyId } = req.body;
+      const user = (req as any).user || (req.session as any)?.user;
+      const effectiveUsername = username || user?.username || "authenticated_user";
+      const effectivePropertyId = propertyId ? Number(propertyId) : (user?.activePropertyId ? Number(user.activePropertyId) : null);
+
+      await logActivity({
+        req,
+        propertyId: effectivePropertyId,
+        username: effectiveUsername,
+        userId: user?.id ? Number(user.id) : null,
+        userRole: user?.role || "user",
+        action: "APPLICATION_EXIT",
+        actionType: "LOGOUT",
+        module: "launcher",
+        severity: "info",
+        details: JSON.stringify({
+          application: app || "unknown",
+          durationSeconds: durationSeconds || null,
+          exitedAt: new Date().toISOString(),
+          ip: getClientIp(req),
+        }),
+      });
+
+      res.json({
+        success: true,
+        message: "Application exit recorded in audit trail",
+        timestamp: new Date().toISOString(),
+      });
+    } catch (err: any) {
+      console.error("[ActivityLogs] Failed to log application exit:", err);
+      res.status(500).json({ error: "Failed to record application exit", details: err?.message });
+    }
   },
 );
 

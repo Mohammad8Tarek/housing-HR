@@ -60,6 +60,7 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { ChangePasswordDialog } from "@/components/ChangePasswordDialog";
+import { recordAppExit } from "@/lib/app-session";
 
 const SEEN_KEY = (userId?: number) => `notif_seen_ids_u${userId ?? 0}`;
 
@@ -774,15 +775,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
 
             <div className="flex items-center gap-2">
-              <Link href="/">
-                <button
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg border bg-background hover:bg-muted text-foreground transition-all cursor-pointer shadow-xs"
-                  title={ar ? "بوابة اختيار الأنظمة" : "All Systems (Launcher)"}
-                >
-                  <LayoutGrid className="w-3.5 h-3.5 text-primary" />
-                  <span className="hidden md:inline">{ar ? "بوابة الأنظمة" : "Systems"}</span>
-                </button>
-              </Link>
               <DropdownMenu
                 open={notifOpen}
                 onOpenChange={(open) => {
@@ -1066,7 +1058,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
-                    onClick={() => logoutMutation.mutate()}
+                    onClick={async () => {
+                      await recordAppExit();
+                      logoutMutation.mutate();
+                    }}
                     className="cursor-pointer text-red-600"
                   >
                     <LogOut className="w-4 h-4 mr-2" />

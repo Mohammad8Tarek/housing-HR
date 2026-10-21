@@ -316,8 +316,15 @@ export default function AttendancePage() {
     return propertyScope?.id ? Number(propertyScope.id) : 2;
   });
 
-  // SST 26.0 Desktop Theme State
-  const [viewTheme, setViewTheme] = useState<"sst" | "modern">("sst");
+  // SST 26.0 Desktop Theme State (Defaulting to Modern Hotel Executive Theme)
+  const [viewTheme, setViewTheme] = useState<"sst" | "modern">(() => {
+    return (localStorage.getItem("attendance_view_theme") as "sst" | "modern") || "modern";
+  });
+
+  const handleThemeToggle = (newTheme: "sst" | "modern") => {
+    setViewTheme(newTheme);
+    localStorage.setItem("attendance_view_theme", newTheme);
+  };
   const [sstTab, setSstTab] = useState<"shifts" | "daily" | "hours" | "punches">("shifts");
   const [selectedSstHotel, setSelectedSstHotel] = useState<SstPropertyItem>(() => {
     return SUNRISE_SST_HOTELS[1] || SUNRISE_SST_HOTELS[0] || {
@@ -1005,7 +1012,7 @@ export default function AttendancePage() {
           onDepartmentChange={(dept) => setSstDepartment(dept)}
           availableDepartments={SST_DEPARTMENTS}
           onChangeCompany={() => setIsCompanySelectorOpen(true)}
-          onSwitchTheme={() => setViewTheme("modern")}
+          onSwitchTheme={() => handleThemeToggle("modern")}
         >
           {sstTab === "shifts" ? (
             <SstVacationsAndShiftsGrid
@@ -1105,7 +1112,7 @@ export default function AttendancePage() {
         <div className="flex flex-wrap items-center gap-3">
           <Button
             variant="outline"
-            onClick={() => setViewTheme("sst")}
+            onClick={() => handleThemeToggle("sst")}
             className="border-[#0055ea] text-[#0055ea] hover:bg-blue-50 dark:hover:bg-blue-950/40 gap-2 font-bold text-xs rounded-xl shadow-xs"
           >
             🖥️ {ar ? "نمط SST 26.0 الكلاسيكي" : "SST 26.0 Classic Mode"}

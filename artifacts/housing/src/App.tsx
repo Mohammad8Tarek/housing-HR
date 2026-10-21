@@ -1,5 +1,5 @@
-import { Suspense, lazy } from "react";
-import { Switch, Route, Router as WouterRouter, Redirect } from "wouter";
+import { Suspense, lazy, useState, useEffect } from "react";
+import { Switch, Route, Router as WouterRouter, Redirect, useLocation } from "wouter";
 import {
   MutationCache,
   QueryClient,
@@ -31,6 +31,8 @@ import NotFound from "@/pages/not-found";
 import Login from "@/pages/login";
 import Dashboard from "@/pages/dashboard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { checkAppSessionConflict, recordAppExit, recordAppLaunch, ActiveAppSession } from "@/lib/app-session";
+import { SessionConflictModal } from "@/components/modals/SessionConflictModal";
 
 const Properties = lazy(() => import("@/pages/properties"));
 const Housing = lazy(() => import("@/pages/housing"));
@@ -124,9 +126,45 @@ function WebSocketProvider({ children }: { children: React.ReactNode }) {
 }
 
 function ProtectedLayout({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
+  const [location, setLocation] = useLocation();
+  const [conflictSession, setConflictSession] = useState<ActiveAppSession | null>(() => {
+    const conflict = checkAppSessionConflict("housing");
+    return conflict.hasConflict ? conflict.activeSession : null;
+  });
+
+  useEffect(() => {
+    const conflict = checkAppSessionConflict("housing");
+    setConflictSession(conflict.hasConflict ? conflict.activeSession : null);
+    if (!conflict.hasConflict && isAuthenticated) {
+      recordAppLaunch("housing", 1, "Staff Housing Global", user?.username);
+    }
+  }, [location, isAuthenticated, user]);
+
   if (isLoading) return <PageLoader />;
   if (!isAuthenticated) return <Redirect to="/login" />;
+
+  if (conflictSession) {
+    return (
+      <SessionConflictModal
+        isOpen={true}
+        activeSession={conflictSession}
+        targetApp="housing"
+        onConfirmSwitch={async () => {
+          await recordAppExit();
+          await recordAppLaunch("housing", 1, "Staff Housing Global", user?.username);
+          setConflictSession(null);
+        }}
+        onStayInCurrent={() => {
+          if (conflictSession.app === "payroll") setLocation("/payroll");
+          else if (conflictSession.app === "attendance") setLocation("/attendance");
+          else if (conflictSession.app === "hrms") setLocation("/hrms");
+          else setLocation("/apps");
+        }}
+      />
+    );
+  }
+
   return <AppLayout>{children}</AppLayout>;
 }
 
@@ -144,11 +182,58 @@ function ProtectedHrSuiteLayout({
   children: React.ReactNode;
   activeModule?: "hrms" | "payroll" | "attendance";
 }) {
-  const { isAuthenticated, isLoading } = useHrAuth();
+  const { isAuthenticated, isLoading, hrUser, propertyScope } = useHrAuth();
   const auth = useAuth();
+  const [location, setLocation] = useLocation();
+  const targetApp = activeModule || "hrms";
+
+  const [conflictSession, setConflictSession] = useState<ActiveAppSession | null>(() => {
+    const conflict = checkAppSessionConflict(targetApp);
+    return conflict.hasConflict ? conflict.activeSession : null;
+  });
+
+  useEffect(() => {
+    const conflict = checkAppSessionConflict(targetApp);
+    setConflictSession(conflict.hasConflict ? conflict.activeSession : null);
+    if (!conflict.hasConflict && (isAuthenticated || auth.isAuthenticated)) {
+      recordAppLaunch(
+        targetApp,
+        propertyScope?.id ? Number(propertyScope.id) : null,
+        propertyScope?.nameEn,
+        hrUser?.username || auth.user?.username
+      );
+    }
+  }, [targetApp, location, isAuthenticated, auth.isAuthenticated, hrUser, auth.user, propertyScope]);
 
   if (isLoading && auth.isLoading) return <PageLoader />;
   if (!isAuthenticated && !auth.isAuthenticated) return <Redirect to="/hr-portal" />;
+
+  if (conflictSession) {
+    return (
+      <SessionConflictModal
+        isOpen={true}
+        activeSession={conflictSession}
+        targetApp={targetApp}
+        onConfirmSwitch={async () => {
+          await recordAppExit();
+          await recordAppLaunch(
+            targetApp,
+            propertyScope?.id ? Number(propertyScope.id) : null,
+            propertyScope?.nameEn,
+            hrUser?.username || auth.user?.username
+          );
+          setConflictSession(null);
+        }}
+        onStayInCurrent={() => {
+          if (conflictSession.app === "housing") setLocation("/dashboard");
+          else if (conflictSession.app === "payroll") setLocation("/payroll");
+          else if (conflictSession.app === "attendance") setLocation("/attendance");
+          else if (conflictSession.app === "hrms") setLocation("/hrms");
+          else setLocation("/apps");
+        }}
+      />
+    );
+  }
 
   return (
     <HrSuiteLayout activeModule={activeModule}>

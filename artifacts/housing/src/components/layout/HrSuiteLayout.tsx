@@ -37,6 +37,7 @@ import {
   Calculator,
   FileText
 } from "lucide-react";
+import { recordAppExit } from "@/lib/app-session";
 
 interface HrSuiteLayoutProps {
   children: React.ReactNode;
@@ -66,9 +67,11 @@ export function HrSuiteLayout({ children, activeModule }: HrSuiteLayoutProps) {
     role: auth.user.isSystemAdmin ? "super_admin" : "admin",
   } : null);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await recordAppExit();
     hrLogout();
     if (auth.isAuthenticated) auth.logout();
+    setLocation("/apps");
   };
 
   // Determine current active domain
@@ -333,68 +336,28 @@ export function HrSuiteLayout({ children, activeModule }: HrSuiteLayoutProps) {
 
           <div className="hidden md:block h-6 w-px bg-slate-200 mx-1"></div>
 
-          {/* ─── STANDALONE APP SYSTEM SWITCHER BAR ───────────────────────── */}
-          <nav className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
-            {/* 1. Staff Housing App */}
-            <Link href={`/${propertySlug || "all"}/dashboard`}>
-              <button
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  location.includes("/dashboard") || location.includes("/housing") || location.includes("/reservations")
-                    ? "bg-[#0f2942] text-white shadow-xs"
-                    : "text-slate-600 hover:bg-white hover:text-slate-900"
-                }`}
-                title={ar ? "سكن العاملين الفندقي (قاعدة بيانات staff-housing)" : "Staff Housing System (DB: staff-housing)"}
-              >
-                <Home className="w-3.5 h-3.5 text-blue-400" />
-                <span className="hidden sm:inline">{ar ? "سكن العاملين" : "Housing"}</span>
-              </button>
-            </Link>
-
-            {/* 2. Core HRMS App */}
-            <Link href="/hrms">
-              <button
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  currentDomain === "hrms"
-                    ? "bg-[#0f2942] text-white shadow-xs"
-                    : "text-slate-600 hover:bg-white hover:text-slate-900"
-                }`}
-                title={ar ? "شؤون العاملين والهيكل الإداري" : "Core HRMS"}
-              >
-                <Users className="w-3.5 h-3.5 text-purple-400" />
-                <span className="hidden sm:inline">{ar ? "شؤون العاملين" : "HRMS"}</span>
-              </button>
-            </Link>
-
-            {/* 3. Attendance App */}
-            <Link href="/attendance">
-              <button
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  currentDomain === "attendance"
-                    ? "bg-[#0f2942] text-white shadow-xs"
-                    : "text-slate-600 hover:bg-white hover:text-slate-900"
-                }`}
-                title={ar ? "الحضور والانصراف وأجهزة البصمة" : "Biometrics & Time Machine"}
-              >
-                <Fingerprint className="w-3.5 h-3.5 text-emerald-400" />
-                <span className="hidden sm:inline">{ar ? "الحضور والبصمة" : "Attendance"}</span>
-              </button>
-            </Link>
-
-            {/* 4. Payroll Studio (SST Replica) */}
-            <Link href="/payroll">
-              <button
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
-                  currentDomain === "payroll"
-                    ? "bg-[#c89332] text-slate-950 shadow-xs ring-1 ring-[#c89332]"
-                    : "text-slate-700 hover:bg-white hover:text-slate-900 font-bold"
-                }`}
-                title={ar ? "استوديو الرواتب والأجور الفندقية (نسخة SST 26.0 المطابقة)" : "SUNRISE Payroll Studio (SST Replica)"}
-              >
-                <DollarSign className="w-3.5 h-3.5 text-slate-950" />
-                <span>{ar ? "استوديو الرواتب (SST)" : "Payroll Studio"}</span>
-              </button>
-            </Link>
-          </nav>
+          {/* ─── ACTIVE APPLICATION ISOLATED IDENTITY BADGE ───────────────────────── */}
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700/60 shadow-2xs">
+            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+            <div className="flex items-center gap-1.5 text-xs font-bold text-foreground">
+              {currentDomain === "payroll" ? (
+                <>
+                  <DollarSign className="w-3.5 h-3.5 text-[#c89332]" />
+                  <span>{ar ? "استوديو الرواتب والأجور (Payroll Studio)" : "Payroll & Compensation Studio"}</span>
+                </>
+              ) : currentDomain === "attendance" ? (
+                <>
+                  <Fingerprint className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                  <span>{ar ? "منظومة الحضور والانصراف والبصمة (Attendance)" : "Attendance & Biometrics Suite"}</span>
+                </>
+              ) : (
+                <>
+                  <Users className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                  <span>{ar ? "الموارد البشرية وشؤون العاملين (Core HRMS)" : "Core HRMS & Talent Suite"}</span>
+                </>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Right Action Icons: Property Picker, Language Toggle, User Profile */}
@@ -417,14 +380,6 @@ export function HrSuiteLayout({ children, activeModule }: HrSuiteLayoutProps) {
                 {propertyScope?.code}
               </Badge>
             </div>
-            <Link href="/hr-portal">
-              <button
-                className="text-[10px] text-slate-400 hover:text-amber-300 underline ms-1 cursor-pointer hidden sm:inline"
-                title={ar ? "العودة لبوابة اختيار فندق وقاعدة بيانات أخرى" : "Switch Hotel Vault via Portal"}
-              >
-                {ar ? "تبديل الفندق" : "Switch"}
-              </button>
-            </Link>
           </div>
 
           {/* Language Toggle */}
@@ -455,15 +410,15 @@ export function HrSuiteLayout({ children, activeModule }: HrSuiteLayoutProps) {
             </div>
           </div>
 
-          {/* Logout */}
+          {/* Prominent Sign Out Button */}
           <Button
-            variant="ghost"
-            size="icon"
+            variant="outline"
             onClick={handleLogout}
-            className="w-8 h-8 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50"
-            title={ar ? "تسجيل الخروج" : "Logout"}
+            className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 dark:border-red-900/60 dark:text-red-400 dark:hover:bg-red-950/40 text-xs font-bold gap-1.5 rounded-xl h-8 px-3 shadow-2xs cursor-pointer"
+            title={ar ? "تسجيل الخروج والعودة لبوابة التطبيقات" : "Sign Out & Return to Launcher"}
           >
             <LogOut className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">{ar ? "تسجيل خروج" : "Sign Out"}</span>
           </Button>
         </div>
       </header>

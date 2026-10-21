@@ -71,7 +71,7 @@ export default function PayrollPage() {
   const auth = useAuth();
 
   const [viewTheme, setViewTheme] = useState<"sst" | "modern">(() => {
-    return (localStorage.getItem("payroll_view_theme") as "sst" | "modern") || "sst";
+    return (localStorage.getItem("payroll_view_theme") as "sst" | "modern") || "modern";
   });
 
   const handleThemeToggle = (newTheme: "sst" | "modern") => {

@@ -27,6 +27,7 @@ import {
   SUNRISE_SST_HOTELS,
 } from "../auth/SstHotelSelectionDialog";
 import { SstHotelLoginDialog } from "../auth/SstHotelLoginDialog";
+import { recordAppLaunch, recordAppExit } from "@/lib/app-session";
 
 export default function TsplusPortalLauncher() {
   const { language, setLanguage } = useLanguage();
@@ -115,6 +116,7 @@ export default function TsplusPortalLauncher() {
   };
 
   const handlePortalLogoff = async () => {
+    await recordAppExit();
     sessionStorage.removeItem("tsplus_portal_authenticated");
     sessionStorage.removeItem("tsplus_portal_user");
     sessionStorage.removeItem("hr_property_vault_scope");
@@ -172,6 +174,14 @@ export default function TsplusPortalLauncher() {
       ar
         ? `تم الدخول بنجاح إلى: ${selectedHotel.nameAr}`
         : `Connected to: ${selectedHotel.nameEn}`
+    );
+
+    // Record launch in central audit trail
+    await recordAppLaunch(
+      "payroll",
+      selectedHotel.id,
+      selectedHotel.nameEn,
+      credentials.username
     );
 
     // Navigate straight to the authentic SST Desktop Shell!
@@ -388,7 +398,15 @@ export default function TsplusPortalLauncher() {
               {/* Application 2: Attendance */}
               <button
                 type="button"
-                onClick={() => setLocation("/attendance")}
+                onClick={async () => {
+                  await recordAppLaunch(
+                    "attendance",
+                    selectedHotel.id,
+                    selectedHotel.nameEn,
+                    portalUser
+                  );
+                  setLocation("/attendance");
+                }}
                 className="group relative bg-[#122B42]/90 hover:bg-[#1A3D5E] border-2 border-blue-800/80 hover:border-blue-400 p-5 rounded-lg text-center transition-all shadow-xl hover:shadow-2xl flex flex-col items-center justify-between min-h-[200px] cursor-pointer"
               >
                 <div className="w-16 h-16 rounded-lg bg-gradient-to-b from-[#1C4E7E] to-[#0D263E] border border-blue-400/40 flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform mb-3">
@@ -417,7 +435,15 @@ export default function TsplusPortalLauncher() {
               {/* Application 3: Staff Housing */}
               <button
                 type="button"
-                onClick={() => setLocation("/dashboard")}
+                onClick={async () => {
+                  await recordAppLaunch(
+                    "housing",
+                    1,
+                    "Staff Housing Global",
+                    portalUser
+                  );
+                  setLocation("/dashboard");
+                }}
                 className="group relative bg-[#122B42]/90 hover:bg-[#1A3D5E] border-2 border-blue-800/80 hover:border-emerald-400 p-5 rounded-lg text-center transition-all shadow-xl hover:shadow-2xl flex flex-col items-center justify-between min-h-[200px] cursor-pointer"
               >
                 <div className="w-16 h-16 rounded-lg bg-gradient-to-b from-[#1C4E7E] to-[#0D263E] border border-blue-400/40 flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform mb-3">
@@ -446,7 +472,15 @@ export default function TsplusPortalLauncher() {
               {/* Application 4: HRMS Core Suite */}
               <button
                 type="button"
-                onClick={() => setLocation("/hrms")}
+                onClick={async () => {
+                  await recordAppLaunch(
+                    "hrms",
+                    selectedHotel.id,
+                    selectedHotel.nameEn,
+                    portalUser
+                  );
+                  setLocation("/hrms");
+                }}
                 className="group relative bg-[#122B42]/90 hover:bg-[#1A3D5E] border-2 border-blue-800/80 hover:border-indigo-400 p-5 rounded-lg text-center transition-all shadow-xl hover:shadow-2xl flex flex-col items-center justify-between min-h-[200px] cursor-pointer"
               >
                 <div className="w-16 h-16 rounded-lg bg-gradient-to-b from-[#1C4E7E] to-[#0D263E] border border-blue-400/40 flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform mb-3">
