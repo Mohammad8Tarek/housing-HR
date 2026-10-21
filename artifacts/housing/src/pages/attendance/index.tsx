@@ -42,16 +42,303 @@ import { PermissionGate } from "@/components/ui/permission-gate";
 import { formatDate, formatDateTime } from "@/lib/date-utils";
 import { useHrAuth } from "@/context/HrAuthContext";
 import { DualKeyAuthModal } from "@/components/modals/DualKeyAuthModal";
+import { SstAttendanceDesktopShell } from "./SstAttendanceDesktopShell";
+import { SstAttendanceDailyGrid } from "./SstAttendanceDailyGrid";
+import { SstVacationsAndShiftsGrid, AttendanceEmployee } from "./SstVacationsAndShiftsGrid";
+import { SstMonthSelectModal } from "./SstMonthSelectModal";
+import { SstVacationRequestModal } from "./SstVacationRequestModal";
+import { SstVacationSignatureModal } from "./SstVacationSignatureModal";
+import { SstHotelSelectionDialog, SstPropertyItem, SUNRISE_SST_HOTELS } from "../auth/SstHotelSelectionDialog";
+
+const SST_DEPARTMENTS = [
+  "Centeral Workshop",
+  "Maintenance",
+  "Housekeeping",
+  "Food & Beverage",
+  "Kitchen",
+  "Front Office",
+  "Security",
+  "Human Resources",
+  "Accounting",
+  "Casual Staff",
+];
+
+const INITIAL_SST_EMPLOYEES: AttendanceEmployee[] = [
+  {
+    code: "3301",
+    name: "Ahmed Mohamed Mahmoud",
+    position: "Senior Electrician",
+    department: "Centeral Workshop",
+    monthShifts: { 1: "M", 2: "M", 3: "M", 4: "M", 5: "M", 6: "O", 7: "O", 8: "M", 9: "M", 10: "M", 11: "M", 12: "M", 13: "O", 14: "O", 15: "V", 16: "V", 17: "V", 18: "V", 19: "V", 20: "O", 21: "O" },
+    dailyPunches: {
+      1: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      2: { shift: "1", timeIn: "07:55", timeOut: "16:05", workHours: 8 },
+      3: { shift: "1", timeIn: "08:02", timeOut: "16:00", workHours: 8 },
+      4: { shift: "1", timeIn: "08:00", timeOut: "16:15", workHours: 8 },
+      5: { shift: "1", timeIn: "08:05", timeOut: "16:00", workHours: 8 },
+      6: { shift: "O", workHours: 0 },
+      7: { shift: "O", workHours: 0 },
+      8: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      9: { shift: "1", timeIn: "08:10", timeOut: "16:00", workHours: 8 },
+      10: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      11: { shift: "1", timeIn: "07:58", timeOut: "16:02", workHours: 8 },
+      12: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      13: { shift: "O", workHours: 0 },
+      14: { shift: "O", workHours: 0 },
+      15: { shift: "V", workHours: 0 },
+      16: { shift: "V", workHours: 0 },
+      17: { shift: "V", workHours: 0 },
+      18: { shift: "V", workHours: 0 },
+      19: { shift: "V", workHours: 0 },
+      20: { shift: "O", workHours: 0 },
+      21: { shift: "O", workHours: 0 },
+    },
+  },
+  {
+    code: "3305",
+    name: "Sayed Ibrahim Hassan",
+    position: "Plumbing Specialist",
+    department: "Centeral Workshop",
+    monthShifts: { 1: "E", 2: "E", 3: "E", 4: "E", 5: "E", 6: "O", 7: "O", 8: "E", 9: "E", 10: "E", 11: "E", 12: "E", 13: "O", 14: "O", 15: "E", 16: "E", 17: "E", 18: "E", 19: "E", 20: "O", 21: "O" },
+    dailyPunches: {
+      1: { shift: "2", timeIn: "16:00", timeOut: "00:00", workHours: 8 },
+      2: { shift: "2", timeIn: "15:55", timeOut: "00:05", workHours: 8 },
+      3: { shift: "2", timeIn: "16:02", timeOut: "00:00", workHours: 8 },
+      4: { shift: "2", timeIn: "16:00", timeOut: "00:10", workHours: 8 },
+      5: { shift: "2", timeIn: "16:00", timeOut: "00:00", workHours: 8 },
+      6: { shift: "O", workHours: 0 },
+      7: { shift: "O", workHours: 0 },
+      8: { shift: "2", timeIn: "16:00", timeOut: "00:00", workHours: 8 },
+      9: { shift: "2", timeIn: "16:05", timeOut: "00:00", workHours: 8 },
+      10: { shift: "2", timeIn: "16:00", timeOut: "00:00", workHours: 8 },
+      11: { shift: "2", timeIn: "15:58", timeOut: "00:02", workHours: 8 },
+      12: { shift: "2", timeIn: "16:00", timeOut: "00:00", workHours: 8 },
+      13: { shift: "O", workHours: 0 },
+      14: { shift: "O", workHours: 0 },
+      15: { shift: "2", timeIn: "16:00", timeOut: "00:00", workHours: 8 },
+      16: { shift: "2", timeIn: "16:00", timeOut: "00:00", workHours: 8 },
+      17: { shift: "2", timeIn: "16:00", timeOut: "00:00", workHours: 8 },
+      18: { shift: "2", timeIn: "16:00", timeOut: "00:00", workHours: 8 },
+      19: { shift: "2", timeIn: "16:00", timeOut: "00:00", workHours: 8 },
+      20: { shift: "O", workHours: 0 },
+      21: { shift: "O", workHours: 0 },
+    },
+  },
+  {
+    code: "3312",
+    name: "Mohamed Ali Abdelrahman",
+    position: "A/C Technician",
+    department: "Centeral Workshop",
+    monthShifts: { 1: "N", 2: "N", 3: "N", 4: "N", 5: "N", 6: "O", 7: "O", 8: "N", 9: "N", 10: "N", 11: "N", 12: "N", 13: "O", 14: "O", 15: "N", 16: "N", 17: "N", 18: "N", 19: "N", 20: "O", 21: "O" },
+    dailyPunches: {
+      1: { shift: "3", timeIn: "00:00", timeOut: "08:00", workHours: 8 },
+      2: { shift: "3", timeIn: "23:55", timeOut: "08:05", workHours: 8 },
+      3: { shift: "3", timeIn: "00:00", timeOut: "08:00", workHours: 8 },
+      4: { shift: "3", timeIn: "00:05", timeOut: "08:00", workHours: 8 },
+      5: { shift: "3", timeIn: "00:00", timeOut: "08:00", workHours: 8 },
+      6: { shift: "O", workHours: 0 },
+      7: { shift: "O", workHours: 0 },
+      8: { shift: "3", timeIn: "00:00", timeOut: "08:00", workHours: 8 },
+      9: { shift: "3", timeIn: "00:02", timeOut: "08:00", workHours: 8 },
+      10: { shift: "3", timeIn: "00:00", timeOut: "08:00", workHours: 8 },
+      11: { shift: "3", timeIn: "23:58", timeOut: "08:00", workHours: 8 },
+      12: { shift: "3", timeIn: "00:00", timeOut: "08:00", workHours: 8 },
+      13: { shift: "O", workHours: 0 },
+      14: { shift: "O", workHours: 0 },
+      15: { shift: "3", timeIn: "00:00", timeOut: "08:00", workHours: 8 },
+      16: { shift: "3", timeIn: "00:00", timeOut: "08:00", workHours: 8 },
+      17: { shift: "3", timeIn: "00:00", timeOut: "08:00", workHours: 8 },
+      18: { shift: "3", timeIn: "00:00", timeOut: "08:00", workHours: 8 },
+      19: { shift: "3", timeIn: "00:00", timeOut: "08:00", workHours: 8 },
+      20: { shift: "O", workHours: 0 },
+      21: { shift: "O", workHours: 0 },
+    },
+  },
+  {
+    code: "3320",
+    name: "Mahmoud Hassan Mostafa",
+    position: "Carpenter",
+    department: "Centeral Workshop",
+    monthShifts: { 1: "M", 2: "M", 3: "M", 4: "M", 5: "M", 6: "O", 7: "O", 8: "M", 9: "M", 10: "M", 11: "M", 12: "M", 13: "O", 14: "O", 15: "S", 16: "S", 17: "M", 18: "M", 19: "M", 20: "O", 21: "O" },
+    dailyPunches: {
+      1: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      2: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      3: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      4: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      5: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      6: { shift: "O", workHours: 0 },
+      7: { shift: "O", workHours: 0 },
+      8: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      9: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      10: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      11: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      12: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      13: { shift: "O", workHours: 0 },
+      14: { shift: "O", workHours: 0 },
+      15: { shift: "S", workHours: 0 },
+      16: { shift: "S", workHours: 0 },
+      17: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      18: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      19: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      20: { shift: "O", workHours: 0 },
+      21: { shift: "O", workHours: 0 },
+    },
+  },
+  {
+    code: "3345",
+    name: "Hossam Tarek Farouk",
+    position: "Sound & Light Technician",
+    department: "Centeral Workshop",
+    monthShifts: { 1: "E", 2: "E", 3: "E", 4: "E", 5: "E", 6: "O", 7: "O", 8: "E", 9: "E", 10: "E", 11: "E", 12: "E", 13: "O", 14: "O", 15: "E", 16: "E", 17: "E", 18: "E", 19: "E", 20: "O", 21: "O" },
+    dailyPunches: {
+      1: { shift: "2", timeIn: "16:00", timeOut: "00:00", workHours: 8 },
+      2: { shift: "2", timeIn: "16:00", timeOut: "00:00", workHours: 8 },
+      3: { shift: "2", timeIn: "16:00", timeOut: "00:00", workHours: 8 },
+      4: { shift: "2", timeIn: "16:00", timeOut: "00:00", workHours: 8 },
+      5: { shift: "2", timeIn: "16:00", timeOut: "00:00", workHours: 8 },
+      6: { shift: "O", workHours: 0 },
+      7: { shift: "O", workHours: 0 },
+      8: { shift: "2", timeIn: "16:00", timeOut: "00:00", workHours: 8 },
+      9: { shift: "2", timeIn: "16:00", timeOut: "00:00", workHours: 8 },
+      10: { shift: "2", timeIn: "16:00", timeOut: "00:00", workHours: 8 },
+      11: { shift: "2", timeIn: "16:00", timeOut: "00:00", workHours: 8 },
+      12: { shift: "2", timeIn: "16:00", timeOut: "00:00", workHours: 8 },
+      13: { shift: "O", workHours: 0 },
+      14: { shift: "O", workHours: 0 },
+      15: { shift: "2", timeIn: "16:00", timeOut: "00:00", workHours: 8 },
+      16: { shift: "2", timeIn: "16:00", timeOut: "00:00", workHours: 8 },
+      17: { shift: "2", timeIn: "16:00", timeOut: "00:00", workHours: 8 },
+      18: { shift: "2", timeIn: "16:00", timeOut: "00:00", workHours: 8 },
+      19: { shift: "2", timeIn: "16:00", timeOut: "00:00", workHours: 8 },
+      20: { shift: "O", workHours: 0 },
+      21: { shift: "O", workHours: 0 },
+    },
+  },
+  {
+    code: "3350",
+    name: "Khaled Mostafa Kamel",
+    position: "Senior Painter",
+    department: "Centeral Workshop",
+    monthShifts: { 1: "M", 2: "M", 3: "M", 4: "M", 5: "M", 6: "O", 7: "O", 8: "M", 9: "M", 10: "M", 11: "M", 12: "M", 13: "O", 14: "O", 15: "M", 16: "M", 17: "M", 18: "M", 19: "M", 20: "O", 21: "O" },
+    dailyPunches: {
+      1: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      2: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      3: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      4: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      5: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      6: { shift: "O", workHours: 0 },
+      7: { shift: "O", workHours: 0 },
+      8: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      9: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      10: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      11: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      12: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      13: { shift: "O", workHours: 0 },
+      14: { shift: "O", workHours: 0 },
+      15: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      16: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      17: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      18: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      19: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      20: { shift: "O", workHours: 0 },
+      21: { shift: "O", workHours: 0 },
+    },
+  },
+  {
+    code: "3362",
+    name: "Ibrahim Reda Saeed",
+    position: "Welder",
+    department: "Centeral Workshop",
+    monthShifts: { 1: "M", 2: "M", 3: "M", 4: "M", 5: "M", 6: "O", 7: "O", 8: "M", 9: "M", 10: "M", 11: "M", 12: "M", 13: "O", 14: "O", 15: "M", 16: "M", 17: "M", 18: "M", 19: "M", 20: "O", 21: "O" },
+    dailyPunches: {
+      1: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      2: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      3: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      4: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      5: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      6: { shift: "O", workHours: 0 },
+      7: { shift: "O", workHours: 0 },
+      8: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      9: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      10: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      11: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      12: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      13: { shift: "O", workHours: 0 },
+      14: { shift: "O", workHours: 0 },
+      15: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      16: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      17: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      18: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      19: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      20: { shift: "O", workHours: 0 },
+      21: { shift: "O", workHours: 0 },
+    },
+  },
+  {
+    code: "3370",
+    name: "Mostafa Essam Fawzy",
+    position: "Mechanical Technician",
+    department: "Centeral Workshop",
+    monthShifts: { 1: "1", 2: "1", 3: "1", 4: "1", 5: "1", 6: "O", 7: "O", 8: "1", 9: "1", 10: "1", 11: "1", 12: "1", 13: "O", 14: "O", 15: "1", 16: "1", 17: "1", 18: "1", 19: "1", 20: "O", 21: "O" },
+    dailyPunches: {
+      1: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      2: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      3: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      4: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      5: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      6: { shift: "O", workHours: 0 },
+      7: { shift: "O", workHours: 0 },
+      8: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      9: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      10: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      11: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      12: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      13: { shift: "O", workHours: 0 },
+      14: { shift: "O", workHours: 0 },
+      15: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      16: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      17: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      18: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      19: { shift: "1", timeIn: "08:00", timeOut: "16:00", workHours: 8 },
+      20: { shift: "O", workHours: 0 },
+      21: { shift: "O", workHours: 0 },
+    },
+  },
+];
 
 export default function AttendancePage() {
   const { language } = useLanguage();
   const ar = language === "ar";
   const queryClient = useQueryClient();
-  const { propertyScope } = useHrAuth();
+  const { propertyScope, user: hrUser } = useHrAuth();
 
   const [selectedPropertyId, setSelectedPropertyId] = useState<number>(() => {
     return propertyScope?.id ? Number(propertyScope.id) : 2;
   });
+
+  // SST 26.0 Desktop Theme State
+  const [viewTheme, setViewTheme] = useState<"sst" | "modern">("sst");
+  const [sstTab, setSstTab] = useState<"shifts" | "daily" | "hours" | "punches">("shifts");
+  const [selectedSstHotel, setSelectedSstHotel] = useState<SstPropertyItem>(() => {
+    return SUNRISE_SST_HOTELS[1] || SUNRISE_SST_HOTELS[0] || {
+      id: 2,
+      code: "MRK-02",
+      nameEn: "SunRise Meraki Sharm Casual",
+      nameAr: "منتجع ميراكي شرم الشيخ (كاجوال وعمالة يومية)",
+      category: "casuals",
+      databaseName: "DB_MERAKI_CASUAL",
+      serverHost: "192.168.10.12",
+      cityAr: "شرم الشيخ",
+      cityEn: "Sharm El Sheikh",
+      ledgerCode: "MRK-CAS-FY2026",
+      badge: "MRK-02 • Casuals",
+    };
+  });
+  const [isCompanySelectorOpen, setIsCompanySelectorOpen] = useState(false);
+  const [sstDepartment, setSstDepartment] = useState<string>("Centeral Workshop");
+  const [sstYear, setSstYear] = useState<number>(2026);
+  const [sstMonth, setSstMonth] = useState<number>(10);
+  const [sstEmployees, setSstEmployees] = useState<AttendanceEmployee[]>(INITIAL_SST_EMPLOYEES);
 
   // Dual-Key Authorization State
   const [isDualKeyOpen, setIsDualKeyOpen] = useState(false);
@@ -574,7 +861,225 @@ export default function AttendancePage() {
   const absentCount = metricsData?.metrics?.absentCount ?? dailyRecords.filter((r: any) => r.status === "absent").length;
   const onlineDevicesCount = metricsData?.metrics?.activeDevices ?? devices.length;
 
+  // Sync SST Employees from rosterMatrixData when available
+  React.useEffect(() => {
+    if (rosterMatrixData?.roster && rosterMatrixData.roster.length > 0) {
+      const mapped: AttendanceEmployee[] = rosterMatrixData.roster.map((r: any) => {
+        const monthShifts: Record<number, string> = {};
+        const dailyPunches: Record<number, any> = {};
+        if (r.schedule) {
+          Object.entries(r.schedule).forEach(([dayStr, sched]: [string, any]) => {
+            const dayNum = Number(dayStr);
+            const code = sched?.shiftCode === "MORNING" ? "1"
+              : sched?.shiftCode === "EVENING" ? "2"
+              : sched?.shiftCode === "NIGHT" ? "3"
+              : sched?.shiftCode === "OFF" ? "O"
+              : sched?.shiftCode === "VACATION" ? "V"
+              : sched?.shiftCode === "HOLIDAY" ? "H"
+              : sched?.shiftCode || "1";
+            monthShifts[dayNum] = code;
+            dailyPunches[dayNum] = {
+              shift: code,
+              timeIn: code === "O" || code === "V" || code === "H" ? undefined : "08:00",
+              timeOut: code === "O" || code === "V" || code === "H" ? undefined : "16:00",
+              workHours: code === "O" || code === "V" || code === "H" ? 0 : 8,
+            };
+          });
+        }
+        return {
+          code: r.employeeCode || String(r.employeeId),
+          name: ar ? r.fullNameAr || r.fullName : r.fullName,
+          position: r.designation || "Staff",
+          department: r.department || sstDepartment,
+          monthShifts,
+          dailyPunches,
+        };
+      });
+      setSstEmployees(mapped);
+    }
+  }, [rosterMatrixData, ar, sstDepartment]);
+
+  const handleUpdateRosterCell = (empCode: string, day: number, stampCode: string) => {
+    setSstEmployees((prev) =>
+      prev.map((emp) => {
+        if (emp.code !== empCode) return emp;
+        const newShifts = { ...emp.monthShifts, [day]: stampCode };
+        const newPunches = {
+          ...emp.dailyPunches,
+          [day]: {
+            shift: stampCode,
+            timeIn: ["O", "V", "H", "S", "U", "A"].includes(stampCode) ? undefined : emp.dailyPunches?.[day]?.timeIn || "08:00",
+            timeOut: ["O", "V", "H", "S", "U", "A"].includes(stampCode) ? undefined : emp.dailyPunches?.[day]?.timeOut || "16:00",
+            workHours: ["O", "V", "H", "S", "U", "A"].includes(stampCode) ? 0 : 8,
+          },
+        };
+        return {
+          ...emp,
+          monthShifts: newShifts,
+          dailyPunches: newPunches,
+        };
+      })
+    );
+  };
+
+  const handleUpdatePunchCell = (empCode: string, day: number, field: "timeIn" | "timeOut" | "timeIn2" | "timeOut2", val: string) => {
+    setSstEmployees((prev) =>
+      prev.map((emp) => {
+        if (emp.code !== empCode) return emp;
+        const currentPunch = emp.dailyPunches?.[day] || { shift: "1" };
+        const updatedPunch = { ...currentPunch, [field]: val };
+        if (updatedPunch.timeIn && updatedPunch.timeOut) {
+          const [inH, inM] = updatedPunch.timeIn.split(":").map(Number);
+          const [outH, outM] = updatedPunch.timeOut.split(":").map(Number);
+          let diff = (outH + (outM || 0) / 60) - (inH + (inM || 0) / 60);
+          if (diff < 0) diff += 24;
+          updatedPunch.workHours = Math.round(diff * 10) / 10;
+        }
+        return {
+          ...emp,
+          dailyPunches: {
+            ...emp.dailyPunches,
+            [day]: updatedPunch,
+          },
+        };
+      })
+    );
+  };
+
+  const handleCalculateAll = () => {
+    processPunchesMutation.mutate();
+    setSstEmployees((prev) =>
+      prev.map((emp) => {
+        const punches = { ...emp.dailyPunches };
+        Object.keys(punches).forEach((dayKey) => {
+          const day = Number(dayKey);
+          const p = punches[day];
+          if (p && p.shift && !["O", "V", "H", "S", "U", "A"].includes(p.shift)) {
+            p.workHours = 8;
+            if (!p.timeIn) p.timeIn = "08:00";
+            if (!p.timeOut) p.timeOut = "16:00";
+          }
+        });
+        return { ...emp, dailyPunches: punches };
+      })
+    );
+  };
+
+  const handleCalculateTime = (empCode: string) => {
+    setSstEmployees((prev) =>
+      prev.map((emp) => {
+        if (emp.code !== empCode) return emp;
+        const punches = { ...emp.dailyPunches };
+        Object.keys(punches).forEach((dayKey) => {
+          const day = Number(dayKey);
+          const p = punches[day];
+          if (p && p.shift && !["O", "V", "H", "S", "U", "A"].includes(p.shift)) {
+            p.workHours = 8;
+          }
+        });
+        return { ...emp, dailyPunches: punches };
+      })
+    );
+    toast.success(
+      ar
+        ? `تم احتساب ساعات العمل للموظف كود ${empCode}`
+        : `Calculated work hours for employee ${empCode}`
+    );
+  };
+
   return (
+    <>
+      {viewTheme === "sst" ? (
+        <SstAttendanceDesktopShell
+          activeTab={sstTab}
+          onTabChange={(t) => setSstTab(t)}
+          propertyName={ar ? selectedSstHotel.nameAr : selectedSstHotel.nameEn}
+          year={sstYear}
+          month={sstMonth}
+          userName={hrUser?.username || "admin"}
+          onYearMonthChange={(y, m) => {
+            setSstYear(y);
+            setSstMonth(m);
+          }}
+          selectedDepartment={sstDepartment}
+          onDepartmentChange={(dept) => setSstDepartment(dept)}
+          availableDepartments={SST_DEPARTMENTS}
+          onChangeCompany={() => setIsCompanySelectorOpen(true)}
+          onSwitchTheme={() => setViewTheme("modern")}
+        >
+          {sstTab === "shifts" ? (
+            <SstVacationsAndShiftsGrid
+              year={sstYear}
+              month={sstMonth}
+              department={sstDepartment}
+              employees={sstEmployees}
+              onUpdateRosterCell={handleUpdateRosterCell}
+              isMonthClosed={sstMonth <= 10 && sstYear === 2026}
+            />
+          ) : sstTab === "daily" ? (
+            <SstAttendanceDailyGrid
+              year={sstYear}
+              month={sstMonth}
+              department={sstDepartment}
+              employees={sstEmployees}
+              onCalculateAll={handleCalculateAll}
+              onCalculateTime={handleCalculateTime}
+              onUpdatePunchCell={handleUpdatePunchCell}
+              isMonthClosed={sstMonth <= 10 && sstYear === 2026}
+            />
+          ) : sstTab === "punches" ? (
+            <div className="flex-1 flex flex-col bg-[#ece9d8] p-2 overflow-hidden text-xs">
+              <div className="bg-[#0055ea] text-white px-2 py-1 font-bold flex items-center justify-between text-xs">
+                <span>Time Original Data - Biometric Punch Ingestion Log</span>
+                <span className="font-mono">Total: {(punchesData?.checkins || []).length} Records</span>
+              </div>
+              <div className="flex-1 overflow-auto border border-[#716f64] bg-white mt-1">
+                <table className="w-full border-collapse text-[11px] text-gray-800">
+                  <thead className="bg-[#d4d0c8] sticky top-0 border-b border-[#716f64] font-bold">
+                    <tr>
+                      <th className="border-r border-[#716f64] px-2 py-1 text-center w-16">ID</th>
+                      <th className="border-r border-[#716f64] px-2 py-1 text-center w-24">Emp Code</th>
+                      <th className="border-r border-[#716f64] px-2 py-1 text-left px-2">Employee Name</th>
+                      <th className="border-r border-[#716f64] px-2 py-1 text-center w-36">Time Stamp</th>
+                      <th className="border-r border-[#716f64] px-2 py-1 text-center w-20">Punch</th>
+                      <th className="border-r border-[#716f64] px-2 py-1 text-center w-28">Verify Type</th>
+                      <th className="px-2 py-1 text-left">Terminal / Device</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(punchesData?.checkins || []).map((p: any, idx: number) => (
+                      <tr key={p.id || idx} className={idx % 2 === 0 ? "bg-white" : "bg-[#f5f5f0]"}>
+                        <td className="border-r border-[#d0cfc5] px-2 py-0.5 text-center font-mono">{p.id || idx + 1}</td>
+                        <td className="border-r border-[#d0cfc5] px-2 py-0.5 text-center font-mono font-bold text-blue-900">{p.employeeCode}</td>
+                        <td className="border-r border-[#d0cfc5] px-2 py-0.5">{p.employeeName || "Staff"}</td>
+                        <td className="border-r border-[#d0cfc5] px-2 py-0.5 text-center font-mono text-gray-700">{formatDateTime(p.timestamp || p.punchTime)}</td>
+                        <td className="border-r border-[#d0cfc5] px-2 py-0.5 text-center">
+                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${p.punchType === "IN" ? "bg-green-100 text-green-800" : "bg-blue-100 text-blue-800"}`}>
+                            {p.punchType || "IN"}
+                          </span>
+                        </td>
+                        <td className="border-r border-[#d0cfc5] px-2 py-0.5 text-center font-mono text-gray-600">{p.verifyType || "Fingerprint"}</td>
+                        <td className="px-2 py-0.5 text-gray-700">{p.deviceName || "Main Staff Gate [192.168.1.200]"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : (
+            <SstAttendanceDailyGrid
+              year={sstYear}
+              month={sstMonth}
+              department={sstDepartment}
+              employees={sstEmployees}
+              onCalculateAll={handleCalculateAll}
+              onCalculateTime={handleCalculateTime}
+              onUpdatePunchCell={handleUpdatePunchCell}
+              isMonthClosed={sstMonth <= 10 && sstYear === 2026}
+            />
+          )}
+        </SstAttendanceDesktopShell>
+      ) : (
     <div className="space-y-6 p-6">
       {/* Top Header & Property Switcher */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-5">
@@ -598,6 +1103,13 @@ export default function AttendancePage() {
 
         {/* Property Selector & Quick Process */}
         <div className="flex flex-wrap items-center gap-3">
+          <Button
+            variant="outline"
+            onClick={() => setViewTheme("sst")}
+            className="border-[#0055ea] text-[#0055ea] hover:bg-blue-50 dark:hover:bg-blue-950/40 gap-2 font-bold text-xs rounded-xl shadow-xs"
+          >
+            🖥️ {ar ? "نمط SST 26.0 الكلاسيكي" : "SST 26.0 Classic Mode"}
+          </Button>
           <div className="flex items-center gap-2 bg-muted/50 p-1.5 rounded-lg border">
             <Building2 className="w-4 h-4 text-muted-foreground ml-1" />
             <select
@@ -2134,6 +2646,24 @@ export default function AttendancePage() {
         />
       )}
 
-    </div>
+        </div>
+      )}
+
+      {/* SST Hotel Selection Dialog */}
+      <SstHotelSelectionDialog
+        isOpen={isCompanySelectorOpen}
+        onClose={() => setIsCompanySelectorOpen(false)}
+        onSelectProperty={(hotel) => {
+          setSelectedSstHotel(hotel);
+          setIsCompanySelectorOpen(false);
+          toast.success(
+            ar
+              ? `تم اختيار المنشأة: ${hotel.nameAr}`
+              : `Selected Property: ${hotel.nameEn}`
+          );
+        }}
+        initialSelectedCode={selectedSstHotel.code}
+      />
+    </>
   );
 }
