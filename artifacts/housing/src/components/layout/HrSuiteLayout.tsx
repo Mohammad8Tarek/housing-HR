@@ -304,14 +304,14 @@ export function HrSuiteLayout({ children, activeModule }: HrSuiteLayoutProps) {
     : (ar ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />);
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] flex flex-col" dir={ar ? "rtl" : "ltr"}>
+    <div className="min-h-screen bg-[#070d18] text-slate-100 flex flex-col font-sans" dir={ar ? "rtl" : "ltr"}>
       {/* ─── 1. Top Enterprise Header & Standalone System Switcher ─────── */}
-      <header className="border-b bg-white sticky top-0 z-40 px-3 sm:px-6 h-14 flex items-center justify-between shadow-xs">
+      <header className="border-b border-[#dfba73]/25 bg-[#070d18]/95 backdrop-blur-xl sticky top-0 z-40 px-3 sm:px-6 h-14 flex items-center justify-between shadow-lg">
         <div className="flex items-center gap-2 sm:gap-3">
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMobileOpen(!isMobileOpen)}
-            className="md:hidden p-1.5 rounded-lg text-slate-600 hover:bg-slate-100"
+            className="md:hidden p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800"
             aria-label="Toggle Navigation"
           >
             {isMobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -319,40 +319,40 @@ export function HrSuiteLayout({ children, activeModule }: HrSuiteLayoutProps) {
 
           {/* Brand Logo & Name */}
           <Link href="/apps">
-            <div className="flex items-center gap-2 cursor-pointer">
-              <div className="w-8 h-8 rounded-lg bg-[#0f2942] text-[#c89332] flex items-center justify-center font-black font-serif text-sm shadow-xs">
+            <div className="flex items-center gap-2.5 cursor-pointer group">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#dfba73] via-[#c89332] to-[#9a7b38] text-[#070d18] flex items-center justify-center font-black font-serif text-sm shadow-md shadow-[#dfba73]/20 border border-amber-300/40 group-hover:scale-105 transition-transform">
                 S
               </div>
               <div className="hidden lg:block">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-xs font-black text-[#0f2942] tracking-wider">SUNRISE</span>
-                  <span className="text-[10px] font-bold text-[#c89332] bg-amber-50 border border-amber-200/70 px-1.5 py-0.2 rounded">
-                    Enterprise Suite
+                  <span className="text-xs font-black tracking-wider text-white">SUNRISE</span>
+                  <span className="text-[10px] font-bold text-[#dfba73] bg-[#dfba73]/10 border border-[#dfba73]/30 px-1.5 py-0.5 rounded-md">
+                    Enterprise Suites
                   </span>
                 </div>
               </div>
             </div>
           </Link>
 
-          <div className="hidden md:block h-6 w-px bg-slate-200 mx-1"></div>
+          <div className="hidden md:block h-6 w-px bg-slate-800 mx-1"></div>
 
           {/* ─── ACTIVE APPLICATION ISOLATED IDENTITY BADGE ───────────────────────── */}
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700/60 shadow-2xs">
-            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-            <div className="flex items-center gap-1.5 text-xs font-bold text-foreground">
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-[#0b1424] rounded-xl border border-slate-800 shadow-xs">
+            <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+            <div className="flex items-center gap-1.5 text-xs font-bold text-white">
               {currentDomain === "payroll" ? (
                 <>
-                  <DollarSign className="w-3.5 h-3.5 text-[#c89332]" />
+                  <DollarSign className="w-3.5 h-3.5 text-[#dfba73]" />
                   <span>{ar ? "استوديو الرواتب والأجور (Payroll Studio)" : "Payroll & Compensation Studio"}</span>
                 </>
               ) : currentDomain === "attendance" ? (
                 <>
-                  <Fingerprint className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                  <Fingerprint className="w-3.5 h-3.5 text-cyan-400" />
                   <span>{ar ? "منظومة الحضور والانصراف والبصمة (Attendance)" : "Attendance & Biometrics Suite"}</span>
                 </>
               ) : (
                 <>
-                  <Users className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                  <Users className="w-3.5 h-3.5 text-purple-400" />
                   <span>{ar ? "الموارد البشرية وشؤون العاملين (Core HRMS)" : "Core HRMS & Talent Suite"}</span>
                 </>
               )}
@@ -363,7 +363,7 @@ export function HrSuiteLayout({ children, activeModule }: HrSuiteLayoutProps) {
         {/* Right Action Icons: Property Picker, Language Toggle, User Profile */}
         <div className="flex items-center gap-2 sm:gap-2.5">
           {/* Property Scope Locked Vault Indicator */}
-          <div className="flex items-center gap-1.5 sm:gap-2 bg-[#0d1320] text-[#dde2f5] border border-[#dfba73]/40 px-2 sm:px-3 py-1 rounded-xl text-xs shadow-xs">
+          <div className="flex items-center gap-1.5 sm:gap-2 bg-[#0c1626] text-slate-200 border border-[#dfba73]/40 px-2 sm:px-3 py-1 rounded-xl text-xs shadow-xs">
             <Lock className="w-3.5 h-3.5 text-[#dfba73] shrink-0" />
             <div className="flex items-center gap-1.5 font-bold">
               <span className="text-white max-w-[100px] truncate sm:max-w-[180px]">
@@ -383,25 +383,24 @@ export function HrSuiteLayout({ children, activeModule }: HrSuiteLayoutProps) {
           </div>
 
           {/* Language Toggle */}
-          <Button
-            variant="ghost"
-            size="sm"
+          <button
+            type="button"
             onClick={() => setLanguage(ar ? "en" : "ar")}
-            className="text-xs text-slate-600 hover:text-[#0f2942] hover:bg-slate-100 rounded-lg h-8 px-2 gap-1"
+            className="flex items-center gap-1 px-2.5 py-1.5 text-xs text-slate-300 hover:text-white bg-[#0f1d33] hover:bg-[#152744] border border-slate-700/80 rounded-xl transition-all cursor-pointer"
           >
-            <Languages className="w-3.5 h-3.5 text-[#c89332]" />
-            <span className="font-semibold">{ar ? "EN" : "عربي"}</span>
-          </Button>
+            <Languages className="w-3.5 h-3.5 text-[#dfba73]" />
+            <span className="font-bold">{ar ? "English" : "العربية"}</span>
+          </button>
 
-          <div className="h-4 w-px bg-slate-200 hidden sm:block"></div>
+          <div className="h-4 w-px bg-slate-800 hidden sm:block"></div>
 
           {/* User Badge */}
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-[#0f2942] text-[#c89332] font-black flex items-center justify-center text-xs shadow-2xs">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#0f1d33] to-[#152744] text-[#dfba73] border border-[#dfba73]/30 font-black flex items-center justify-center text-xs shadow-xs">
               {displayUser?.username?.substring(0, 2).toUpperCase() || "HR"}
             </div>
             <div className="hidden md:block text-start">
-              <div className="text-xs font-bold text-slate-800 leading-tight">
+              <div className="text-xs font-bold text-white leading-tight">
                 {displayUser?.fullName || displayUser?.username}
               </div>
               <div className="text-[10px] text-slate-400 capitalize">
@@ -411,15 +410,15 @@ export function HrSuiteLayout({ children, activeModule }: HrSuiteLayoutProps) {
           </div>
 
           {/* Prominent Sign Out Button */}
-          <Button
-            variant="outline"
+          <button
+            type="button"
             onClick={handleLogout}
-            className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 dark:border-red-900/60 dark:text-red-400 dark:hover:bg-red-950/40 text-xs font-bold gap-1.5 rounded-xl h-8 px-3 shadow-2xs cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-red-300 hover:text-white bg-red-950/40 hover:bg-red-900/60 border border-red-800/50 rounded-xl transition-all shadow-xs cursor-pointer"
             title={ar ? "تسجيل الخروج والعودة لبوابة التطبيقات" : "Sign Out & Return to Launcher"}
           >
-            <LogOut className="w-3.5 h-3.5" />
+            <LogOut className="w-3.5 h-3.5 text-red-400" />
             <span className="hidden sm:inline">{ar ? "تسجيل خروج" : "Sign Out"}</span>
-          </Button>
+          </button>
         </div>
       </header>
 
@@ -427,16 +426,16 @@ export function HrSuiteLayout({ children, activeModule }: HrSuiteLayoutProps) {
       <div className="flex-1 flex overflow-hidden">
         {/* SIDEBAR (Desktop) */}
         <aside
-          className={`hidden md:flex flex-col bg-white border-e border-slate-200 transition-all duration-200 shrink-0 z-30 select-none ${
+          className={`hidden md:flex flex-col bg-[#080f1d] border-e border-slate-800/80 transition-all duration-200 shrink-0 z-30 select-none ${
             isCollapsed ? "w-16" : "w-64"
           }`}
         >
           {/* Sidebar Top: Collapse Toggle & Active Module Indicator */}
-          <div className="p-3 border-b border-slate-100 flex items-center justify-between">
+          <div className="p-3 border-b border-slate-800/80 flex items-center justify-between">
             {!isCollapsed && (
               <div className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-[#c89332]"></span>
-                <span className="text-[11px] font-black uppercase text-slate-700 tracking-wider">
+                <span className="w-2 h-2 rounded-full bg-[#dfba73] animate-pulse"></span>
+                <span className="text-[11px] font-black uppercase text-slate-300 tracking-wider">
                   {currentDomain === "payroll" ? (ar ? "استوديو الرواتب SST" : "Payroll Studio") :
                    currentDomain === "attendance" ? (ar ? "الحضور والبصمة" : "Attendance") : (ar ? "شؤون العاملين" : "Core HRMS")}
                 </span>
@@ -444,7 +443,7 @@ export function HrSuiteLayout({ children, activeModule }: HrSuiteLayoutProps) {
             )}
             <button
               onClick={() => setIsCollapsed(!isCollapsed)}
-              className="p-1 rounded-md text-slate-400 hover:text-[#0f2942] hover:bg-slate-100 ms-auto cursor-pointer"
+              className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 ms-auto cursor-pointer"
               title={isCollapsed ? (ar ? "توسيع" : "Expand") : (ar ? "طي" : "Collapse")}
             >
               {collapseIcon}
@@ -456,7 +455,7 @@ export function HrSuiteLayout({ children, activeModule }: HrSuiteLayoutProps) {
             {navGroups.map((group, gIdx) => (
               <div key={gIdx} className="space-y-1">
                 {!isCollapsed && (
-                  <div className="px-2 py-1 text-[10px] font-black text-slate-400 uppercase tracking-wider">
+                  <div className="px-2 py-1 text-[10px] font-black text-[#dfba73]/70 uppercase tracking-widest">
                     {group.title}
                   </div>
                 )}
@@ -475,14 +474,14 @@ export function HrSuiteLayout({ children, activeModule }: HrSuiteLayoutProps) {
                             window.dispatchEvent(new Event("popstate"));
                           }
                         }}
-                        className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                        className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                           active
-                            ? "bg-[#0f2942] text-white shadow-xs"
-                            : "text-slate-600 hover:bg-slate-50 hover:text-[#0f2942]"
+                            ? "bg-gradient-to-r from-[#dfba73]/20 via-[#dfba73]/10 to-transparent text-[#dfba73] border-s-2 border-[#dfba73] shadow-xs"
+                            : "text-slate-400 hover:bg-[#0f1d33] hover:text-white"
                         } ${isCollapsed ? "justify-center px-0" : ""}`}
                         title={isCollapsed ? item.label : undefined}
                       >
-                        <Icon className={`w-4 h-4 shrink-0 ${active ? "text-[#c89332]" : "text-slate-400"}`} />
+                        <Icon className={`w-4 h-4 shrink-0 ${active ? "text-[#dfba73]" : "text-slate-400"}`} />
                         {!isCollapsed && (
                           <span className="truncate flex-1 text-start">{item.label}</span>
                         )}
@@ -490,8 +489,8 @@ export function HrSuiteLayout({ children, activeModule }: HrSuiteLayoutProps) {
                           <Badge
                             className={`text-[9px] px-1.5 py-0 h-4 ${
                               active
-                                ? "bg-white/20 text-white"
-                                : "bg-amber-100 text-amber-900 border border-amber-200"
+                                ? "bg-[#dfba73]/20 text-[#dfba73] border border-[#dfba73]/40"
+                                : "bg-slate-800 text-slate-300 border border-slate-700"
                             }`}
                           >
                             {item.badge}
@@ -506,19 +505,19 @@ export function HrSuiteLayout({ children, activeModule }: HrSuiteLayoutProps) {
           </div>
 
           {/* Sidebar Footer: System Status */}
-          <div className="p-3 border-t border-slate-100 bg-slate-50/60">
+          <div className="p-3 border-t border-slate-800/80 bg-[#060b14]">
             {!isCollapsed ? (
-              <div className="flex items-center gap-2 text-[10px] text-slate-500">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span className="font-semibold">
+              <div className="flex items-center gap-2 text-[10px] text-slate-400">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span className="font-semibold text-slate-300">
                   {currentDomain === "payroll" ? (ar ? "قاعدة بيانات الرواتب متصلة" : "Payroll DB Online") :
                    currentDomain === "attendance" ? (ar ? "سيرفر البصمة متصل" : "Biometrics Online") : (ar ? "HRMS متصل لحظياً" : "HRMS Online")}
                 </span>
-                <span className="ms-auto font-mono text-[9px] text-slate-400">SST 26.0</span>
+                <span className="ms-auto font-mono text-[9px] text-[#dfba73]">SST 26.0</span>
               </div>
             ) : (
               <div className="flex justify-center">
-                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
               </div>
             )}
           </div>
@@ -527,18 +526,18 @@ export function HrSuiteLayout({ children, activeModule }: HrSuiteLayoutProps) {
         {/* MOBILE DRAWER */}
         {isMobileOpen && (
           <div className="fixed inset-0 z-50 md:hidden flex">
-            <div className="fixed inset-0 bg-black/40" onClick={() => setIsMobileOpen(false)}></div>
-            <div className="relative w-72 bg-white h-full flex flex-col p-4 shadow-xl z-10" dir={ar ? "rtl" : "ltr"}>
-              <div className="flex items-center justify-between pb-3 border-b">
-                <span className="font-bold text-[#0f2942] text-sm">{ar ? "القائمة المركزية" : "Menu"}</span>
-                <button onClick={() => setIsMobileOpen(false)} className="p-1 text-slate-400 hover:text-slate-600">
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-xs" onClick={() => setIsMobileOpen(false)}></div>
+            <div className="relative w-72 bg-[#080f1d] border-e border-slate-800 h-full flex flex-col p-4 shadow-2xl z-10 text-white" dir={ar ? "rtl" : "ltr"}>
+              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                <span className="font-bold text-[#dfba73] text-sm">{ar ? "القائمة المركزية" : "Menu"}</span>
+                <button onClick={() => setIsMobileOpen(false)} className="p-1 text-slate-400 hover:text-white">
                   <X className="w-5 h-5" />
                 </button>
               </div>
               <div className="flex-1 overflow-y-auto py-3 space-y-4">
                 {navGroups.map((group, gIdx) => (
                   <div key={gIdx} className="space-y-1">
-                    <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider px-2">
+                    <div className="text-[10px] font-black text-[#dfba73]/70 uppercase tracking-widest px-2">
                       {group.title}
                     </div>
                     {group.items.map((item, iIdx) => {
@@ -548,11 +547,11 @@ export function HrSuiteLayout({ children, activeModule }: HrSuiteLayoutProps) {
                         <Link key={iIdx} href={item.href}>
                           <button
                             onClick={() => setIsMobileOpen(false)}
-                            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-bold ${
-                              active ? "bg-[#0f2942] text-white" : "text-slate-600 hover:bg-slate-50"
+                            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold ${
+                              active ? "bg-gradient-to-r from-[#dfba73]/20 via-[#dfba73]/10 to-transparent text-[#dfba73] border-s-2 border-[#dfba73]" : "text-slate-400 hover:bg-[#0f1d33] hover:text-white"
                             }`}
                           >
-                            <Icon className={`w-4 h-4 ${active ? "text-[#c89332]" : "text-slate-400"}`} />
+                            <Icon className={`w-4 h-4 ${active ? "text-[#dfba73]" : "text-slate-400"}`} />
                             <span className="text-start">{item.label}</span>
                           </button>
                         </Link>
@@ -566,7 +565,7 @@ export function HrSuiteLayout({ children, activeModule }: HrSuiteLayoutProps) {
         )}
 
         {/* ─── 3. Content View Area ───────────────────────────────────── */}
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto bg-[#070d18] text-slate-100">
           {children}
         </main>
       </div>
