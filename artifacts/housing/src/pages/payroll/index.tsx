@@ -43,7 +43,10 @@ import {
   ArrowRightLeft,
   Lock,
   FileText,
-  Edit3
+  Edit3,
+  Activity,
+  UserCheck,
+  Shield
 } from "lucide-react";
 import { toast } from "sonner";
 import { PermissionGate } from "@/components/ui/permission-gate";
@@ -55,6 +58,8 @@ import { MonthlyTransactionsTab } from "./MonthlyTransactionsTab";
 import { StaffBusManifestTab } from "./StaffBusManifestTab";
 import { VacationsRolloverTab } from "./VacationsRolloverTab";
 import { ReportsCatalogTab } from "./ReportsCatalogTab";
+import { HrUsersTab } from "./HrUsersTab";
+import { HrAuditLogsTab } from "./HrAuditLogsTab";
 import { ClosePeriodModal } from "./ClosePeriodModal";
 import { SstDesktopShell } from "./SstDesktopShell";
 import { SstEmployeeMasterDialog } from "./SstEmployeeMasterDialog";
@@ -137,7 +142,7 @@ export default function PayrollPage() {
     if (typeof window !== "undefined") {
       const p = new URLSearchParams(window.location.search).get("tab");
       if (p === "loans" || p === "penalties") return "operations";
-      if (p && ["runs", "employees", "transactions", "service-charge", "operations", "bus", "rollover", "reports", "wps"].includes(p)) return p;
+      if (p && ["runs", "employees", "transactions", "service-charge", "operations", "bus", "rollover", "reports", "wps", "users", "audit-logs"].includes(p)) return p;
     }
     return "runs";
   };
@@ -147,7 +152,7 @@ export default function PayrollPage() {
     const handlePopState = () => {
       const p = new URLSearchParams(window.location.search).get("tab");
       if (p === "loans" || p === "penalties") setActiveTab("operations");
-      else if (p && ["runs", "employees", "transactions", "service-charge", "operations", "bus", "rollover", "reports", "wps"].includes(p)) {
+      else if (p && ["runs", "employees", "transactions", "service-charge", "operations", "bus", "rollover", "reports", "wps", "users", "audit-logs"].includes(p)) {
         setActiveTab(p);
       }
     };
@@ -655,6 +660,14 @@ export default function PayrollPage() {
           <TabsTrigger value="wps" className="py-2.5 px-3.5 gap-1.5 rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-xs transition-all">
             <FileSpreadsheet className="w-4 h-4 text-purple-500" />
             <span>{ar ? "شيتات WPS والـ GL" : "Bank WPS & GL"}</span>
+          </TabsTrigger>
+          <TabsTrigger value="users" className="py-2.5 px-3.5 gap-1.5 rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-xs transition-all">
+            <UserCheck className="w-4 h-4 text-emerald-500" />
+            <span>{ar ? "المستخدمون والصلاحيات" : "Users & RBAC"}</span>
+          </TabsTrigger>
+          <TabsTrigger value="audit-logs" className="py-2.5 px-3.5 gap-1.5 rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-xs transition-all">
+            <Activity className="w-4 h-4 text-cyan-500" />
+            <span>{ar ? "سجل الرقابة الأمني" : "Security Audit Log"}</span>
           </TabsTrigger>
         </TabsList>
 
@@ -1431,6 +1444,16 @@ export default function PayrollPage() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* ─── TAB 10: HR USERS & RBAC PERMISSIONS (sunrise_payroll_attendance) ─── */}
+        <TabsContent value="users" className="space-y-4">
+          <HrUsersTab />
+        </TabsContent>
+
+        {/* ─── TAB 11: HR SECURITY & OPERATIONS AUDIT LOG (sunrise_payroll_attendance) ─── */}
+        <TabsContent value="audit-logs" className="space-y-4">
+          <HrAuditLogsTab />
         </TabsContent>
       </Tabs>
     </div>

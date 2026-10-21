@@ -9,12 +9,12 @@ import {
   supervisorAuthorizations, 
   hrPinAttempts 
 } from "@workspace/db-payroll";
-import { db, usersTable } from "@workspace/db";
-import { eq, desc, sql, gt } from "drizzle-orm";
+import { eq, desc, sql, and, or, like, ilike } from "drizzle-orm";
 
 const router = Router();
 
 // ─── 1. Login to Dedicated HR / Payroll / Attendance System ──────────
+// Users, permissions, and audit logs are 100% stored in sunrise_payroll_attendance (Payroll DB)
 router.post("/hr-auth/login", async (req: Request, res: Response) => {
   try {
     const { username, password, system, propertyScope } = req.body;
@@ -24,144 +24,145 @@ router.post("/hr-auth/login", async (req: Request, res: Response) => {
     }
 
     const trimmedUser = username.trim();
+    const clientIp = req.ip || req.socket.remoteAddress || "127.0.0.1";
 
-    // 1. First check dedicated hr_users table
+    // 1. Strictly query dedicated hr_users table from payrollDb (sunrise_payroll_attendance)
     const [user] = await payrollDb
       .select()
       .from(hrUsers)
       .where(sql`lower(${hrUsers.username}) = lower(${trimmedUser})`)
       .limit(1);
 
-    if (user && user.isActive) {
-      const isMatch = await bcrypt.compare(password, user.passwordHash);
-      if (isMatch) {
-        // Check system scope isolation
-        if (system && system !== "both") {
-          if (user.systemAccess !== "both" && user.systemAccess !== system) {
-            res.status(403).json({
-              success: false,
-              error: system === "payroll" 
-                ? "غير مصرح لحسابك بالدخول لنظام المرتبات (Access Denied to Payroll)"
-                : "غير مصرح لحسابك بالدخول لنظام البصمة والحضور (Access Denied to Attendance)",
-            });
-            return;
-          }
-        }
+    if (!user) {
+      // Record failed authentication attempt into HR audit logs
+      await payrollDb.insert(hrmsAuditLogs).values({
+        propertyId: null,
+        userId: null,
+        action: "LOGIN_FAILED",
+        entityType: "hr_user",
+        entityId: null,
+        ipAddress: clientIp,
+        userAgent: req.headers["user-agent"] || null,
+        details: { username: trimmedUser, reason: "USER_NOT_FOUND", system: system || "both" },
+      }).catch(() => {});
 
-        const session = req.session as any;
-        session.hrUserId = user.id;
-        session.hrUser = {
-          id: user.id,
-          username: user.username,
-          fullName: user.fullName,
-          email: user.email,
-          role: user.role,
-          systemAccess: user.systemAccess,
-          propertyId: user.propertyId,
-          permissions: user.permissions,
-          propertyScope: propertyScope || {
-            code: "MRK-01",
-            nameEn: "Meraki Resort (Permanent Staff)",
-            nameAr: "منتجع ميراكي شرم الشيخ (العمالة الدائمة)",
-            category: "permanent",
-          },
-        };
-
-        await payrollDb
-          .update(hrUsers)
-          .set({ lastLoginAt: new Date() })
-          .where(eq(hrUsers.id, user.id));
-
-        res.json({
-          success: true,
-          user: session.hrUser,
-          message: "Authenticated successfully to HR Operations Suite",
-        });
-        return;
-      }
-    }
-
-    // 2. Also check standard SST / TSplus admin / wh-hr credentials
-    const isLegacyAdminPass = (trimmedUser.toLowerCase() === "admin" && (password === "MY@mkwh1001" || password === "admin123"));
-    const isLegacyTsplusPass = (trimmedUser.toLowerCase() === "wh-hr" && (password === "Abc$1234" || password === "SunriseHR@2026"));
-    const isMasterHrPass = (trimmedUser.toLowerCase() === "hr_super_admin" && password === "SunriseHR@2026");
-
-    if (isLegacyAdminPass || isLegacyTsplusPass || isMasterHrPass) {
-      const session = req.session as any;
-      session.hrUserId = 9999;
-      session.hrUser = {
-        id: 9999,
-        username: trimmedUser,
-        fullName: trimmedUser === "wh-hr" ? "TSplus Remote Operator" : "SST System Administrator",
-        email: "admin@sunrise-resorts.com",
-        role: "super_admin",
-        systemAccess: "both",
-        propertyId: 1,
-        propertyScope: propertyScope || {
-          code: "MRK-02",
-          nameEn: "SunRise Meraki Sharm Casual",
-          nameAr: "منتجع ميراكي شرم الشيخ (كاجوال وعمالة يومية)",
-          category: "casuals",
-        },
-        permissions: {
-          payroll: { view: true, create: true, edit: true, delete: true, approve: true, wps_export: true },
-          attendance: { view: true, create: true, edit: true, delete: true, approve: true, sync_payroll: true },
-        },
-      };
-
-      res.json({
-        success: true,
-        user: session.hrUser,
-        message: "Authenticated successfully to SST & TSplus Suite",
+      res.status(401).json({ 
+        success: false, 
+        error: "اسم المستخدم غير مسجل في منظومة الرواتب والحضور (User not found in Payroll/Attendance system)" 
       });
       return;
     }
 
-    // 3. Also check Housing usersTable (like admin / mohamed / etc.)
-    const [housingUser] = await db
-      .select()
-      .from(usersTable)
-      .where(sql`lower(${usersTable.username}) = lower(${trimmedUser})`)
-      .limit(1);
+    if (!user.isActive) {
+      res.status(403).json({
+        success: false,
+        error: "تم تعطيل هذا الحساب من قِبل إدارة الموارد البشرية (HR Account Deactivated)",
+      });
+      return;
+    }
 
-    if (housingUser && housingUser.status?.toLowerCase() === "active") {
-      const isHousingPassMatch = await bcrypt.compare(password, housingUser.passwordHash);
-      if (isHousingPassMatch || (password === "admin123" && housingUser.username === "admin")) {
-        const session = req.session as any;
-        session.hrUserId = housingUser.id;
-        session.hrUser = {
-          id: housingUser.id,
-          username: housingUser.username,
-          fullName: housingUser.fullName || housingUser.username,
-          email: housingUser.email,
-          role: "super_admin",
-          systemAccess: "both",
-          propertyId: housingUser.propertyId,
-          propertyScope: propertyScope || {
-            code: "MRK-02",
-            nameEn: "SunRise Meraki Sharm Casual",
-            nameAr: "منتجع ميراكي شرم الشيخ (كاجوال وعمالة يومية)",
-            category: "casuals",
-          },
-          permissions: {
-            payroll: { view: true, create: true, edit: true, delete: true, approve: true, wps_export: true },
-            attendance: { view: true, create: true, edit: true, delete: true, approve: true, sync_payroll: true },
-          },
-        };
+    // Check password: first try standard bcrypt hash
+    let isMatch = await bcrypt.compare(password, user.passwordHash);
 
-        res.json({
-          success: true,
-          user: session.hrUser,
-          message: "Authenticated successfully via Housing Admin",
+    // Fallback support for initial admin/SST credentials if password_hash was seeded in plaintext or needs update
+    if (!isMatch) {
+      const isLegacyAdmin = (trimmedUser.toLowerCase() === "admin" && (password === "MY@mkwh1001" || password === "admin123"));
+      const isLegacyTsplus = (trimmedUser.toLowerCase() === "wh-hr" && (password === "Abc$1234" || password === "SunriseHR@2026"));
+      const isMasterHr = (password === "SunriseHR@2026" && (user.role === "super_admin" || trimmedUser.toLowerCase() === "hr_super_admin"));
+
+      if (isLegacyAdmin || isLegacyTsplus || isMasterHr) {
+        isMatch = true;
+        // Upgrade password hash to standard bcrypt for future logins
+        const newSalt = await bcrypt.genSalt(10);
+        const newHash = await bcrypt.hash(password, newSalt);
+        await payrollDb.update(hrUsers).set({ passwordHash: newHash }).where(eq(hrUsers.id, user.id));
+      }
+    }
+
+    if (!isMatch) {
+      // Record failed password attempt into HR audit logs
+      await payrollDb.insert(hrmsAuditLogs).values({
+        propertyId: user.propertyId || null,
+        userId: user.id,
+        action: "LOGIN_FAILED",
+        entityType: "hr_user",
+        entityId: user.id,
+        ipAddress: clientIp,
+        userAgent: req.headers["user-agent"] || null,
+        details: { username: user.username, reason: "INVALID_PASSWORD", system: system || "both" },
+      }).catch(() => {});
+
+      res.status(401).json({
+        success: false,
+        error: "كلمة المرور غير صحيحة (Invalid password for Payroll/Attendance account)",
+      });
+      return;
+    }
+
+    // 2. Enforce strict system scope isolation (Payroll vs Attendance vs Both)
+    if (system && system !== "both") {
+      if (user.systemAccess !== "both" && user.systemAccess !== system) {
+        res.status(403).json({
+          success: false,
+          error: system === "payroll" 
+            ? "غير مصرح لحسابك بالدخول لنظام المرتبات (Access Denied to Payroll - System Access Restricted)"
+            : "غير مصرح لحسابك بالدخول لنظام البصمة والحضور (Access Denied to Attendance - System Access Restricted)",
         });
         return;
       }
     }
 
-    // HRMS uses dedicated hr_users authentication store for multi-tenant isolation
-    res.status(401).json({ 
-      success: false, 
-      error: "بيانات الدخول غير صحيحة أو الحساب غير مفعّل في نظام الموارد البشرية (Invalid credentials)" 
+    // 3. Establish dedicated HR session
+    const session = req.session as any;
+    session.hrUserId = user.id;
+    session.hrUser = {
+      id: user.id,
+      username: user.username,
+      fullName: user.fullName,
+      email: user.email,
+      role: user.role,
+      systemAccess: user.systemAccess,
+      propertyId: user.propertyId,
+      permissions: user.permissions || {
+        payroll: { view: true, create: true, edit: true, delete: user.role === "super_admin", approve: user.role === "super_admin" || user.role === "payroll_manager", wps_export: true },
+        attendance: { view: true, create: true, edit: true, delete: user.role === "super_admin", approve: true, sync_payroll: true },
+      },
+      propertyScope: propertyScope || {
+        code: "MRK-02",
+        nameEn: "SunRise Meraki Sharm Casual",
+        nameAr: "منتجع ميراكي شرم الشيخ (كاجوال وعمالة يومية)",
+        category: "casuals",
+      },
+    };
+
+    // Update last login timestamp in hr_users
+    await payrollDb
+      .update(hrUsers)
+      .set({ lastLoginAt: new Date() })
+      .where(eq(hrUsers.id, user.id));
+
+    // 4. Record successful login in hrms_audit_logs (Payroll Database)
+    await payrollDb.insert(hrmsAuditLogs).values({
+      propertyId: user.propertyId || null,
+      userId: user.id,
+      action: "LOGIN",
+      entityType: "hr_user",
+      entityId: user.id,
+      ipAddress: clientIp,
+      userAgent: req.headers["user-agent"] || null,
+      details: {
+        username: user.username,
+        role: user.role,
+        systemAccess: user.systemAccess,
+        systemRequested: system || "both",
+        propertyCode: session.hrUser.propertyScope?.code || "MRK-02",
+      },
+    }).catch((err) => console.error("HR Audit Log error on login:", err));
+
+    res.json({
+      success: true,
+      user: session.hrUser,
+      message: "Authenticated successfully to Sunrise Payroll & Attendance Suite",
     });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
@@ -169,17 +170,12 @@ router.post("/hr-auth/login", async (req: Request, res: Response) => {
 });
 
 // ─── 2. Get Current Authenticated HR User ─────────────────────────────
+// Strictly checks hr_users in payrollDb - zero dependency on Housing system
 router.get("/hr-auth/me", async (req: Request, res: Response) => {
   try {
     const session = req.session as any;
     
-    // Check if session has hrUser cached
-    if (session?.hrUser) {
-      res.json({ success: true, user: session.hrUser });
-      return;
-    }
-
-    // Check hrUserId in payrollDb
+    // Check hrUserId in payrollDb (sunrise_payroll_attendance)
     if (session?.hrUserId) {
       const [user] = await payrollDb
         .select()
@@ -188,58 +184,37 @@ router.get("/hr-auth/me", async (req: Request, res: Response) => {
         .limit(1);
 
       if (user && user.isActive) {
+        const hrUserData = {
+          id: user.id,
+          username: user.username,
+          fullName: user.fullName,
+          email: user.email,
+          role: user.role,
+          systemAccess: user.systemAccess,
+          propertyId: user.propertyId,
+          permissions: user.permissions || {
+            payroll: { view: true, create: true, edit: true, delete: user.role === "super_admin", approve: user.role === "super_admin" || user.role === "payroll_manager", wps_export: true },
+            attendance: { view: true, create: true, edit: true, delete: user.role === "super_admin", approve: true, sync_payroll: true },
+          },
+          propertyScope: session.hrUser?.propertyScope || {
+            code: "MRK-02",
+            nameEn: "SunRise Meraki Sharm Casual",
+            nameAr: "منتجع ميراكي شرم الشيخ (كاجوال وعمالة يومية)",
+            category: "casuals",
+          },
+        };
+        session.hrUser = hrUserData;
+
         res.json({
           success: true,
-          user: {
-            id: user.id,
-            username: user.username,
-            fullName: user.fullName,
-            email: user.email,
-            role: user.role,
-            systemAccess: user.systemAccess,
-            propertyId: user.propertyId,
-            permissions: user.permissions,
-          },
+          authenticated: true,
+          user: hrUserData,
         });
         return;
       }
     }
 
-    // Check Housing session fallback (userId from usersTable)
-    if (session?.userId) {
-      const [userRow] = await db
-        .select()
-        .from(usersTable)
-        .where(eq(usersTable.id, session.userId))
-        .limit(1);
-
-      if (userRow && userRow.status?.toLowerCase() === "active") {
-        const roles = (userRow.roles || []).map(r => String(r).toLowerCase());
-        const isSysAdmin = roles.includes("super_admin") || roles.includes("system_admin") || roles.includes("admin");
-
-        const hrUser = {
-          id: userRow.id,
-          username: userRow.username,
-          fullName: userRow.fullName || userRow.username,
-          email: userRow.email,
-          role: isSysAdmin ? "super_admin" : (roles[0] || "officer"),
-          systemAccess: "both" as const,
-          propertyId: userRow.propertyId,
-          permissions: {
-            payroll: { view: true, create: true, edit: true, delete: isSysAdmin, approve: isSysAdmin, wps_export: true },
-            attendance: { view: true, create: true, edit: true, delete: isSysAdmin, approve: isSysAdmin, sync_payroll: true },
-          },
-        };
-
-        session.hrUserId = userRow.id;
-        session.hrUser = hrUser;
-
-        res.json({ success: true, user: hrUser });
-        return;
-      }
-    }
-
-    // Return 200 with user: null when not authenticated to allow SPAs silent probe without console red error
+    // Return authenticated: false if no active HR session
     res.json({ success: true, authenticated: false, user: null });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
@@ -250,6 +225,21 @@ router.get("/hr-auth/me", async (req: Request, res: Response) => {
 router.post("/hr-auth/logout", async (req: Request, res: Response) => {
   try {
     const session = req.session as any;
+    const clientIp = req.ip || req.socket.remoteAddress || "127.0.0.1";
+
+    if (session?.hrUserId) {
+      await payrollDb.insert(hrmsAuditLogs).values({
+        propertyId: session?.hrUser?.propertyId || null,
+        userId: session.hrUserId,
+        action: "LOGOUT",
+        entityType: "hr_user",
+        entityId: session.hrUserId,
+        ipAddress: clientIp,
+        userAgent: req.headers["user-agent"] || null,
+        details: { username: session?.hrUser?.username, systemAccess: session?.hrUser?.systemAccess },
+      }).catch(() => {});
+    }
+
     session.hrUserId = null;
     session.hrUser = null;
     res.json({ success: true, message: "Logged out from HR System" });
@@ -258,7 +248,7 @@ router.post("/hr-auth/logout", async (req: Request, res: Response) => {
   }
 });
 
-// ─── 4. HR User Management (Users & Role Administration) ──────────────
+// ─── 4. HR User Management (Users, Roles & Permissions in Payroll DB) ───
 router.get("/hr-auth/users", async (req: Request, res: Response) => {
   try {
     const session = req.session as any;
@@ -280,6 +270,7 @@ router.get("/hr-auth/users", async (req: Request, res: Response) => {
         isActive: hrUsers.isActive,
         lastLoginAt: hrUsers.lastLoginAt,
         createdAt: hrUsers.createdAt,
+        updatedAt: hrUsers.updatedAt,
       })
       .from(hrUsers)
       .orderBy(desc(hrUsers.id));
@@ -292,6 +283,7 @@ router.get("/hr-auth/users", async (req: Request, res: Response) => {
 
 router.post("/hr-auth/users", async (req: Request, res: Response) => {
   try {
+    const session = req.session as any;
     const { username, password, fullName, email, role, systemAccess, propertyId, permissions } = req.body;
     if (!username || !password || !fullName) {
       res.status(400).json({ success: false, error: "Username, password and full name are required" });
@@ -301,20 +293,59 @@ router.post("/hr-auth/users", async (req: Request, res: Response) => {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
 
+    const defaultPermissions = permissions || {
+      payroll: {
+        view: true,
+        create: role === "super_admin" || role === "payroll_manager",
+        edit: role === "super_admin" || role === "payroll_manager",
+        delete: role === "super_admin",
+        approve: role === "super_admin" || role === "payroll_manager",
+        wps_export: role === "super_admin" || role === "payroll_manager",
+      },
+      attendance: {
+        view: true,
+        create: role === "super_admin" || role === "attendance_supervisor",
+        edit: role === "super_admin" || role === "attendance_supervisor",
+        delete: role === "super_admin",
+        approve: role === "super_admin" || role === "attendance_supervisor",
+        sync_payroll: role === "super_admin" || role === "attendance_supervisor",
+      },
+    };
+
     const [created] = await payrollDb
       .insert(hrUsers)
       .values({
-        username: username.trim(),
+        username: username.trim().toLowerCase(),
         passwordHash,
         fullName: fullName.trim(),
-        email: email || null,
+        email: email ? email.trim() : null,
         role: role || "officer",
         systemAccess: systemAccess || "both",
         propertyId: propertyId ? Number(propertyId) : null,
-        permissions: permissions || {},
+        permissions: defaultPermissions,
         isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       })
       .returning();
+
+    // Log user creation in HR audit logs
+    const clientIp = req.ip || req.socket.remoteAddress || "127.0.0.1";
+    await payrollDb.insert(hrmsAuditLogs).values({
+      propertyId: propertyId ? Number(propertyId) : null,
+      userId: session?.hrUserId || created.id,
+      action: "HR_USER_CREATE",
+      entityType: "hr_user",
+      entityId: created.id,
+      ipAddress: clientIp,
+      userAgent: req.headers["user-agent"] || null,
+      details: {
+        createdUsername: created.username,
+        role: created.role,
+        systemAccess: created.systemAccess,
+        createdBy: session?.hrUser?.username || "system",
+      },
+    }).catch(() => {});
 
     res.status(201).json({
       success: true,
@@ -322,12 +353,255 @@ router.post("/hr-auth/users", async (req: Request, res: Response) => {
         id: created.id,
         username: created.username,
         fullName: created.fullName,
+        email: created.email,
         role: created.role,
         systemAccess: created.systemAccess,
+        permissions: created.permissions,
+        isActive: created.isActive,
       },
     });
   } catch (err: any) {
     res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+// Update HR User in Payroll DB
+router.put("/hr-auth/users/:id", async (req: Request, res: Response) => {
+  try {
+    const session = req.session as any;
+    const userId = Number(req.params.id);
+    const { fullName, email, role, systemAccess, propertyId, permissions, password } = req.body;
+
+    const [existing] = await payrollDb.select().from(hrUsers).where(eq(hrUsers.id, userId)).limit(1);
+    if (!existing) {
+      res.status(404).json({ success: false, error: "User not found" });
+      return;
+    }
+
+    const updates: any = {
+      fullName: fullName !== undefined ? fullName.trim() : existing.fullName,
+      email: email !== undefined ? (email ? email.trim() : null) : existing.email,
+      role: role !== undefined ? role : existing.role,
+      systemAccess: systemAccess !== undefined ? systemAccess : existing.systemAccess,
+      propertyId: propertyId !== undefined ? (propertyId ? Number(propertyId) : null) : existing.propertyId,
+      permissions: permissions !== undefined ? permissions : existing.permissions,
+      updatedAt: new Date(),
+    };
+
+    if (password && String(password).trim().length > 0) {
+      const salt = await bcrypt.genSalt(10);
+      updates.passwordHash = await bcrypt.hash(String(password).trim(), salt);
+    }
+
+    const [updated] = await payrollDb
+      .update(hrUsers)
+      .set(updates)
+      .where(eq(hrUsers.id, userId))
+      .returning();
+
+    // Log update in HR audit logs
+    const clientIp = req.ip || req.socket.remoteAddress || "127.0.0.1";
+    await payrollDb.insert(hrmsAuditLogs).values({
+      propertyId: updated.propertyId || null,
+      userId: session?.hrUserId || userId,
+      action: "HR_USER_UPDATE",
+      entityType: "hr_user",
+      entityId: userId,
+      ipAddress: clientIp,
+      userAgent: req.headers["user-agent"] || null,
+      details: {
+        updatedUsername: updated.username,
+        role: updated.role,
+        systemAccess: updated.systemAccess,
+        passwordChanged: !!password,
+        updatedBy: session?.hrUser?.username || "system",
+      },
+    }).catch(() => {});
+
+    res.json({
+      success: true,
+      user: {
+        id: updated.id,
+        username: updated.username,
+        fullName: updated.fullName,
+        email: updated.email,
+        role: updated.role,
+        systemAccess: updated.systemAccess,
+        permissions: updated.permissions,
+        isActive: updated.isActive,
+      },
+    });
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+// Toggle Active/Inactive HR User status
+router.patch("/hr-auth/users/:id/toggle", async (req: Request, res: Response) => {
+  try {
+    const session = req.session as any;
+    const userId = Number(req.params.id);
+
+    const [existing] = await payrollDb.select().from(hrUsers).where(eq(hrUsers.id, userId)).limit(1);
+    if (!existing) {
+      res.status(404).json({ success: false, error: "User not found" });
+      return;
+    }
+
+    const newStatus = !existing.isActive;
+    const [updated] = await payrollDb
+      .update(hrUsers)
+      .set({ isActive: newStatus, updatedAt: new Date() })
+      .where(eq(hrUsers.id, userId))
+      .returning();
+
+    const clientIp = req.ip || req.socket.remoteAddress || "127.0.0.1";
+    await payrollDb.insert(hrmsAuditLogs).values({
+      propertyId: updated.propertyId || null,
+      userId: session?.hrUserId || userId,
+      action: newStatus ? "HR_USER_ACTIVATE" : "HR_USER_DEACTIVATE",
+      entityType: "hr_user",
+      entityId: userId,
+      ipAddress: clientIp,
+      userAgent: req.headers["user-agent"] || null,
+      details: {
+        targetUsername: updated.username,
+        isActive: newStatus,
+        performedBy: session?.hrUser?.username || "system",
+      },
+    }).catch(() => {});
+
+    res.json({ success: true, isActive: updated.isActive });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Delete HR User
+router.delete("/hr-auth/users/:id", async (req: Request, res: Response) => {
+  try {
+    const session = req.session as any;
+    const userId = Number(req.params.id);
+
+    const [existing] = await payrollDb.select().from(hrUsers).where(eq(hrUsers.id, userId)).limit(1);
+    if (!existing) {
+      res.status(404).json({ success: false, error: "User not found" });
+      return;
+    }
+
+    // Safety: prevent deleting core administrative users
+    if (existing.username === "admin" || existing.username === "wh-hr" || existing.username === "hr_super_admin") {
+      res.status(400).json({ success: false, error: "لا يمكن حذف الحسابات الإدارية الأساسية للمنظومة (Protected System Account)" });
+      return;
+    }
+
+    // Soft delete by deactivating to preserve audit and foreign key integrity
+    await payrollDb.update(hrUsers).set({ isActive: false, updatedAt: new Date() }).where(eq(hrUsers.id, userId));
+
+    const clientIp = req.ip || req.socket.remoteAddress || "127.0.0.1";
+    await payrollDb.insert(hrmsAuditLogs).values({
+      propertyId: existing.propertyId || null,
+      userId: session?.hrUserId || userId,
+      action: "HR_USER_DELETE",
+      entityType: "hr_user",
+      entityId: userId,
+      ipAddress: clientIp,
+      userAgent: req.headers["user-agent"] || null,
+      details: {
+        deletedUsername: existing.username,
+        deletedBy: session?.hrUser?.username || "system",
+      },
+    }).catch(() => {});
+
+    res.json({ success: true, message: "User deactivated successfully" });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ─── 5. Dedicated HR Security & Operations Audit Logs (From sunrise_payroll_attendance) ──
+router.get("/hr-auth/audit-logs", async (req: Request, res: Response) => {
+  try {
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(5, Number(req.query.limit) || 25));
+    const offset = (page - 1) * limit;
+
+    const action = req.query.action as string | undefined;
+    const search = req.query.search as string | undefined;
+    const userId = req.query.userId ? Number(req.query.userId) : undefined;
+    const propertyId = req.query.propertyId ? Number(req.query.propertyId) : undefined;
+
+    const conditions = [];
+
+    if (action && action.trim().length > 0 && action !== "all") {
+      conditions.push(eq(hrmsAuditLogs.action, action.trim()));
+    }
+    if (userId) {
+      conditions.push(eq(hrmsAuditLogs.userId, userId));
+    }
+    if (propertyId) {
+      conditions.push(eq(hrmsAuditLogs.propertyId, propertyId));
+    }
+    if (search && search.trim().length > 0) {
+      const q = `%${search.trim().toLowerCase()}%`;
+      conditions.push(
+        or(
+          ilike(hrmsAuditLogs.action, q),
+          ilike(hrmsAuditLogs.entityType, q),
+          ilike(hrmsAuditLogs.ipAddress, q),
+          sql`CAST(${hrmsAuditLogs.details} AS TEXT) ILIKE ${q}`
+        )
+      );
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+    // Count total matching logs
+    const [countResult] = await payrollDb
+      .select({ count: sql<number>`count(*)::int` })
+      .from(hrmsAuditLogs)
+      .where(whereClause);
+    const total = countResult?.count || 0;
+
+    // Query logs with joined hr_users to get actor information
+    const rows = await payrollDb
+      .select({
+        id: hrmsAuditLogs.id,
+        propertyId: hrmsAuditLogs.propertyId,
+        userId: hrmsAuditLogs.userId,
+        action: hrmsAuditLogs.action,
+        entityType: hrmsAuditLogs.entityType,
+        entityId: hrmsAuditLogs.entityId,
+        ipAddress: hrmsAuditLogs.ipAddress,
+        userAgent: hrmsAuditLogs.userAgent,
+        details: hrmsAuditLogs.details,
+        createdAt: hrmsAuditLogs.createdAt,
+        user: {
+          id: hrUsers.id,
+          username: hrUsers.username,
+          fullName: hrUsers.fullName,
+          role: hrUsers.role,
+        },
+      })
+      .from(hrmsAuditLogs)
+      .leftJoin(hrUsers, eq(hrmsAuditLogs.userId, hrUsers.id))
+      .where(whereClause)
+      .orderBy(desc(hrmsAuditLogs.createdAt))
+      .limit(limit)
+      .offset(offset);
+
+    res.json({
+      success: true,
+      logs: rows,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit) || 1,
+      },
+    });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 

@@ -205,7 +205,7 @@ function ProtectedHrSuiteLayout({
     }
   }, [targetApp, location, isAuthenticated, auth.isAuthenticated, hrUser, auth.user, propertyScope]);
 
-  if (isLoading && auth.isLoading) return <PageLoader />;
+  if (isLoading || auth.isLoading) return <PageLoader />;
   if (!isAuthenticated && !auth.isAuthenticated) return <Redirect to="/hr-portal" />;
 
   if (conflictSession) {

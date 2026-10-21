@@ -45,7 +45,10 @@ import {
   FileText,
   Sun,
   Moon,
-  Laptop
+  Laptop,
+  UserCheck,
+  Activity,
+  Shield
 } from "lucide-react";
 import { recordAppExit } from "@/lib/app-session";
 
@@ -197,6 +200,25 @@ export function HrSuiteLayout({ children, activeModule }: HrSuiteLayoutProps) {
         },
       ],
     },
+    {
+      title: ar ? "5. إدارة المستخدمين والرقابة الأمنية" : "5. Security & RBAC Users",
+      items: [
+        {
+          label: ar ? "مستخدمو المنظومة والصلاحيات" : "HR Users & RBAC Permissions",
+          icon: UserCheck,
+          href: "/payroll?tab=users",
+          tab: "users",
+          badge: "RBAC",
+        },
+        {
+          label: ar ? "سجل الرقابة والعمليات الأمنية" : "Operations Audit Log",
+          icon: Activity,
+          href: "/payroll?tab=audit-logs",
+          tab: "audit-logs",
+          badge: "Live Log",
+        },
+      ],
+    },
   ];
 
   // 2. DEDICATED ATTENDANCE NAVIGATION (Time Machine & Biometrics Architecture)
@@ -236,6 +258,25 @@ export function HrSuiteLayout({ children, activeModule }: HrSuiteLayoutProps) {
           href: "/attendance?tab=leaves",
           tab: "leaves",
           badge: ar ? "إشعار عودة" : "Return",
+        },
+      ],
+    },
+    {
+      title: ar ? "إدارة المستخدمين والرقابة الأمنية" : "Security & RBAC Users",
+      items: [
+        {
+          label: ar ? "مستخدمو المنظومة والصلاحيات" : "HR Users & RBAC Permissions",
+          icon: UserCheck,
+          href: "/payroll?tab=users",
+          tab: "users",
+          badge: "RBAC",
+        },
+        {
+          label: ar ? "سجل حركات النظام والتدقيق" : "Operations Audit Log",
+          icon: Activity,
+          href: "/payroll?tab=audit-logs",
+          tab: "audit-logs",
+          badge: "Live Log",
         },
       ],
     },

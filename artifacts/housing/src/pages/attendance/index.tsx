@@ -49,6 +49,8 @@ import { SstMonthSelectModal } from "./SstMonthSelectModal";
 import { SstVacationRequestModal } from "./SstVacationRequestModal";
 import { SstVacationSignatureModal } from "./SstVacationSignatureModal";
 import { SstHotelSelectionDialog, SstPropertyItem, SUNRISE_SST_HOTELS } from "../auth/SstHotelSelectionDialog";
+import { HrUsersTab } from "../payroll/HrUsersTab";
+import { HrAuditLogsTab } from "../payroll/HrAuditLogsTab";
 
 const SST_DEPARTMENTS = [
   "Centeral Workshop",
@@ -366,7 +368,7 @@ export default function AttendancePage() {
     if (typeof window !== "undefined") {
       const p = new URLSearchParams(window.location.search).get("tab");
       if (p === "roster") return "shifts";
-      if (p && ["daily", "punches", "devices", "shifts", "leaves"].includes(p)) return p;
+      if (p && ["daily", "punches", "devices", "shifts", "leaves", "users", "audit-logs"].includes(p)) return p;
     }
     return "daily";
   };
@@ -376,7 +378,7 @@ export default function AttendancePage() {
     const handlePopState = () => {
       const p = new URLSearchParams(window.location.search).get("tab");
       if (p === "roster") setActiveTab("shifts");
-      else if (p && ["daily", "punches", "devices", "shifts", "leaves"].includes(p)) {
+      else if (p && ["daily", "punches", "devices", "shifts", "leaves", "users", "audit-logs"].includes(p)) {
         setActiveTab(p);
       }
     };
@@ -1251,6 +1253,14 @@ export default function AttendancePage() {
             <TabsTrigger value="leaves" className="gap-2">
               <CalendarRange className="w-4 h-4" />
               {ar ? "الإجازات والأذونات" : "Leaves & Permissions"}
+            </TabsTrigger>
+            <TabsTrigger value="users" className="gap-2 rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-xs transition-all">
+              <UserCheck className="w-3.5 h-3.5 text-emerald-500" />
+              {ar ? "المستخدمون والصلاحيات" : "Users & RBAC"}
+            </TabsTrigger>
+            <TabsTrigger value="audit-logs" className="gap-2 rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-xs transition-all">
+              <Activity className="w-3.5 h-3.5 text-cyan-500" />
+              {ar ? "سجل الرقابة الأمني" : "Security Audit Log"}
             </TabsTrigger>
           </TabsList>
 
@@ -2146,6 +2156,16 @@ export default function AttendancePage() {
               </table>
             </div>
           </Card>
+        </TabsContent>
+
+        {/* ─── TAB: HR USERS & RBAC PERMISSIONS (sunrise_payroll_attendance) ─── */}
+        <TabsContent value="users" className="space-y-4">
+          <HrUsersTab />
+        </TabsContent>
+
+        {/* ─── TAB: HR SECURITY & OPERATIONS AUDIT LOG (sunrise_payroll_attendance) ─── */}
+        <TabsContent value="audit-logs" className="space-y-4">
+          <HrAuditLogsTab />
         </TabsContent>
       </Tabs>
 

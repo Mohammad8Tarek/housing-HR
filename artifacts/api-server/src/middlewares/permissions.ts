@@ -555,8 +555,14 @@ export async function loadAuthUser(
     return null;
   }
 
-  // If authenticated via dedicated HR system
-  if (!userId && hrUserId) {
+  const isHrRoute = 
+    req.originalUrl.includes("/payroll") || 
+    req.originalUrl.includes("/attendance") || 
+    req.originalUrl.includes("/hrms") || 
+    req.originalUrl.includes("/hr-auth");
+
+  // If on an HR route and hrUserId exists, OR if no userId and hrUserId exists -> strictly use dedicated HR system user
+  if (hrUserId && (isHrRoute || !userId)) {
     if (session.hrUser) {
       const u = session.hrUser;
       const isSysAdmin = u.role === "super_admin" || (u.roles || []).includes("super_admin");
